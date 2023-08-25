@@ -7,7 +7,7 @@ require (
 	github.com/rs/zerolog v1.30.0
 	github.com/steadybit/action-kit/go/action_kit_api/v2 v2.7.1
 	github.com/steadybit/action-kit/go/action_kit_sdk v1.1.5
-	github.com/steadybit/action-kit/go/action_kit_test v1.0.9
+	github.com/steadybit/action-kit/go/action_kit_test v1.0.13
 	github.com/steadybit/discovery-kit/go/discovery_kit_api v1.4.1
 	github.com/steadybit/event-kit/go/event_kit_api v1.2.3
 	github.com/steadybit/extension-kit v1.8.7
@@ -39,7 +39,7 @@ require (
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/google/uuid v1.3.0 // indirect
+	github.com/google/uuid v1.3.1 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
