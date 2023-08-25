@@ -4,38 +4,52 @@
 package e2e
 
 import (
-  "github.com/steadybit/action-kit/go/action_kit_api/v2"
+  "context"
+  "github.com/rs/zerolog/log"
   "github.com/steadybit/action-kit/go/action_kit_test/e2e"
-	"github.com/stretchr/testify/require"
-	"testing"
+  "github.com/steadybit/discovery-kit/go/discovery_kit_api"
+  "github.com/steadybit/extension-gcp/extvm"
+  "github.com/stretchr/testify/require"
+  "testing"
+  "time"
 )
 
 func TestWithMinikube(t *testing.T) {
-	extFactory := e2e.HelmExtensionFactory{
-		Name: "extension-scaffold",
-		Port: 8080,
-		ExtraArgs: func(m *e2e.Minikube) []string {
-			return []string{"--set", "logging.level=debug"}
-		},
-	}
+  extFactory := e2e.HelmExtensionFactory{
+    Name: "extension-gcp",
+    Port: 8092,
+    ExtraArgs: func(m *e2e.Minikube) []string {
+      return []string{
+        "--set", "logging.level=debug",
+        "--set", "gcp.level=debug",
+      }
+    },
+  }
 
-	mOpts := e2e.DefaultMiniKubeOpts
-	mOpts.Runtimes = []e2e.Runtime{e2e.RuntimeDocker}
+  mOpts := e2e.DefaultMiniKubeOpts
+  mOpts.Runtimes = []e2e.Runtime{e2e.RuntimeDocker}
 
-	e2e.WithMinikube(t, mOpts, &extFactory, []e2e.WithMinikubeTestCase{
-		{
-			Name: "run scaffold",
-			Test: testRunscaffold,
-		},
-	})
+  e2e.WithMinikube(t, mOpts, &extFactory, []e2e.WithMinikubeTestCase{
+    {
+      Name: "discovery",
+      Test: testDiscovery,
+    },
+  })
 }
 
-func testRunscaffold(t *testing.T, m *e2e.Minikube, e *e2e.Extension) {
-	config := struct{}{}
-	exec, err := e.RunAction("com.steadybit.extension_scaffold.robot.log", &action_kit_api.Target{
-    Name: "robot",
-  }, config, nil)
-	require.NoError(t, err)
-	e2e.AssertLogContains(t, m, e.Pod, "Logging in log action **start**")
-	require.NoError(t, exec.Cancel())
+func testDiscovery(t *testing.T, m *e2e.Minikube, e *e2e.Extension) {
+  log.Info().Msg("Starting testDiscovery")
+  ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+  defer cancel()
+
+  nginxDeployment := e2e.NginxDeployment{Minikube: m}
+  err := nginxDeployment.Deploy("nginx")
+  require.NoError(t, err, "failed to create deployment")
+  defer func() { _ = nginxDeployment.Delete() }()
+
+  _, err = e2e.PollForTarget(ctx, e, extvm.TargetIDVM, func(target discovery_kit_api.Target) bool {
+    return e2e.HasAttribute(target, "gcp-vm.name", "test")
+  })
+  // we do not have a real gcp vm running, so we expect an error
+  require.Error(t, err)
 }

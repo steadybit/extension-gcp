@@ -3,9 +3,9 @@
 # Declare variables to be passed into your templates.
 image:
   # image.name -- The container image to use for the Steadybit scaffold extension.
-  name: ghcr.io/steadybit/extension-scaffold
-  # image.tag -- tag name of the extension-scaffold container image to use.
-  # See https://github.com/steadybit/extension-scaffold/pkgs/container/extension-scaffold/versions for all tags.
+  name: ghcr.io/steadybit/extension-gcp
+  # image.tag -- tag name of the extension-gcp container image to use.
+  # See https://github.com/steadybit/extension-gcp/pkgs/container/extension-gcp/versions for all tags.
   tag: latest
   # image.pullPolicy -- Specifies when to pull the image container.
   pullPolicy: Always
@@ -52,7 +52,7 @@ serviceAccount:
   # serviceAccount.create -- Specifies whether a ServiceAccount should be created.
   create: true
   # serviceAccount.name -- The name of the ServiceAccount to use.
-  name: steadybit-extension-scaffold
+  name: steadybit-extension-gcp
 
 # extra labels to apply to the Kubernetes resources
 extraLabels: {}

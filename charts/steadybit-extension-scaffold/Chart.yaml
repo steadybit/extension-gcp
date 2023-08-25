@@ -1,5 +1,5 @@
 apiVersion: v2
-name: steadybit-extension-scaffold
+name: steadybit-extension-gcp
 description: Steadybit scaffold extension Helm chart for Kubernetes.
 version: 1.0.17
 appVersion: latest
@@ -9,7 +9,7 @@ maintainers:
   - email: daniel.reuter@steadybit.com
     name: reuda
 sources:
-  - https://github.com/steadybit/extension-scaffold
+  - https://github.com/steadybit/extension-gcp
 annotations:
   artifacthub.io/images: |
     - name: logo

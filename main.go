@@ -5,19 +5,16 @@
 package main
 
 import (
-	"github.com/rs/zerolog"
 	"github.com/steadybit/action-kit/go/action_kit_api/v2"
 	"github.com/steadybit/action-kit/go/action_kit_sdk"
 	"github.com/steadybit/discovery-kit/go/discovery_kit_api"
 	"github.com/steadybit/event-kit/go/event_kit_api"
+	"github.com/steadybit/extension-gcp/config"
+	"github.com/steadybit/extension-gcp/extvm"
 	"github.com/steadybit/extension-kit/extbuild"
 	"github.com/steadybit/extension-kit/exthealth"
 	"github.com/steadybit/extension-kit/exthttp"
 	"github.com/steadybit/extension-kit/extlogging"
-	"github.com/steadybit/extension-kit/extruntime"
-	"github.com/steadybit/extension-scaffold/config"
-	"github.com/steadybit/extension-scaffold/extevents"
-	"github.com/steadybit/extension-scaffold/extrobots"
 )
 
 func main() {
@@ -33,7 +30,6 @@ func main() {
 	// Build information is set at compile-time. This line writes the build information to the log.
 	// The information is mostly handy for debugging purposes.
 	extbuild.PrintBuildInformation()
-	extruntime.LogRuntimeInformation(zerolog.DebugLevel)
 
 	//This will start /health/liveness and /health/readiness endpoints on port 8081 for use with kubernetes
 	//The port can be configured using the STEADYBIT_EXTENSION_HEALTH_PORT environment variable
@@ -52,9 +48,9 @@ func main() {
 	// This is a section you will most likely want to change: The registration of HTTP handlers
 	// for your extension. You might want to change these because the names do not fit, or because
 	// you do not have a need for all of them.
-	extrobots.RegisterDiscoveryHandlers()
-	action_kit_sdk.RegisterAction(extrobots.NewLogAction())
-	extevents.RegisterEventListenerHandlers()
+	extvm.RegisterDiscoveryHandlers()
+	//TODO: add action handlers
+	//action_kit_sdk.RegisterAction(extvm.NewVirtualMachineStateAction())
 
 	//This will install a signal handlder, that will stop active actions when receiving a SIGURS1, SIGTERM or SIGINT
 	action_kit_sdk.InstallSignalHandler()
@@ -69,8 +65,8 @@ func main() {
 		// This is the default port under which your extension is accessible.
 		// The port can be configured externally through the
 		// STEADYBIT_EXTENSION_PORT environment variable.
-		// We suggest that you keep port 8080 as the default.
-		Port: 8080,
+		// We suggest that you keep port 8092 as the default.
+		Port: 8093,
 	})
 }
 
@@ -83,17 +79,23 @@ type ExtensionListResponse struct {
 }
 
 func getExtensionList() ExtensionListResponse {
+	discoveries := make([]discovery_kit_api.DescribingEndpointReference, 0)
+	discoveries = append(discoveries, extvm.GetDiscoveryList().Discoveries...)
+	targetAttributes := make([]discovery_kit_api.DescribingEndpointReference, 0)
+	targetAttributes = append(targetAttributes, extvm.GetDiscoveryList().TargetAttributes...)
+	targetEnrichmentRukles := make([]discovery_kit_api.DescribingEndpointReference, 0)
+	targetEnrichmentRukles = append(targetEnrichmentRukles, extvm.GetDiscoveryList().TargetEnrichmentRules...)
+	targetTypes := make([]discovery_kit_api.DescribingEndpointReference, 0)
+	targetTypes = append(targetTypes, extvm.GetDiscoveryList().TargetTypes...)
+
 	return ExtensionListResponse{
-		// See this document to learn more about the action list:
-		// https://github.com/steadybit/action-kit/blob/main/docs/action-api.md#action-list
 		ActionList: action_kit_sdk.GetActionList(),
 
-		// See this document to learn more about the discovery list:
-		// https://github.com/steadybit/discovery-kit/blob/main/docs/discovery-api.md#index-response
-		DiscoveryList: extrobots.GetDiscoveryList(),
-
-		// See this document to learn more about the event listener list:
-		// https://github.com/steadybit/event-kit/blob/main/docs/event-api.md#event-listeners-list
-		EventListenerList: extevents.GetEventListenerList(),
+		DiscoveryList: discovery_kit_api.DiscoveryList{
+			Discoveries:           discoveries,
+			TargetAttributes:      targetAttributes,
+			TargetEnrichmentRules: targetEnrichmentRukles,
+			TargetTypes:           targetTypes,
+		},
 	}
 }
