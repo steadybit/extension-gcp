@@ -9,6 +9,7 @@ import (
   computepb "cloud.google.com/go/compute/apiv1/computepb"
   "context"
   "errors"
+  "fmt"
   "github.com/rs/zerolog/log"
   "github.com/steadybit/discovery-kit/go/discovery_kit_api"
   extension_kit "github.com/steadybit/extension-kit"
@@ -17,6 +18,7 @@ import (
   "github.com/steadybit/extension-kit/extutil"
   "google.golang.org/api/iterator"
   "net/http"
+  "strings"
 )
 
 const discoveryBasePath = "/" + TargetIDVM + "/discovery"
@@ -238,7 +240,7 @@ func GetAllVirtualMachines(ctx context.Context, client *compute.InstancesClient)
   }
   it := client.AggregatedList(ctx, req)
 
-
+  targets := make([]discovery_kit_api.Target, 0)
   for {
     pair, err := it.Next()
     if errors.Is(err, iterator.Done) {
@@ -253,42 +255,54 @@ func GetAllVirtualMachines(ctx context.Context, client *compute.InstancesClient)
       log.Info().Msgf("Instances for %s", pair.Key)
       for _, instance := range instances {
         log.Info().Msgf("- %s %s\n", instance.GetName(), instance.GetMachineType())
+
+        targets = instanceToTarget(instance, targets)
+
+
       }
     }
   }
 
-   targets := make([]discovery_kit_api.Target, 0)
-		//// Print the obtained query results
-		//log.Debug().Msgf("Virtual Machines found: " + strconv.FormatInt(*results.TotalRecords, 10))
-		//	for _, r := range m {
-		//		items := r.(map[string]interface{})
-		//		attributes := make(map[string][]string)
-    //
-		//		//attributes["gcp-vm.vm.name"] = []string{items["name"].(string)}
-		//		//attributes["gcp.subscription.id"] = []string{items["subscriptionId"].(string)}
-		//		//attributes["gcp-vm.vm.id"] = []string{getPropertyValue(properties, "vmId")}
-		//		//attributes["gcp-vm.vm.size"] = []string{getPropertyValue(hardwareProfile, "vmSize")}
-		//		//attributes["gcp-vm.os.name"] = []string{getPropertyValue(instanceView, "osName")}
-		//		//attributes["gcp-vm.hostname"] = []string{getPropertyValue(instanceView, "computerName")}
-		//		//attributes["gcp-vm.os.version"] = []string{getPropertyValue(instanceView, "osVersion")}
-		//		//attributes["gcp-vm.os.type"] = []string{getPropertyValue(osDisk, "osType")}
-		//		//attributes["gcp-vm.power.state"] = []string{getPropertyValue(powerState, "code")}
-		//		//attributes["gcp-vm.network.id"] = []string{getPropertyValue(networkInterfaces, "id")}
-		//		//attributes["gcp.location"] = []string{getPropertyValue(items, "location")}
-		//		//attributes["gcp.resource-group.name"] = []string{getPropertyValue(items, "resourceGroup")}
-    //
-		//		for k, v := range common.GetMapValue(items, "tags") {
-		//			attributes[fmt.Sprintf("gcp-vm.label.%s", strings.ToLower(k))] = []string{extutil.ToString(v)}
-		//		}
-    //
-		//		targets = append(targets, discovery_kit_api.Target{
-		//			Id:         " ",
-		//			TargetType: TargetIDVM,
-		//			Label:      items["name"].(string),
-		//			Attributes: attributes,
-		//		})
-		//	}
+
+
 	  return targets, nil
+}
+
+func instanceToTarget(instance *computepb.Instance, targets []discovery_kit_api.Target) []discovery_kit_api.Target {
+  attributes := make(map[string][]string)
+
+  attributes["gcp-vm.vm.name"] = []string{getStringValue(instance.Name)}
+  id := fmt.Sprintf("%d", instance.Id)
+  attributes["gcp-vm.vm.id"] = []string{id}
+  attributes["gcp-vm.hostname"] = []string{getStringValue(instance.Hostname)}
+  attributes["gcp-vm.vm.size"] = []string{getStringValue(instance.MachineType)}
+  //attributes["gcp.subscription.id"] = []string{items["subscriptionId"].(string)}
+  //attributes["gcp-vm.os.name"] = []string{getPropertyValue(instanceView, "osName")}
+  //attributes["gcp-vm.os.version"] = []string{getPropertyValue(instanceView, "osVersion")}
+  //attributes["gcp-vm.os.type"] = []string{getPropertyValue(osDisk, "osType")}
+  //attributes["gcp-vm.power.state"] = []string{getPropertyValue(powerState, "code")}
+  //attributes["gcp-vm.network.id"] = []string{getPropertyValue(networkInterfaces, "id")}
+  //attributes["gcp.location"] = []string{getPropertyValue(items, "location")}
+  //attributes["gcp.resource-group.name"] = []string{getPropertyValue(items, "resourceGroup")}
+
+  for k, v := range instance.Labels {
+    attributes[fmt.Sprintf("gcp-vm.label.%s", strings.ToLower(k))] = []string{extutil.ToString(v)}
+  }
+
+  targets = append(targets, discovery_kit_api.Target{
+    Id:        id,
+    TargetType: TargetIDVM,
+    Label:      getStringValue(instance.Name),
+    Attributes: attributes,
+  })
+  return targets
+}
+
+func getStringValue(val *string) string {
+  if val != nil {
+    return *val
+  }
+  return ""
 }
 
 func getToHostEnrichmentRule() discovery_kit_api.TargetEnrichmentRule {
