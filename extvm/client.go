@@ -12,7 +12,16 @@ func GetGcpInstancesClient(ctx context.Context) (*compute.InstancesClient, error
   if config.Config.CredentialsKeyfilePath != "" {
     client, err := compute.NewInstancesRESTClient(ctx, option.WithCredentialsFile(config.Config.CredentialsKeyfilePath))
     if err != nil {
-      log.Error().Err(err).Msgf("Failed to create GCP client.")
+      log.Error().Err(err).Msgf("Failed to create GCP client via file.")
+      return nil, err
+    }
+    return client, nil
+  }
+
+  if config.Config.CredentialsKeyfileJson != "" {
+    client, err := compute.NewInstancesRESTClient(ctx, option.WithCredentialsJSON([]byte(config.Config.CredentialsKeyfileJson)))
+    if err != nil {
+      log.Error().Err(err).Msgf("Failed to create GCP client via json string.")
       return nil, err
     }
     return client, nil
