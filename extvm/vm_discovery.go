@@ -241,12 +241,13 @@ func getDiscoveredVMs(w http.ResponseWriter, _ *http.Request, _ []byte) {
 		return
 	}
 	defer instancesClient.Close()
-	targets, err := GetAllVirtualMachines(ctx, instancesClient)
+	instances, err := GetAllVirtualMachinesInstances(ctx, instancesClient)
 	if err != nil {
 		log.Error().Msgf("failed to get all virtual machines: %v", err)
 		exthttp.WriteError(w, extension_kit.ToError("Failed to collect gcp virtual machines information", err))
 		return
 	}
+	targets := InstancesToTargets(instances)
 
 	exthttp.WriteBody(w, discovery_kit_api.DiscoveryData{Targets: &targets})
 }
@@ -255,7 +256,7 @@ type GCPInstancesApi interface {
 	AggregatedList(ctx context.Context, req *computepb.AggregatedListInstancesRequest, opts ...gax.CallOption) *compute.InstancesScopedListPairIterator
 }
 
-func GetAllVirtualMachines(ctx context.Context, client GCPInstancesApi) ([]discovery_kit_api.Target, error) {
+func GetAllVirtualMachinesInstances(ctx context.Context, client GCPInstancesApi) ([]computepb.Instance, error) {
 	projectID := config.Config.ProjectID
 	if projectID == "" {
 		log.Error().Msgf("project id is not set")
@@ -265,8 +266,7 @@ func GetAllVirtualMachines(ctx context.Context, client GCPInstancesApi) ([]disco
 		Project: projectID,
 	}
 	it := client.AggregatedList(ctx, req)
-
-	targets := make([]discovery_kit_api.Target, 0)
+	allInstances := make([]computepb.Instance, 0)
 	for {
 		pair, err := it.Next()
 		if errors.Is(err, iterator.Done) {
@@ -282,20 +282,26 @@ func GetAllVirtualMachines(ctx context.Context, client GCPInstancesApi) ([]disco
 			for _, instance := range instances {
 				log.Debug().Msgf("- %s %s\n", instance.GetName(), instance.GetMachineType())
 
-				targets = instanceToTarget(instance, targets)
+				allInstances = append(allInstances, *instance)
 
 			}
 		}
 	}
-
-	return targets, nil
+	return allInstances, nil
+}
+func InstancesToTargets(instances []computepb.Instance) []discovery_kit_api.Target {
+	targets := make([]discovery_kit_api.Target, 0)
+	for _, instance := range instances {
+		targets = instanceToTarget(&instance, targets)
+	}
+	return targets
 }
 
 func instanceToTarget(instance *computepb.Instance, targets []discovery_kit_api.Target) []discovery_kit_api.Target {
 	attributes := make(map[string][]string)
 
 	attributes["gcp-vm.name"] = []string{getStringValue(instance.Name)}
-	id := fmt.Sprintf("%d", instance.Id)
+	id := fmt.Sprintf("%d", *instance.Id)
 	attributes["gcp-vm.id"] = []string{id}
 	attributes["gcp-vm.hostname"] = []string{getHostname(instance)}
 	attributes["gcp-vm.description"] = []string{getStringValue(instance.Description)}
