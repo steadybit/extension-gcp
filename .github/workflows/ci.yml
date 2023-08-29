@@ -124,7 +124,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Helm
-        uses: gcp/setup-helm@v3
+        uses: azure/setup-helm@v3
         with:
           version: v3.12.2
 
@@ -187,7 +187,7 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Set up Helm
-        uses: gcp/setup-helm@v3
+        uses: azure/setup-helm@v3
         with:
           version: v3.12.2
 
