@@ -32,7 +32,6 @@ func GetGcpInstancesClient(ctx context.Context) (*compute.InstancesClient, error
     log.Error().Err(err).Msgf("Failed to create GCP client.")
     return nil, err
   }
-
   return client, nil
 }
 

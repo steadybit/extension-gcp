@@ -41,13 +41,13 @@ spec:
               memory: {{ .Values.resources.limits.memory }}
               cpu: {{ .Values.resources.limits.cpu }}
           env:
-            - name: STEADYBIT_EXTENSION_CREDENTIALS_KEY_FILE_PATH
+            - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
               valueFrom:
                 secretKeyRef:
                   name: {{ include "gcp.secret.name" . }}
                   key: credentialsKeyfilePath
                   optional: true
-            - name: STEADYBIT_EXTENSION_CREDENTIALS_KEY_FILE_JSON
+            - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_JSON
               valueFrom:
                 secretKeyRef:
                   name: {{ include "gcp.secret.name" . }}

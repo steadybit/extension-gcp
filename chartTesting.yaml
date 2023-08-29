@@ -5,4 +5,4 @@ chart-dirs:
   - charts
 chart-repos:
   - steadybit=https://steadybit.github.io/helm-charts
-helm-extra-args: 
+helm-extra-args:
