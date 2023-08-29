@@ -23,6 +23,23 @@ manifest should match snapshot using podAnnotations and Labels:
         spec:
           containers:
             - env:
+                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEY_FILE_PATH
+                  valueFrom:
+                    secretKeyRef:
+                      key: credentialsKeyfilePath
+                      name: steadybit-extension-gcp
+                      optional: true
+                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEY_FILE_JSON
+                  valueFrom:
+                    secretKeyRef:
+                      key: credentialsKeyfileJson
+                      name: steadybit-extension-gcp
+                      optional: true
+                - name: STEADYBIT_EXTENSION_PROJECT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      key: projectID
+                      name: steadybit-extension-gcp
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -80,6 +97,23 @@ manifest should match snapshot with TLS:
         spec:
           containers:
             - env:
+                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEY_FILE_PATH
+                  valueFrom:
+                    secretKeyRef:
+                      key: credentialsKeyfilePath
+                      name: steadybit-extension-gcp
+                      optional: true
+                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEY_FILE_JSON
+                  valueFrom:
+                    secretKeyRef:
+                      key: credentialsKeyfileJson
+                      name: steadybit-extension-gcp
+                      optional: true
+                - name: STEADYBIT_EXTENSION_PROJECT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      key: projectID
+                      name: steadybit-extension-gcp
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -148,6 +182,23 @@ manifest should match snapshot with extra env vars:
         spec:
           containers:
             - env:
+                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEY_FILE_PATH
+                  valueFrom:
+                    secretKeyRef:
+                      key: credentialsKeyfilePath
+                      name: steadybit-extension-gcp
+                      optional: true
+                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEY_FILE_JSON
+                  valueFrom:
+                    secretKeyRef:
+                      key: credentialsKeyfileJson
+                      name: steadybit-extension-gcp
+                      optional: true
+                - name: STEADYBIT_EXTENSION_PROJECT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      key: projectID
+                      name: steadybit-extension-gcp
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -214,6 +265,23 @@ manifest should match snapshot with extra labels:
         spec:
           containers:
             - env:
+                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEY_FILE_PATH
+                  valueFrom:
+                    secretKeyRef:
+                      key: credentialsKeyfilePath
+                      name: steadybit-extension-gcp
+                      optional: true
+                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEY_FILE_JSON
+                  valueFrom:
+                    secretKeyRef:
+                      key: credentialsKeyfileJson
+                      name: steadybit-extension-gcp
+                      optional: true
+                - name: STEADYBIT_EXTENSION_PROJECT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      key: projectID
+                      name: steadybit-extension-gcp
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -271,6 +339,23 @@ manifest should match snapshot with mutual TLS:
         spec:
           containers:
             - env:
+                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEY_FILE_PATH
+                  valueFrom:
+                    secretKeyRef:
+                      key: credentialsKeyfilePath
+                      name: steadybit-extension-gcp
+                      optional: true
+                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEY_FILE_JSON
+                  valueFrom:
+                    secretKeyRef:
+                      key: credentialsKeyfileJson
+                      name: steadybit-extension-gcp
+                      optional: true
+                - name: STEADYBIT_EXTENSION_PROJECT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      key: projectID
+                      name: steadybit-extension-gcp
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -348,6 +433,23 @@ manifest should match snapshot with mutual TLS using containerPaths:
         spec:
           containers:
             - env:
+                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEY_FILE_PATH
+                  valueFrom:
+                    secretKeyRef:
+                      key: credentialsKeyfilePath
+                      name: steadybit-extension-gcp
+                      optional: true
+                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEY_FILE_JSON
+                  valueFrom:
+                    secretKeyRef:
+                      key: credentialsKeyfileJson
+                      name: steadybit-extension-gcp
+                      optional: true
+                - name: STEADYBIT_EXTENSION_PROJECT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      key: projectID
+                      name: steadybit-extension-gcp
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -411,6 +513,23 @@ manifest should match snapshot without TLS:
         spec:
           containers:
             - env:
+                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEY_FILE_PATH
+                  valueFrom:
+                    secretKeyRef:
+                      key: credentialsKeyfilePath
+                      name: steadybit-extension-gcp
+                      optional: true
+                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEY_FILE_JSON
+                  valueFrom:
+                    secretKeyRef:
+                      key: credentialsKeyfileJson
+                      name: steadybit-extension-gcp
+                      optional: true
+                - name: STEADYBIT_EXTENSION_PROJECT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      key: projectID
+                      name: steadybit-extension-gcp
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT

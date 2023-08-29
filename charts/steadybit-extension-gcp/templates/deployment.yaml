@@ -41,6 +41,23 @@ spec:
               memory: {{ .Values.resources.limits.memory }}
               cpu: {{ .Values.resources.limits.cpu }}
           env:
+            - name: STEADYBIT_EXTENSION_CREDENTIALS_KEY_FILE_PATH
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "gcp.secret.name" . }}
+                  key: credentialsKeyfilePath
+                  optional: true
+            - name: STEADYBIT_EXTENSION_CREDENTIALS_KEY_FILE_JSON
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "gcp.secret.name" . }}
+                  key: credentialsKeyfileJson
+                  optional: true
+            - name: STEADYBIT_EXTENSION_PROJECT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "gcp.secret.name" . }}
+                  key: projectID
             {{- include "extensionlib.deployment.env" (list .) | nindent 12 }}
             {{- with .Values.extraEnv }}
               {{- toYaml . | nindent 12 }}

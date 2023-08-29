@@ -5,15 +5,15 @@ manifest should match snapshot with TLS:
     metadata:
       annotations:
         steadybit.com/extension-auto-discovery: |
-          {"extensions":[{"port":8080,"protocol":"https","types":["ACTION","DISCOVERY","EVENT"]}]}
+          {"extensions":[{"port":8093,"protocol":"https","types":["ACTION","DISCOVERY"]}]}
       labels: null
       name: RELEASE-NAME-steadybit-extension-gcp
       namespace: NAMESPACE
     spec:
       ports:
-        - port: 8080
+        - port: 8093
           protocol: TCP
-          targetPort: 8080
+          targetPort: 8093
       selector:
         app.kubernetes.io/name: steadybit-extension-gcp
 manifest should match snapshot with mutual TLS:
@@ -23,15 +23,15 @@ manifest should match snapshot with mutual TLS:
     metadata:
       annotations:
         steadybit.com/extension-auto-discovery: |
-          {"extensions":[{"port":8080,"protocol":"https","types":["ACTION","DISCOVERY","EVENT"]}]}
+          {"extensions":[{"port":8093,"protocol":"https","types":["ACTION","DISCOVERY"]}]}
       labels: null
       name: RELEASE-NAME-steadybit-extension-gcp
       namespace: NAMESPACE
     spec:
       ports:
-        - port: 8080
+        - port: 8093
           protocol: TCP
-          targetPort: 8080
+          targetPort: 8093
       selector:
         app.kubernetes.io/name: steadybit-extension-gcp
 manifest should match snapshot with mutual TLS using containerPaths:
@@ -41,15 +41,15 @@ manifest should match snapshot with mutual TLS using containerPaths:
     metadata:
       annotations:
         steadybit.com/extension-auto-discovery: |
-          {"extensions":[{"port":8080,"protocol":"https","types":["ACTION","DISCOVERY","EVENT"]}]}
+          {"extensions":[{"port":8093,"protocol":"https","types":["ACTION","DISCOVERY"]}]}
       labels: null
       name: RELEASE-NAME-steadybit-extension-gcp
       namespace: NAMESPACE
     spec:
       ports:
-        - port: 8080
+        - port: 8093
           protocol: TCP
-          targetPort: 8080
+          targetPort: 8093
       selector:
         app.kubernetes.io/name: steadybit-extension-gcp
 manifest should match snapshot without TLS:
@@ -59,14 +59,14 @@ manifest should match snapshot without TLS:
     metadata:
       annotations:
         steadybit.com/extension-auto-discovery: |
-          {"extensions":[{"port":8080,"protocol":"http","types":["ACTION","DISCOVERY","EVENT"]}]}
+          {"extensions":[{"port":8093,"protocol":"http","types":["ACTION","DISCOVERY"]}]}
       labels: null
       name: RELEASE-NAME-steadybit-extension-gcp
       namespace: NAMESPACE
     spec:
       ports:
-        - port: 8080
+        - port: 8093
           protocol: TCP
-          targetPort: 8080
+          targetPort: 8093
       selector:
         app.kubernetes.io/name: steadybit-extension-gcp

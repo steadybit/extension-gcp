@@ -9,8 +9,8 @@ import (
 )
 
 func GetGcpInstancesClient(ctx context.Context) (*compute.InstancesClient, error)  {
-  if config.Config.CredentialsKeyfile != "" {
-    client, err := compute.NewInstancesRESTClient(ctx, option.WithCredentialsFile(config.Config.CredentialsKeyfile))
+  if config.Config.CredentialsKeyfilePath != "" {
+    client, err := compute.NewInstancesRESTClient(ctx, option.WithCredentialsFile(config.Config.CredentialsKeyfilePath))
     if err != nil {
       log.Error().Err(err).Msgf("Failed to create GCP client.")
       return nil, err
