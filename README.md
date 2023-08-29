@@ -8,9 +8,10 @@ Learn about the capabilities of this extension in our [Reliability Hub](https://
 
 ## Configuration
 
-| Environment Variable                       | Helm value | Meaning                                                                                              | Required | Default |
-|--------------------------------------------|------------|------------------------------------------------------------------------------------------------------|----------|---------|
-| `STEADYBIT_EXTENSION_CREDENTIALS_KEY_FILE` |            | To authorize using a JSON key file (https://cloud.google.com/iam/docs/managing-service-account-keys) | false    |         |
+| Environment Variable                       | Helm value | Meaning                                                                                              | Required | Default                                        |
+|--------------------------------------------|------------|------------------------------------------------------------------------------------------------------|----------|------------------------------------------------|
+| `STEADYBIT_EXTENSION_CREDENTIALS_KEY_FILE` |            | To authorize using a JSON key file (https://cloud.google.com/iam/docs/managing-service-account-keys) | false    | Tries to get a client with default google apis |
+| `STEADYBIT_EXTENSION_PROJECT_ID`           |            | The Google Cloud Project ID to be used                                                               | true     |                                                |
 
 The extension supports all environment variables provided by [steadybit/extension-kit](https://github.com/steadybit/extension-kit#environment-variables).
 
@@ -21,7 +22,7 @@ The extension supports all environment variables provided by [steadybit/extensio
 ```sh
 docker run \
   --rm \
-  -p 8080 \
+  -p 8093 \
   --name steadybit-extension-gcp \
   ghcr.io/steadybit/extension-gcp:latest
 ```

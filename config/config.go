@@ -15,6 +15,8 @@ import (
 type Specification struct {
   //STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE
   CredentialsKeyfile string  `json:"credentialsKeyfile" required:"false" split_words:"true"`
+  //STEADYBIT_EXTENSION_PROJECT_ID
+  ProjectID string  `json:"projectId" required:"false" split_words:"true"`
 }
 
 var (

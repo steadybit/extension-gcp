@@ -4,12 +4,12 @@ go 1.20
 
 require (
 	cloud.google.com/go/compute v1.23.0
-	github.com/googleapis/gax-go/v2 v2.11.0 // indirect
+	github.com/googleapis/gax-go/v2 v2.11.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/rs/zerolog v1.30.0
 	github.com/steadybit/action-kit/go/action_kit_api/v2 v2.7.1
 	github.com/steadybit/action-kit/go/action_kit_sdk v1.1.5
-	github.com/steadybit/action-kit/go/action_kit_test v1.0.13
+	github.com/steadybit/action-kit/go/action_kit_test v1.0.15
 	github.com/steadybit/discovery-kit/go/discovery_kit_api v1.4.1
 	github.com/steadybit/event-kit/go/event_kit_api v1.2.3
 	github.com/steadybit/extension-kit v1.8.7

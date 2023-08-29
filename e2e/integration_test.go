@@ -17,11 +17,10 @@ import (
 func TestWithMinikube(t *testing.T) {
   extFactory := e2e.HelmExtensionFactory{
     Name: "extension-gcp",
-    Port: 8092,
+    Port: 8093,
     ExtraArgs: func(m *e2e.Minikube) []string {
       return []string{
         "--set", "logging.level=debug",
-        "--set", "gcp.level=debug",
       }
     },
   }
@@ -37,19 +36,16 @@ func TestWithMinikube(t *testing.T) {
   })
 }
 
+// test the installation of the extension in minikube
 func testDiscovery(t *testing.T, m *e2e.Minikube, e *e2e.Extension) {
   log.Info().Msg("Starting testDiscovery")
   ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
   defer cancel()
 
-  nginxDeployment := e2e.NginxDeployment{Minikube: m}
-  err := nginxDeployment.Deploy("nginx")
-  require.NoError(t, err, "failed to create deployment")
-  defer func() { _ = nginxDeployment.Delete() }()
-
-  _, err = e2e.PollForTarget(ctx, e, extvm.TargetIDVM, func(target discovery_kit_api.Target) bool {
+  _, err := e2e.PollForTarget(ctx, e, extvm.TargetIDVM, func(target discovery_kit_api.Target) bool {
     return e2e.HasAttribute(target, "gcp-vm.name", "test")
   })
   // we do not have a real gcp vm running, so we expect an error
   require.Error(t, err)
 }
+

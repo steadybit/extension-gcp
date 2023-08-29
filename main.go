@@ -75,7 +75,7 @@ func main() {
 type ExtensionListResponse struct {
 	action_kit_api.ActionList       `json:",inline"`
 	discovery_kit_api.DiscoveryList `json:",inline"`
-	event_kit_api.EventListenerList `json:",inline"`
+  event_kit_api.EventListenerList `json:",inline"`
 }
 
 func getExtensionList() ExtensionListResponse {

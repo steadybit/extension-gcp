@@ -45,6 +45,6 @@ WORKDIR /
 
 COPY --from=build /app/extension /extension
 
-EXPOSE 8080
+EXPOSE 8093
 
 ENTRYPOINT ["/extension"]
