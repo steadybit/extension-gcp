@@ -132,7 +132,7 @@ func (e *virtualMachineStateAction) Prepare(_ context.Context, state *VirtualMac
 func (e *virtualMachineStateAction) Start(ctx context.Context, state *VirtualMachineStateChangeState) (*action_kit_api.StartResult, error) {
 	client, err := e.clientProvider(ctx)
 	if err != nil {
-		return nil, extension_kit.ToError(fmt.Sprintf("Failed to initialize gcp client"), err)
+		return nil, extension_kit.ToError("Failed to initialize gcp client", err)
 	}
 
 	if state.Action == "reset" {
