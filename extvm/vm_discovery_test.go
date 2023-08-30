@@ -28,7 +28,7 @@ func TestInstancesToTargets(t *testing.T) {
 	// Given
 	config.Config.ProjectID = "p_extension_gcp"
 	id := uint64(42)
-	instances := []computepb.Instance{
+	instances := []*computepb.Instance{
 		{
 			Name: extutil.Ptr("myVm"),
 			Id:   &id,

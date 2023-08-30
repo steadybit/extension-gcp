@@ -256,7 +256,7 @@ type GCPInstancesApi interface {
 	AggregatedList(ctx context.Context, req *computepb.AggregatedListInstancesRequest, opts ...gax.CallOption) *compute.InstancesScopedListPairIterator
 }
 
-func GetAllVirtualMachinesInstances(ctx context.Context, client GCPInstancesApi) ([]computepb.Instance, error) {
+func GetAllVirtualMachinesInstances(ctx context.Context, client GCPInstancesApi) ([]*computepb.Instance, error) {
 	projectID := config.Config.ProjectID
 	if projectID == "" {
 		log.Error().Msgf("project id is not set")
@@ -266,7 +266,7 @@ func GetAllVirtualMachinesInstances(ctx context.Context, client GCPInstancesApi)
 		Project: projectID,
 	}
 	it := client.AggregatedList(ctx, req)
-	allInstances := make([]computepb.Instance, 0)
+	allInstances := make([]*computepb.Instance, 0)
 	for {
 		pair, err := it.Next()
 		if errors.Is(err, iterator.Done) {
@@ -282,17 +282,17 @@ func GetAllVirtualMachinesInstances(ctx context.Context, client GCPInstancesApi)
 			for _, instance := range instances {
 				log.Debug().Msgf("- %s %s\n", instance.GetName(), instance.GetMachineType())
 
-				allInstances = append(allInstances, *instance)
+				allInstances = append(allInstances, instance)
 
 			}
 		}
 	}
 	return allInstances, nil
 }
-func InstancesToTargets(instances []computepb.Instance) []discovery_kit_api.Target {
+func InstancesToTargets(instances []*computepb.Instance) []discovery_kit_api.Target {
 	targets := make([]discovery_kit_api.Target, 0)
 	for _, instance := range instances {
-		targets = instanceToTarget(&instance, targets)
+		targets = instanceToTarget(instance, targets)
 	}
 	return targets
 }
