@@ -101,6 +101,7 @@ func getTargetDescription() discovery_kit_api.TargetDescription {
 				{Attribute: "steadybit.label"},
 				{Attribute: "gcp.zone"},
 				{Attribute: "gcp.project.id"},
+				{Attribute: "gcp-vm.status"},
 				{Attribute: "gcp-kubernetes-engine.cluster.name"},
 			},
 			OrderBy: []discovery_kit_api.OrderBy{
