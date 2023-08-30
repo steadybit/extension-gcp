@@ -122,3 +122,9 @@ func TestGetToHostEnrichmentRule(t *testing.T) {
 	enrichmentRule := getToHostEnrichmentRule()
 	assert.Greater(t, len(enrichmentRule.Attributes), 3)
 }
+
+func TestGetTargetDescription(t *testing.T) {
+	// just cover this static code
+  targetDescription := getTargetDescription()
+  assert.Greater(t, len(targetDescription.Table.Columns), 2)
+}
