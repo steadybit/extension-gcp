@@ -8,11 +8,11 @@ Learn about the capabilities of this extension in our [Reliability Hub](https://
 
 ## Configuration
 
-| Environment Variable                            | Helm value                 | Meaning                                                                                                                                              | Required | Default                                        |
-|-------------------------------------------------|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|----------|------------------------------------------------|
+| Environment Variable                           | Helm value                 | Meaning                                                                                                                                              | Required | Default                                        |
+|------------------------------------------------|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|----------|------------------------------------------------|
 | `STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH` | gcp.credentialsKeyfilePath | To authorize using a JSON key file via location path (https://cloud.google.com/iam/docs/managing-service-account-keys)                               | false    | Tries to get a client with default google apis |
 | `STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_JSON` | gcp.credentialsKeyfileJson | To authorize using a JSON key file content as string instead of a path to the file (https://cloud.google.com/iam/docs/managing-service-account-keys) | false    | Tries to get a client with default google apis |
-| `STEADYBIT_EXTENSION_PROJECT_ID`                | gcp.projectID              | The Google Cloud Project ID to be used                                                                                                               | true     |                                                |
+| `STEADYBIT_EXTENSION_PROJECT_ID`               | gcp.projectID              | The Google Cloud Project ID to be used                                                                                                               | true     |                                                |
 
 The extension supports all environment variables provided by [steadybit/extension-kit](https://github.com/steadybit/extension-kit#environment-variables).
 
@@ -25,6 +25,8 @@ docker run \
   --rm \
   -p 8093 \
   --name steadybit-extension-gcp \
+  -e STEADYBIT_EXTENSION_PROJECT_ID='YOUR_GCP_PROJECT_ID' \
+  -e STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_JSON='{  "type": "service_account".......' \
   ghcr.io/steadybit/extension-gcp:latest
 ```
 
@@ -39,6 +41,8 @@ helm upgrade steadybit-extension-gcp \
     --timeout 5m0s \
     --create-namespace \
     --namespace steadybit-extension \
+    --set gcp.projectID=YOUR_GCP_PROJECT_ID \
+    --set gcp.credentialsKeyfilePath=PATH_TO_JSON_FILE \
     steadybit-extension-gcp/steadybit-extension-gcp
 ```
 
