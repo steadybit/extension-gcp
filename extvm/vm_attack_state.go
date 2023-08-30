@@ -31,7 +31,6 @@ type VirtualMachineStateChangeState struct {
 }
 
 type virtualMachineStateChangeApi interface {
-	Start(ctx context.Context, req *computepb.StartInstanceRequest, opts ...gax.CallOption) (*compute.Operation, error)
 	Delete(ctx context.Context, req *computepb.DeleteInstanceRequest, opts ...gax.CallOption) (*compute.Operation, error)
 	Stop(ctx context.Context, req *computepb.StopInstanceRequest, opts ...gax.CallOption) (*compute.Operation, error)
 	Reset(ctx context.Context, req *computepb.ResetInstanceRequest, opts ...gax.CallOption) (*compute.Operation, error)
