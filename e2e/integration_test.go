@@ -25,7 +25,7 @@ func TestWithMinikube(t *testing.T) {
 		},
 	}
 
-	e2e.WithMinikube(t, e2e.DefaultMiniKubeOpts(), &extFactory, []e2e.WithMinikubeTestCase{
+	e2e.WithMinikube(t, e2e.DefaultMinikubeOpts(), &extFactory, []e2e.WithMinikubeTestCase{
 		{
 			Name: "discovery",
 			Test: testDiscovery,
