@@ -1,6 +1,6 @@
 apiVersion: v2
 name: steadybit-extension-gcp
-description: Steadybit scaffold extension Helm chart for Kubernetes.
+description: Steadybit gcp extension Helm chart for Kubernetes.
 version: 1.0.3
 appVersion: latest
 home: https://www.steadybit.com/
