@@ -62,6 +62,10 @@ spec:
                 secretKeyRef:
                   name: {{ include "gcp.secret.name" . }}
                   key: projectID
+            {{- if .Values.discovery.attributes.excludes.monitor }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ATTRIBUTES_EXCLUDES_VM
+              value: {{ join "," .Values.discovery.attributes.excludes.vm | quote }}
+            {{- end }}
             {{- include "extensionlib.deployment.env" (list .) | nindent 12 }}
             {{- with .Values.extraEnv }}
               {{- toYaml . | nindent 12 }}

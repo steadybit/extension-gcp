@@ -27,6 +27,7 @@ func (m *gcpResourceGraphClientMock) AggregatedList(ctx context.Context, req *co
 func TestInstancesToTargets(t *testing.T) {
 	// Given
 	config.Config.ProjectID = "p_extension_gcp"
+  config.Config.DiscoveryAttributesExcludesVM = []string{"gcp-vm.label.tag1"}
 	id := uint64(42)
 	instances := []*computepb.Instance{
 		{
@@ -86,8 +87,8 @@ func TestInstancesToTargets(t *testing.T) {
 	assert.Equal(t, []string{"my_cluster"}, target.Attributes["gcp-kubernetes-engine.cluster.name"])
 	assert.Equal(t, []string{"us-east1-a"}, target.Attributes["gcp-kubernetes-engine.cluster.location"])
 	assert.Equal(t, []string{"Tags1,Tags2"}, target.Attributes["gcp-vm.tags"])
-	assert.Equal(t, []string{"Value1"}, target.Attributes["gcp-vm.label.tag1"])
 	assert.Equal(t, []string{"Value2"}, target.Attributes["gcp-vm.label.tag2"])
+	assert.NotContains(t, target.Attributes, "gcp-vm.label.tag1")
 	_, present := target.Attributes["label.name"]
 	assert.False(t, present)
 }

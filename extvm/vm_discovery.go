@@ -13,7 +13,8 @@ import (
 	"github.com/googleapis/gax-go/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/steadybit/discovery-kit/go/discovery_kit_api"
-	"github.com/steadybit/extension-gcp/config"
+  "github.com/steadybit/discovery-kit/go/discovery_kit_commons"
+  "github.com/steadybit/extension-gcp/config"
 	extension_kit "github.com/steadybit/extension-kit"
 	"github.com/steadybit/extension-kit/extbuild"
 	"github.com/steadybit/extension-kit/exthttp"
@@ -296,7 +297,7 @@ func InstancesToTargets(instances []*computepb.Instance) []discovery_kit_api.Tar
 	for _, instance := range instances {
 		targets = instanceToTarget(instance, targets)
 	}
-	return targets
+	return discovery_kit_commons.ApplyAttributeExcludes(targets, config.Config.DiscoveryAttributesExcludesVM)
 }
 
 func instanceToTarget(instance *computepb.Instance, targets []discovery_kit_api.Target) []discovery_kit_api.Target {

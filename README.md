@@ -8,11 +8,12 @@ Learn about the capabilities of this extension in our [Reliability Hub](https://
 
 ## Configuration
 
-| Environment Variable                           | Helm value                 | Meaning                                                                                                                                              | Required | Default                                        |
-|------------------------------------------------|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|----------|------------------------------------------------|
-| `STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH` | gcp.credentialsKeyfilePath | To authorize using a JSON key file via location path (https://cloud.google.com/iam/docs/managing-service-account-keys)                               | false    | Tries to get a client with default google apis |
-| `STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_JSON` | gcp.credentialsKeyfileJson | To authorize using a JSON key file content as string instead of a path to the file (https://cloud.google.com/iam/docs/managing-service-account-keys) | false    | Tries to get a client with default google apis |
-| `STEADYBIT_EXTENSION_PROJECT_ID`               | gcp.projectID              | The Google Cloud Project ID to be used                                                                                                               | true     |                                                |
+| Environment Variable                                   | Helm value                       | Meaning                                                                                                                                              | Required | Default                                        |
+|--------------------------------------------------------|----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|----------|------------------------------------------------|
+| `STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH`         | gcp.credentialsKeyfilePath       | To authorize using a JSON key file via location path (https://cloud.google.com/iam/docs/managing-service-account-keys)                               | false    | Tries to get a client with default google apis |
+| `STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_JSON`         | gcp.credentialsKeyfileJson       | To authorize using a JSON key file content as string instead of a path to the file (https://cloud.google.com/iam/docs/managing-service-account-keys) | false    | Tries to get a client with default google apis |
+| `STEADYBIT_EXTENSION_PROJECT_ID`                       | gcp.projectID                    | The Google Cloud Project ID to be used                                                                                                               | true     |                                                |
+| `STEADYBIT_EXTENSION_DISCOVERY_ATTRIBUTES_EXCLUDES_VM` | discovery.attributes.excludes.vm | List of Target Attributes which will be excluded during discovery. Checked by key equality and supporting trailing "*"                               | false    |                                                |
 
 The extension supports all environment variables provided by [steadybit/extension-kit](https://github.com/steadybit/extension-kit#environment-variables).
 
