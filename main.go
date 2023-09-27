@@ -15,6 +15,7 @@ import (
 	"github.com/steadybit/extension-kit/exthealth"
 	"github.com/steadybit/extension-kit/exthttp"
 	"github.com/steadybit/extension-kit/extlogging"
+	_ "net/http/pprof" //allow pprof
 )
 
 func main() {
@@ -74,7 +75,7 @@ func main() {
 type ExtensionListResponse struct {
 	action_kit_api.ActionList       `json:",inline"`
 	discovery_kit_api.DiscoveryList `json:",inline"`
-  event_kit_api.EventListenerList `json:",inline"`
+	event_kit_api.EventListenerList `json:",inline"`
 }
 
 func getExtensionList() ExtensionListResponse {
