@@ -1,15 +1,15 @@
 package extvm
 
 import (
-  compute "cloud.google.com/go/compute/apiv1"
-  "cloud.google.com/go/compute/apiv1/computepb"
-  "context"
-  "github.com/googleapis/gax-go/v2"
-  "github.com/steadybit/extension-gcp/config"
-  "github.com/steadybit/extension-kit/extutil"
-  "github.com/stretchr/testify/assert"
-  "github.com/stretchr/testify/mock"
-  "testing"
+	compute "cloud.google.com/go/compute/apiv1"
+	"cloud.google.com/go/compute/apiv1/computepb"
+	"context"
+	"github.com/googleapis/gax-go/v2"
+	"github.com/steadybit/extension-gcp/config"
+	"github.com/steadybit/extension-kit/extutil"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"testing"
 )
 
 type gcpResourceGraphClientMock struct {
@@ -27,39 +27,39 @@ func (m *gcpResourceGraphClientMock) AggregatedList(ctx context.Context, req *co
 func TestInstancesToTargets(t *testing.T) {
 	// Given
 	config.Config.ProjectID = "p_extension_gcp"
-  config.Config.DiscoveryAttributesExcludesVM = []string{"gcp-vm.label.tag1"}
+	config.Config.DiscoveryAttributesExcludesVM = []string{"gcp-vm.label.tag1"}
 	id := uint64(42)
 	instances := []*computepb.Instance{
 		{
-			Name: extutil.Ptr("myVm"),
-			Id:   &id,
-      Hostname: extutil.Ptr("asd"),
-      Description: extutil.Ptr("description"),
-      CpuPlatform: extutil.Ptr("intel"),
-      MachineType: extutil.Ptr("fat"),
-      SourceMachineImage: extutil.Ptr("18.04.5 LTS"),
-      Status: extutil.Ptr("top"),
-      StatusMessage: extutil.Ptr("top status"),
-      Zone: extutil.Ptr("/asd/us-east1-a"),
-      Tags: &computepb.Tags{
-        Items: []string{"Tags1", "Tags2"},
-      },
-      Labels: map[string]string{
-        "tag1": "Value1",
-        "tag2": "Value2",
-      },
-      Metadata: &computepb.Metadata{
-        Items: []*computepb.Items{
-          {
-            Key:   extutil.Ptr("cluster-name"),
-            Value: extutil.Ptr("my_cluster"),
-          },
-          {
-            Key:   extutil.Ptr("cluster-location"),
-            Value: extutil.Ptr("us-east1-a"),
-          },
-        },
-      },
+			Name:               extutil.Ptr("myVm"),
+			Id:                 &id,
+			Hostname:           extutil.Ptr("asd"),
+			Description:        extutil.Ptr("description"),
+			CpuPlatform:        extutil.Ptr("intel"),
+			MachineType:        extutil.Ptr("fat"),
+			SourceMachineImage: extutil.Ptr("18.04.5 LTS"),
+			Status:             extutil.Ptr("top"),
+			StatusMessage:      extutil.Ptr("top status"),
+			Zone:               extutil.Ptr("/asd/us-east1-a"),
+			Tags: &computepb.Tags{
+				Items: []string{"Tags1", "Tags2"},
+			},
+			Labels: map[string]string{
+				"tag1": "Value1",
+				"tag2": "Value2",
+			},
+			Metadata: &computepb.Metadata{
+				Items: []*computepb.Items{
+					{
+						Key:   extutil.Ptr("cluster-name"),
+						Value: extutil.Ptr("my_cluster"),
+					},
+					{
+						Key:   extutil.Ptr("cluster-location"),
+						Value: extutil.Ptr("us-east1-a"),
+					},
+				},
+			},
 		},
 	}
 
@@ -96,7 +96,7 @@ func TestInstancesToTargets(t *testing.T) {
 func TestMissingProjectId(t *testing.T) {
 	// Given
 	mockedApi := new(gcpResourceGraphClientMock)
-  config.Config.ProjectID = ""
+	config.Config.ProjectID = ""
 
 	// When
 	_, err := GetAllVirtualMachinesInstances(context.Background(), mockedApi)
@@ -104,7 +104,6 @@ func TestMissingProjectId(t *testing.T) {
 	// Then
 	assert.Equal(t, err.Error(), "project id is not set")
 }
-
 
 func TestGetAttributeDescriptions(t *testing.T) {
 	// just cover this static code
@@ -126,6 +125,6 @@ func TestGetToHostEnrichmentRule(t *testing.T) {
 
 func TestGetTargetDescription(t *testing.T) {
 	// just cover this static code
-  targetDescription := getTargetDescription()
-  assert.Greater(t, len(targetDescription.Table.Columns), 2)
+	targetDescription := getTargetDescription()
+	assert.Greater(t, len(targetDescription.Table.Columns), 2)
 }
