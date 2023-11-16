@@ -48,7 +48,7 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.16.0 // indirect
-	github.com/go-resty/resty/v2 v2.7.0 // indirect
+	github.com/go-resty/resty/v2 v2.10.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -96,7 +96,7 @@ require (
 	github.com/schollz/closestmatch v2.1.0+incompatible // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/steadybit/discovery-kit/go/discovery_kit_test v1.0.2 // indirect
+	github.com/steadybit/discovery-kit/go/discovery_kit_test v1.1.0 // indirect
 	github.com/stretchr/objx v0.5.1 // indirect
 	github.com/tdewolff/minify/v2 v2.20.6 // indirect
 	github.com/tdewolff/parse/v2 v2.7.4 // indirect
