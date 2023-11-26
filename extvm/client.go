@@ -8,7 +8,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-func GetGcpInstancesClient(ctx context.Context) (*compute.InstancesClient, error) {
+func getGcpInstancesClient(ctx context.Context) (*compute.InstancesClient, error) {
 	if config.Config.CredentialsKeyfilePath != "" {
 		client, err := compute.NewInstancesRESTClient(ctx, option.WithCredentialsFile(config.Config.CredentialsKeyfilePath))
 		if err != nil {

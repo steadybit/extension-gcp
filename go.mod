@@ -12,12 +12,15 @@ require (
 	github.com/steadybit/action-kit/go/action_kit_test v1.2.1
 	github.com/steadybit/discovery-kit/go/discovery_kit_api v1.5.0
 	github.com/steadybit/discovery-kit/go/discovery_kit_commons v0.1.0
+	github.com/steadybit/discovery-kit/go/discovery_kit_sdk v1.0.0
 	github.com/steadybit/event-kit/go/event_kit_api v1.3.1
 	github.com/steadybit/extension-kit v1.8.11
 	github.com/stretchr/testify v1.8.4
 	google.golang.org/api v0.151.0
 	google.golang.org/protobuf v1.31.0 // indirect
 )
+
+require google.golang.org/grpc v1.59.0 // indirect
 
 require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
@@ -98,8 +101,8 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/steadybit/discovery-kit/go/discovery_kit_test v1.1.0 // indirect
 	github.com/stretchr/objx v0.5.1 // indirect
-	github.com/tdewolff/minify/v2 v2.20.6 // indirect
-	github.com/tdewolff/parse/v2 v2.7.4 // indirect
+	github.com/tdewolff/minify/v2 v2.20.7 // indirect
+	github.com/tdewolff/parse/v2 v2.7.5 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
@@ -108,6 +111,7 @@ require (
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0 // indirect
 	github.com/yosssi/ace v0.0.5 // indirect
+	github.com/zmwangx/debounce v1.0.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/arch v0.6.0 // indirect
 	golang.org/x/crypto v0.15.0 // indirect
@@ -119,10 +123,9 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.4.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/genproto v0.0.0-20231106174013-bbf56f31fb17 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20231106174013-bbf56f31fb17 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20231106174013-bbf56f31fb17 // indirect
-	google.golang.org/grpc v1.59.0 // indirect
+	google.golang.org/genproto v0.0.0-20231120223509-83a465c0220f // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20231120223509-83a465c0220f // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20231120223509-83a465c0220f // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

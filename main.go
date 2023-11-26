@@ -8,6 +8,7 @@ import (
 	"github.com/steadybit/action-kit/go/action_kit_api/v2"
 	"github.com/steadybit/action-kit/go/action_kit_sdk"
 	"github.com/steadybit/discovery-kit/go/discovery_kit_api"
+	"github.com/steadybit/discovery-kit/go/discovery_kit_sdk"
 	"github.com/steadybit/event-kit/go/event_kit_api"
 	"github.com/steadybit/extension-gcp/config"
 	"github.com/steadybit/extension-gcp/extvm"
@@ -49,7 +50,7 @@ func main() {
 	// This is a section you will most likely want to change: The registration of HTTP handlers
 	// for your extension. You might want to change these because the names do not fit, or because
 	// you do not have a need for all of them.
-	extvm.RegisterDiscoveryHandlers()
+	discovery_kit_sdk.Register(extvm.NewVirtualMachineDiscovery())
 	action_kit_sdk.RegisterAction(extvm.NewVirtualMachineStateAction())
 
 	//This will install a signal handlder, that will stop active actions when receiving a SIGURS1, SIGTERM or SIGINT
@@ -79,23 +80,8 @@ type ExtensionListResponse struct {
 }
 
 func getExtensionList() ExtensionListResponse {
-	discoveries := make([]discovery_kit_api.DescribingEndpointReference, 0)
-	discoveries = append(discoveries, extvm.GetDiscoveryList().Discoveries...)
-	targetAttributes := make([]discovery_kit_api.DescribingEndpointReference, 0)
-	targetAttributes = append(targetAttributes, extvm.GetDiscoveryList().TargetAttributes...)
-	targetEnrichmentRukles := make([]discovery_kit_api.DescribingEndpointReference, 0)
-	targetEnrichmentRukles = append(targetEnrichmentRukles, extvm.GetDiscoveryList().TargetEnrichmentRules...)
-	targetTypes := make([]discovery_kit_api.DescribingEndpointReference, 0)
-	targetTypes = append(targetTypes, extvm.GetDiscoveryList().TargetTypes...)
-
 	return ExtensionListResponse{
-		ActionList: action_kit_sdk.GetActionList(),
-
-		DiscoveryList: discovery_kit_api.DiscoveryList{
-			Discoveries:           discoveries,
-			TargetAttributes:      targetAttributes,
-			TargetEnrichmentRules: targetEnrichmentRukles,
-			TargetTypes:           targetTypes,
-		},
+		ActionList:    action_kit_sdk.GetActionList(),
+		DiscoveryList: discovery_kit_sdk.GetDiscoveryList(),
 	}
 }
