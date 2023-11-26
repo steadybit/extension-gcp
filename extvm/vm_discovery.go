@@ -6,7 +6,7 @@ package extvm
 
 import (
 	compute "cloud.google.com/go/compute/apiv1"
-	computepb "cloud.google.com/go/compute/apiv1/computepb"
+	"cloud.google.com/go/compute/apiv1/computepb"
 	"context"
 	"errors"
 	"fmt"
@@ -14,77 +14,43 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/steadybit/discovery-kit/go/discovery_kit_api"
 	"github.com/steadybit/discovery-kit/go/discovery_kit_commons"
+	"github.com/steadybit/discovery-kit/go/discovery_kit_sdk"
 	"github.com/steadybit/extension-gcp/config"
-	extension_kit "github.com/steadybit/extension-kit"
 	"github.com/steadybit/extension-kit/extbuild"
-	"github.com/steadybit/extension-kit/exthttp"
 	"github.com/steadybit/extension-kit/extutil"
 	"google.golang.org/api/iterator"
-	"net/http"
 	"strings"
+	"time"
 )
 
-const discoveryBasePath = "/" + TargetIDVM + "/discovery"
-
-func RegisterDiscoveryHandlers() {
-	exthttp.RegisterHttpHandler(discoveryBasePath, exthttp.GetterAsHandler(getDiscoveryDescription))
-	exthttp.RegisterHttpHandler(discoveryBasePath+"/target-description", exthttp.GetterAsHandler(getTargetDescription))
-	exthttp.RegisterHttpHandler(discoveryBasePath+"/attribute-descriptions", exthttp.GetterAsHandler(getAttributeDescriptions))
-	exthttp.RegisterHttpHandler(discoveryBasePath+"/discovered-targets", getDiscoveredVMs)
-	exthttp.RegisterHttpHandler(discoveryBasePath+"/rules/gcp-vm-to-container", exthttp.GetterAsHandler(getToContainerEnrichmentRule))
-	exthttp.RegisterHttpHandler(discoveryBasePath+"/rules/gcp-vm-to-host", exthttp.GetterAsHandler(getToHostEnrichmentRule))
+type vmDiscovery struct {
 }
 
 var (
-	virtualMachinesClient *compute.InstancesClient
+	_ discovery_kit_sdk.TargetDescriber          = (*vmDiscovery)(nil)
+	_ discovery_kit_sdk.AttributeDescriber       = (*vmDiscovery)(nil)
+	_ discovery_kit_sdk.EnrichmentRulesDescriber = (*vmDiscovery)(nil)
 )
 
-func GetDiscoveryList() discovery_kit_api.DiscoveryList {
-	return discovery_kit_api.DiscoveryList{
-		Discoveries: []discovery_kit_api.DescribingEndpointReference{
-			{
-				Method: "GET",
-				Path:   discoveryBasePath,
-			},
-		},
-		TargetTypes: []discovery_kit_api.DescribingEndpointReference{
-			{
-				Method: "GET",
-				Path:   discoveryBasePath + "/target-description",
-			},
-		},
-		TargetAttributes: []discovery_kit_api.DescribingEndpointReference{
-			{
-				Method: "GET",
-				Path:   discoveryBasePath + "/attribute-descriptions",
-			},
-		},
-		TargetEnrichmentRules: []discovery_kit_api.DescribingEndpointReference{
-			{
-				Method: "GET",
-				Path:   discoveryBasePath + "/rules/gcp-vm-to-host",
-			},
-			{
-				Method: "GET",
-				Path:   discoveryBasePath + "/rules/gcp-vm-to-container",
-			},
-		},
-	}
+func NewVirtualMachineDiscovery() discovery_kit_sdk.TargetDiscovery {
+	discovery := &vmDiscovery{}
+	return discovery_kit_sdk.NewCachedTargetDiscovery(discovery,
+		discovery_kit_sdk.WithRefreshTargetsNow(),
+		discovery_kit_sdk.WithRefreshTargetsInterval(context.Background(), 30*time.Second),
+	)
 }
 
-func getDiscoveryDescription() discovery_kit_api.DiscoveryDescription {
+func (d *vmDiscovery) Describe() discovery_kit_api.DiscoveryDescription {
 	return discovery_kit_api.DiscoveryDescription{
 		Id:         TargetIDVM,
 		RestrictTo: extutil.Ptr(discovery_kit_api.LEADER),
 		Discover: discovery_kit_api.DescribingEndpointReferenceWithCallInterval{
-			Method:       "GET",
-			Path:         discoveryBasePath + "/discovered-targets",
-			CallInterval: extutil.Ptr("1m"),
+			CallInterval: extutil.Ptr("30s"),
 		},
 	}
 }
 
-func getTargetDescription() discovery_kit_api.TargetDescription {
+func (d *vmDiscovery) DescribeTarget() discovery_kit_api.TargetDescription {
 	return discovery_kit_api.TargetDescription{
 		Id:      TargetIDVM,
 		Version: extbuild.GetSemverVersionStringOrUnknown(),
@@ -115,151 +81,144 @@ func getTargetDescription() discovery_kit_api.TargetDescription {
 	}
 }
 
-func getAttributeDescriptions() discovery_kit_api.AttributeDescriptions {
-	return discovery_kit_api.AttributeDescriptions{
-		Attributes: []discovery_kit_api.AttributeDescription{
-			{
-				Attribute: "gcp-vm.name",
-				Label: discovery_kit_api.PluralLabel{
-					One:   "VM name",
-					Other: "VM names",
-				},
+func (d *vmDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescription {
+	return []discovery_kit_api.AttributeDescription{
+		{
+			Attribute: "gcp-vm.name",
+			Label: discovery_kit_api.PluralLabel{
+				One:   "VM name",
+				Other: "VM names",
 			},
-			{
-				Attribute: "gcp-vm.id",
-				Label: discovery_kit_api.PluralLabel{
-					One:   "VM ID",
-					Other: "VM IDs",
-				},
+		},
+		{
+			Attribute: "gcp-vm.id",
+			Label: discovery_kit_api.PluralLabel{
+				One:   "VM ID",
+				Other: "VM IDs",
 			},
-			{
-				Attribute: "gcp-vm.hostname",
-				Label: discovery_kit_api.PluralLabel{
-					One:   "Host name",
-					Other: "Host names",
-				},
+		},
+		{
+			Attribute: "gcp-vm.hostname",
+			Label: discovery_kit_api.PluralLabel{
+				One:   "Host name",
+				Other: "Host names",
 			},
-			{
-				Attribute: "gcp-vm.description",
-				Label: discovery_kit_api.PluralLabel{
-					One:   "Description",
-					Other: "Descriptions",
-				},
+		},
+		{
+			Attribute: "gcp-vm.description",
+			Label: discovery_kit_api.PluralLabel{
+				One:   "Description",
+				Other: "Descriptions",
 			},
-			{
-				Attribute: "gcp-vm.cpu-platform",
-				Label: discovery_kit_api.PluralLabel{
-					One:   "CPU platform",
-					Other: "CPU platforms",
-				},
+		},
+		{
+			Attribute: "gcp-vm.cpu-platform",
+			Label: discovery_kit_api.PluralLabel{
+				One:   "CPU platform",
+				Other: "CPU platforms",
 			},
-			{
-				Attribute: "gcp-vm.machine-type",
-				Label: discovery_kit_api.PluralLabel{
-					One:   "Machine type",
-					Other: "Machine types",
-				},
+		},
+		{
+			Attribute: "gcp-vm.machine-type",
+			Label: discovery_kit_api.PluralLabel{
+				One:   "Machine type",
+				Other: "Machine types",
 			},
-			{
-				Attribute: "gcp-vm.source-machine-image",
-				Label: discovery_kit_api.PluralLabel{
-					One:   "Source machine image",
-					Other: "Source machine images",
-				},
+		},
+		{
+			Attribute: "gcp-vm.source-machine-image",
+			Label: discovery_kit_api.PluralLabel{
+				One:   "Source machine image",
+				Other: "Source machine images",
 			},
-			{
-				Attribute: "gcp-vm.status",
-				Label: discovery_kit_api.PluralLabel{
-					One:   "Status",
-					Other: "Statuses",
-				},
+		},
+		{
+			Attribute: "gcp-vm.status",
+			Label: discovery_kit_api.PluralLabel{
+				One:   "Status",
+				Other: "Statuses",
 			},
-			{
-				Attribute: "gcp-vm.status-message",
-				Label: discovery_kit_api.PluralLabel{
-					One:   "Status message",
-					Other: "Status messages",
-				},
+		},
+		{
+			Attribute: "gcp-vm.status-message",
+			Label: discovery_kit_api.PluralLabel{
+				One:   "Status message",
+				Other: "Status messages",
 			},
-			{
-				Attribute: "gcp-vm.zone-url",
-				Label: discovery_kit_api.PluralLabel{
-					One:   "Zone URL",
-					Other: "Zone URLs",
-				},
+		},
+		{
+			Attribute: "gcp-vm.zone-url",
+			Label: discovery_kit_api.PluralLabel{
+				One:   "Zone URL",
+				Other: "Zone URLs",
 			},
-			{
-				Attribute: "gcp-vm.tag",
-				Label: discovery_kit_api.PluralLabel{
-					One:   "Tags",
-					Other: "Tags",
-				},
+		},
+		{
+			Attribute: "gcp-vm.tag",
+			Label: discovery_kit_api.PluralLabel{
+				One:   "Tags",
+				Other: "Tags",
 			},
-			{
-				Attribute: "gcp-vm.label",
-				Label: discovery_kit_api.PluralLabel{
-					One:   "Label",
-					Other: "Labels",
-				},
+		},
+		{
+			Attribute: "gcp-vm.label",
+			Label: discovery_kit_api.PluralLabel{
+				One:   "Label",
+				Other: "Labels",
 			},
+		},
 
-			{
-				Attribute: "gcp.zone",
-				Label: discovery_kit_api.PluralLabel{
-					One:   "Zone",
-					Other: "Zones",
-				},
+		{
+			Attribute: "gcp.zone",
+			Label: discovery_kit_api.PluralLabel{
+				One:   "Zone",
+				Other: "Zones",
 			},
+		},
 
-			{
-				Attribute: "gcp.project.id",
-				Label: discovery_kit_api.PluralLabel{
-					One:   "Project ID",
-					Other: "Project IDs",
-				},
+		{
+			Attribute: "gcp.project.id",
+			Label: discovery_kit_api.PluralLabel{
+				One:   "Project ID",
+				Other: "Project IDs",
 			},
-			{
-				Attribute: "gcp-kubernetes-engine.cluster.name",
-				Label: discovery_kit_api.PluralLabel{
-					One:   "Cluster Name",
-					Other: "Cluster Names",
-				},
+		},
+		{
+			Attribute: "gcp-kubernetes-engine.cluster.name",
+			Label: discovery_kit_api.PluralLabel{
+				One:   "Cluster Name",
+				Other: "Cluster Names",
 			},
-			{
-				Attribute: "gcp-kubernetes-engine.cluster.location",
-				Label: discovery_kit_api.PluralLabel{
-					One:   "Cluster Location",
-					Other: "Cluster Locations",
-				},
+		},
+		{
+			Attribute: "gcp-kubernetes-engine.cluster.location",
+			Label: discovery_kit_api.PluralLabel{
+				One:   "Cluster Location",
+				Other: "Cluster Locations",
 			},
 		},
 	}
 }
 
-func getDiscoveredVMs(w http.ResponseWriter, _ *http.Request, _ []byte) {
-	ctx := context.Background()
-	instancesClient, err := GetGcpInstancesClient(ctx)
+func (d *vmDiscovery) DiscoverTargets(ctx context.Context) ([]discovery_kit_api.Target, error) {
+	instancesClient, err := getGcpInstancesClient(ctx)
 	if err != nil {
-		log.Error().Msgf("failed to get client: %v", err)
-		return
+		return nil, fmt.Errorf("failed to get client: %w", err)
 	}
-	defer instancesClient.Close()
-	instances, err := GetAllVirtualMachinesInstances(ctx, instancesClient)
-	if err != nil {
-		log.Error().Msgf("failed to get all virtual machines: %v", err)
-		exthttp.WriteError(w, extension_kit.ToError("Failed to collect gcp virtual machines information", err))
-		return
-	}
-	targets := InstancesToTargets(instances)
+	defer func() { _ = instancesClient.Close() }()
 
-	exthttp.WriteBody(w, discovery_kit_api.DiscoveryData{Targets: &targets})
+	instances, err := getAllVirtualMachinesInstances(ctx, instancesClient)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all virtual machines: %w", err)
+	}
+	return instancesToTargets(instances), nil
 }
 
 type GCPInstancesApi interface {
 	AggregatedList(ctx context.Context, req *computepb.AggregatedListInstancesRequest, opts ...gax.CallOption) *compute.InstancesScopedListPairIterator
 }
 
-func GetAllVirtualMachinesInstances(ctx context.Context, client GCPInstancesApi) ([]*computepb.Instance, error) {
+func getAllVirtualMachinesInstances(ctx context.Context, client GCPInstancesApi) ([]*computepb.Instance, error) {
 	projectID := config.Config.ProjectID
 	if projectID == "" {
 		log.Error().Msgf("project id is not set")
@@ -292,7 +251,7 @@ func GetAllVirtualMachinesInstances(ctx context.Context, client GCPInstancesApi)
 	}
 	return allInstances, nil
 }
-func InstancesToTargets(instances []*computepb.Instance) []discovery_kit_api.Target {
+func instancesToTargets(instances []*computepb.Instance) []discovery_kit_api.Target {
 	targets := make([]discovery_kit_api.Target, 0)
 	for _, instance := range instances {
 		targets = instanceToTarget(instance, targets)
@@ -367,6 +326,13 @@ func getStringValue(val *string) string {
 		return *val
 	}
 	return ""
+}
+
+func (d *vmDiscovery) DescribeEnrichmentRules() []discovery_kit_api.TargetEnrichmentRule {
+	return []discovery_kit_api.TargetEnrichmentRule{
+		getToHostEnrichmentRule(),
+		getToContainerEnrichmentRule(),
+	}
 }
 
 func getToHostEnrichmentRule() discovery_kit_api.TargetEnrichmentRule {

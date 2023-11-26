@@ -64,7 +64,7 @@ func TestInstancesToTargets(t *testing.T) {
 	}
 
 	// When
-	targets := InstancesToTargets(instances)
+	targets := instancesToTargets(instances)
 
 	// Then
 	assert.Equal(t, 1, len(targets))
@@ -99,32 +99,8 @@ func TestMissingProjectId(t *testing.T) {
 	config.Config.ProjectID = ""
 
 	// When
-	_, err := GetAllVirtualMachinesInstances(context.Background(), mockedApi)
+	_, err := getAllVirtualMachinesInstances(context.Background(), mockedApi)
 
 	// Then
 	assert.Equal(t, err.Error(), "project id is not set")
-}
-
-func TestGetAttributeDescriptions(t *testing.T) {
-	// just cover this static code
-	descriptions := getAttributeDescriptions()
-	assert.Greater(t, len(descriptions.Attributes), 10)
-}
-
-func TestGetToContainerEnrichmentRule(t *testing.T) {
-	// just cover this static code
-	enrichmentRule := getToContainerEnrichmentRule()
-	assert.Greater(t, len(enrichmentRule.Attributes), 3)
-}
-
-func TestGetToHostEnrichmentRule(t *testing.T) {
-	// just cover this static code
-	enrichmentRule := getToHostEnrichmentRule()
-	assert.Greater(t, len(enrichmentRule.Attributes), 3)
-}
-
-func TestGetTargetDescription(t *testing.T) {
-	// just cover this static code
-	targetDescription := getTargetDescription()
-	assert.Greater(t, len(targetDescription.Table.Columns), 2)
 }

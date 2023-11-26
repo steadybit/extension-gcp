@@ -170,5 +170,5 @@ func (e *virtualMachineStateAction) Start(ctx context.Context, state *VirtualMac
 }
 
 func defaultClientProvider(ctx context.Context) (virtualMachineStateChangeApi, error) {
-	return GetGcpInstancesClient(ctx)
+	return getGcpInstancesClient(ctx)
 }
