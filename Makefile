@@ -61,8 +61,7 @@ chartlint:
 ## build: build the extension
 .PHONY: build
 build:
-	go mod verify
-	go build -o=./extension
+	goreleaser build --clean --snapshot --single-target -o extension
 
 ## run: run the extension
 .PHONY: run
@@ -72,4 +71,9 @@ run: tidy build
 ## container: build the container image
 .PHONY: container
 container:
-	docker build --build-arg ADDITIONAL_BUILD_PARAMS="-cover -covermode=atomic" --build-arg SKIP_LICENSES_REPORT="true" -t extension-gcp:latest .
+	docker build --build-arg BUILD_WITH_COVERAGE="true" --build-arg SKIP_LICENSES_REPORT="true" -t extension-gcp:latest .
+
+## linuxpkg: build the linux packages
+.PHONY: linuxpkg
+linuxpkg:
+	goreleaser release --clean --snapshot

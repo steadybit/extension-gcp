@@ -3,33 +3,17 @@
 ##
 ## Build
 ##
-FROM --platform=$BUILDPLATFORM golang:1.21-alpine AS build
+FROM --platform=$BUILDPLATFORM goreleaser/goreleaser:v1.22.1 AS build
 
 ARG TARGETOS TARGETARCH
-ARG NAME
-ARG VERSION
-ARG REVISION
-ARG ADDITIONAL_BUILD_PARAMS
+ARG BUILD_WITH_COVERAGE
+ARG BUILD_SNAPSHOT=true
 ARG SKIP_LICENSES_REPORT=false
 
 WORKDIR /app
 
-RUN apk add build-base
-COPY go.mod ./
-COPY go.sum ./
-RUN go mod download
-
 COPY . .
-
-RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build \
-    -ldflags="\
-    -X 'github.com/steadybit/extension-kit/extbuild.ExtensionName=${NAME}' \
-    -X 'github.com/steadybit/extension-kit/extbuild.Version=${VERSION}' \
-    -X 'github.com/steadybit/extension-kit/extbuild.Revision=${REVISION}'" \
-    -o ./extension \
-    ${ADDITIONAL_BUILD_PARAMS}
-RUN make licenses-report
-
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH goreleaser build --snapshot="${BUILD_SNAPSHOT}" --single-target -o extension
 ##
 ## Runtime
 ##
