@@ -1,0 +1,18 @@
+[Unit]
+Description="steadybit extension gcp"
+After=syslog.target
+
+[Service]
+Type=simple
+ExecStart=/opt/steadybit/extension-gcp/extension-gcp
+EnvironmentFile=/etc/steadybit/extension-gcp
+User=steadybit
+Group=steadybit
+SuccessExitStatus=0 143
+Restart=on-failure
+RestartSec=5s
+StandardOutput=append:/var/log/steadybit-extension-gcp.log
+StandardError=append:/var/log/steadybit-extension-gcp.log
+
+[Install]
+WantedBy=multi-user.target

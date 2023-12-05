@@ -1,0 +1,11 @@
+STEADYBIT_LOG_LEVEL=info
+STEADYBIT_LOG_FORMAT=text
+STEADYBIT_EXTENSION_UNIX_SOCKET=/run/steadybit/extension-gcp.sock
+#
+# TODO:
+# Please configure access for the extension to your GCP account.
+# For more information visit https://github.com/steadybit/extension-gcp
+#
+STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH=
+STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_JSON=
+STEADYBIT_EXTENSION_PROJECT_ID=
