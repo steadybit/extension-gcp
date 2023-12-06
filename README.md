@@ -49,5 +49,4 @@ helm upgrade steadybit-extension-gcp \
 
 ## Register the extension
 
-Make sure to register the extension at the steadybit platform. Please refer to
-the [documentation](https://docs.steadybit.com/integrate-with-steadybit/extensions/extension-installation) for more information.
+Make sure to register the extension at the steadybit platform. Please refer to the [documentation](https://docs.steadybit.com/integrate-with-steadybit/extensions/extension-installation) for more information.
