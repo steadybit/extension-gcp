@@ -329,11 +329,15 @@ func getStringValue(val *string) string {
 }
 
 func (d *vmDiscovery) DescribeEnrichmentRules() []discovery_kit_api.TargetEnrichmentRule {
-	return []discovery_kit_api.TargetEnrichmentRule{
+	rules := []discovery_kit_api.TargetEnrichmentRule{
 		getToHostEnrichmentRule(),
 		getToContainerEnrichmentRule(),
 		getToKubernetesNodeEnrichmentRule(),
 	}
+	for _, targetType := range config.Config.EnrichVMDataForTargetTypes {
+		rules = append(rules, getVMToXEnrichmentRule(targetType))
+	}
+	return rules
 }
 
 func getToHostEnrichmentRule() discovery_kit_api.TargetEnrichmentRule {
@@ -405,6 +409,37 @@ func getToKubernetesNodeEnrichmentRule() discovery_kit_api.TargetEnrichmentRule 
 				Matcher: discovery_kit_api.StartsWith,
 				Name:    "gcp-kubernetes-engine.",
 			},
+			{
+				Matcher: discovery_kit_api.Equals,
+				Name:    "gcp.zone",
+			},
+			{
+				Matcher: discovery_kit_api.Equals,
+				Name:    "gcp.project.id",
+			},
+		},
+	}
+}
+
+
+func getVMToXEnrichmentRule(destTargetType string) discovery_kit_api.TargetEnrichmentRule {
+	id := fmt.Sprintf("com.steadybit.extension_gcp.vm.instance-to-%s", destTargetType)
+	return discovery_kit_api.TargetEnrichmentRule{
+		Id:      id,
+		Version: extbuild.GetSemverVersionStringOrUnknown(),
+		Src: discovery_kit_api.SourceOrDestination{
+			Type: TargetIDVM,
+			Selector: map[string]string{
+				"gcp-vm.hostname": "${dest.host.hostname}",
+			},
+		},
+		Dest: discovery_kit_api.SourceOrDestination{
+			Type: destTargetType,
+			Selector: map[string]string{
+				"host.hostname": "${src.gcp-vm.hostname}",
+			},
+		},
+		Attributes: []discovery_kit_api.Attribute{
 			{
 				Matcher: discovery_kit_api.Equals,
 				Name:    "gcp.zone",
