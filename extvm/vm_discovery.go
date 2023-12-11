@@ -332,6 +332,7 @@ func (d *vmDiscovery) DescribeEnrichmentRules() []discovery_kit_api.TargetEnrich
 	return []discovery_kit_api.TargetEnrichmentRule{
 		getToHostEnrichmentRule(),
 		getToContainerEnrichmentRule(),
+		getToKubernetesNodeEnrichmentRule(),
 	}
 }
 
@@ -365,8 +366,52 @@ func getToHostEnrichmentRule() discovery_kit_api.TargetEnrichmentRule {
 				Name:    "gcp-kubernetes-engine.",
 			},
 			{
+				Matcher: discovery_kit_api.Equals,
+				Name:    "gcp.zone",
+			},
+			{
+				Matcher: discovery_kit_api.Equals,
+				Name:    "gcp.project.id",
+			},
+		},
+	}
+}
+func getToKubernetesNodeEnrichmentRule() discovery_kit_api.TargetEnrichmentRule {
+	return discovery_kit_api.TargetEnrichmentRule{
+		Id:      "com.steadybit.extension_gcp.gcp-vm-to-k8s-node",
+		Version: extbuild.GetSemverVersionStringOrUnknown(),
+		Src: discovery_kit_api.SourceOrDestination{
+			Type: TargetIDVM,
+			Selector: map[string]string{
+				"gcp-vm.hostname": "${dest.host.hostname}",
+			},
+		},
+		Dest: discovery_kit_api.SourceOrDestination{
+			Type: "com.steadybit.extension_kubernetes.kubernetes-node",
+			Selector: map[string]string{
+				"host.hostname": "${src.gcp-vm.hostname}",
+			},
+		},
+		Attributes: []discovery_kit_api.Attribute{
+			{
 				Matcher: discovery_kit_api.StartsWith,
-				Name:    "gcp.",
+				Name:    "gcp-vm.label.",
+			},
+			{
+				Matcher: discovery_kit_api.StartsWith,
+				Name:    "gcp-vm.",
+			},
+			{
+				Matcher: discovery_kit_api.StartsWith,
+				Name:    "gcp-kubernetes-engine.",
+			},
+			{
+				Matcher: discovery_kit_api.Equals,
+				Name:    "gcp.zone",
+			},
+			{
+				Matcher: discovery_kit_api.Equals,
+				Name:    "gcp.project.id",
 			},
 		},
 	}
@@ -403,8 +448,12 @@ func getToContainerEnrichmentRule() discovery_kit_api.TargetEnrichmentRule {
 				Name:    "gcp-kubernetes-engine.",
 			},
 			{
-				Matcher: discovery_kit_api.StartsWith,
-				Name:    "gcp.",
+				Matcher: discovery_kit_api.Equals,
+				Name:    "gcp.zone",
+			},
+			{
+				Matcher: discovery_kit_api.Equals,
+				Name:    "gcp.project.id",
 			},
 		},
 	}
