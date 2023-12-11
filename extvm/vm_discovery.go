@@ -147,7 +147,7 @@ func (d *vmDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescript
 			},
 		},
 		{
-			Attribute: "gcp-vm.zone-url",
+			Attribute: "gcp.zone-url",
 			Label: discovery_kit_api.PluralLabel{
 				One:   "Zone URL",
 				Other: "Zone URLs",
@@ -272,7 +272,7 @@ func instanceToTarget(instance *computepb.Instance, targets []discovery_kit_api.
 	attributes["gcp-vm.source-machine-image"] = []string{getStringValue(instance.SourceMachineImage)}
 	attributes["gcp-vm.status"] = []string{getStringValue(instance.Status)}
 	attributes["gcp-vm.status-message"] = []string{getStringValue(instance.StatusMessage)}
-	attributes["gcp-vm.zone-url"] = []string{getStringValue(instance.Zone)}
+	attributes["gcp.zone-url"] = []string{getStringValue(instance.Zone)}
 	attributes["gcp.zone"] = []string{getZone(instance)}
 	attributes["gcp.project.id"] = []string{config.Config.ProjectID}
 	attributes["gcp-kubernetes-engine.cluster.name"] = []string{getMetadata(instance.Metadata, "cluster-name")}

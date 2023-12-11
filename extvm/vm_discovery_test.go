@@ -81,7 +81,7 @@ func TestInstancesToTargets(t *testing.T) {
 	assert.Equal(t, []string{"18.04.5 LTS"}, target.Attributes["gcp-vm.source-machine-image"])
 	assert.Equal(t, []string{"top"}, target.Attributes["gcp-vm.status"])
 	assert.Equal(t, []string{"top status"}, target.Attributes["gcp-vm.status-message"])
-	assert.Equal(t, []string{"/asd/us-east1-a"}, target.Attributes["gcp-vm.zone-url"])
+	assert.Equal(t, []string{"/asd/us-east1-a"}, target.Attributes["gcp.zone-url"])
 	assert.Equal(t, []string{"us-east1-a"}, target.Attributes["gcp.zone"])
 	assert.Equal(t, []string{"p_extension_gcp"}, target.Attributes["gcp.project.id"])
 	assert.Equal(t, []string{"my_cluster"}, target.Attributes["gcp-kubernetes-engine.cluster.name"])
