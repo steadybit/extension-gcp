@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.4
+
+- Update dependencies
+- add enrichment rules for kubernetes entities
+- align attribute naming
+
 ## v1.0.3
 
 - Update dependencies
