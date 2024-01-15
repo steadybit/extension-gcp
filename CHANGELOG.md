@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.5
+
+- Update dependencies
+- fixed enrichment for jvm instances
+
 ## v1.0.4
 
 - Update dependencies
