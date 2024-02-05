@@ -16,7 +16,7 @@ require (
 	github.com/steadybit/event-kit/go/event_kit_api v1.3.1
 	github.com/steadybit/extension-kit v1.8.11
 	github.com/stretchr/testify v1.8.4
-	google.golang.org/api v0.160.0
+	google.golang.org/api v0.161.0
 	google.golang.org/protobuf v1.32.0 // indirect
 )
 
