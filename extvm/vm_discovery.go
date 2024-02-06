@@ -42,8 +42,7 @@ func NewVirtualMachineDiscovery() discovery_kit_sdk.TargetDiscovery {
 
 func (d *vmDiscovery) Describe() discovery_kit_api.DiscoveryDescription {
 	return discovery_kit_api.DiscoveryDescription{
-		Id:         TargetIDVM,
-		RestrictTo: extutil.Ptr(discovery_kit_api.LEADER),
+		Id: TargetIDVM,
 		Discover: discovery_kit_api.DescribingEndpointReferenceWithCallInterval{
 			CallInterval: extutil.Ptr("30s"),
 		},
@@ -420,7 +419,6 @@ func getToKubernetesNodeEnrichmentRule() discovery_kit_api.TargetEnrichmentRule 
 		},
 	}
 }
-
 
 func getVMToXEnrichmentRule(destTargetType string) discovery_kit_api.TargetEnrichmentRule {
 	id := fmt.Sprintf("com.steadybit.extension_gcp.vm.instance-to-%s", destTargetType)
