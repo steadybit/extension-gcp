@@ -19,7 +19,7 @@ require (
 	github.com/steadybit/extension-kit v1.8.12
 	github.com/stretchr/testify v1.9.0
 	google.golang.org/api v0.169.0
-	google.golang.org/protobuf v1.32.0 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 )
 
 require google.golang.org/grpc v1.62.0 // indirect
