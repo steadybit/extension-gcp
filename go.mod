@@ -6,7 +6,7 @@ toolchain go1.21.7
 
 require (
 	cloud.google.com/go/compute v1.25.1
-	github.com/googleapis/gax-go/v2 v2.12.2
+	github.com/googleapis/gax-go/v2 v2.12.3
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/rs/zerolog v1.32.0
 	github.com/steadybit/action-kit/go/action_kit_api/v2 v2.9.0
@@ -102,7 +102,7 @@ require (
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20240304161311-37d4d3c04a78 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240311132316-a219d84964c2 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240304161311-37d4d3c04a78 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240311132316-a219d84964c2 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
