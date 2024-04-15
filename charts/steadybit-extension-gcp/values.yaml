@@ -69,6 +69,8 @@ serviceAccount:
   create: true
   # serviceAccount.name -- The name of the ServiceAccount to use.
   name: steadybit-extension-gcp
+  # serviceAccount.annotations -- Annotations to add to the ServiceAccount.
+  annotations: {}
 
 # extra labels to apply to the Kubernetes resources
 extraLabels: {}
