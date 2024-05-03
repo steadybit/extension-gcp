@@ -121,7 +121,6 @@ extraEnvFrom: []
 
 gcp:
   credentialsKeyfilePath: ""
-  credentialsKeyfileJson: ""
   projectID: ""
   # gcp.existingSecret -- If defined, will skip secret creation and instead assume that the referenced secret contains the keys credentialsKeyfile, projectID
   existingSecret: null

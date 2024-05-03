@@ -6,12 +6,21 @@ tests:
   - it: manifest should match snapshot without TLS
     asserts:
       - matchSnapshot: { }
+  - it: manifest should match snapshot with credentials secret path
+    set:
+      gcp:
+        existingSecret: extension-gcp
+        projectID: some-project-id
+    asserts:
+      - matchSnapshot: { }
   - it: manifest should match snapshot using podAnnotations and Labels
     set:
       podAnnotations:
         some-annotation: "some-annotation-value"
       podLabels:
         some-label: "some-label-value"
+      gcp:
+        projectID: some-project-id
     asserts:
       - matchSnapshot: { }
   - it: manifest should match snapshot with TLS
@@ -33,6 +42,8 @@ tests:
             fromSecrets:
               - client-cert-a
               - client-cert-a
+      gcp:
+        projectID: some-project-id
     asserts:
       - matchSnapshot: { }
   - it: manifest should match snapshot with mutual TLS using containerPaths

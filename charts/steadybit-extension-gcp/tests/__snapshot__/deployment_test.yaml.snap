@@ -29,22 +29,9 @@ manifest should match snapshot using podAnnotations and Labels:
           containers:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
-                  valueFrom:
-                    secretKeyRef:
-                      key: credentialsKeyfilePath
-                      name: steadybit-extension-gcp
-                      optional: true
-                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_JSON
-                  valueFrom:
-                    secretKeyRef:
-                      key: credentialsKeyfileJson
-                      name: steadybit-extension-gcp
-                      optional: true
+                  value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  valueFrom:
-                    secretKeyRef:
-                      key: projectID
-                      name: steadybit-extension-gcp
+                  value: some-project-id
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -118,22 +105,9 @@ manifest should match snapshot with TLS:
           containers:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
-                  valueFrom:
-                    secretKeyRef:
-                      key: credentialsKeyfilePath
-                      name: steadybit-extension-gcp
-                      optional: true
-                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_JSON
-                  valueFrom:
-                    secretKeyRef:
-                      key: credentialsKeyfileJson
-                      name: steadybit-extension-gcp
-                      optional: true
+                  value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  valueFrom:
-                    secretKeyRef:
-                      key: projectID
-                      name: steadybit-extension-gcp
+                  value: null
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -189,6 +163,91 @@ manifest should match snapshot with TLS:
               secret:
                 optional: false
                 secretName: server-cert
+manifest should match snapshot with credentials secret path:
+  1: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        steadybit.com/discovery-disabled: "true"
+        steadybit.com/extension: "true"
+      name: RELEASE-NAME-steadybit-extension-gcp
+      namespace: NAMESPACE
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app.kubernetes.io/instance: RELEASE-NAME
+          app.kubernetes.io/name: steadybit-extension-gcp
+      template:
+        metadata:
+          annotations:
+            oneagent.dynatrace.com/injection: "false"
+          labels:
+            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/name: steadybit-extension-gcp
+            steadybit.com/discovery-disabled: "true"
+            steadybit.com/extension: "true"
+        spec:
+          containers:
+            - env:
+                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
+                  value: /etc/gcp/secret/credentials.json
+                - name: STEADYBIT_EXTENSION_PROJECT_ID
+                  value: some-project-id
+                - name: STEADYBIT_LOG_LEVEL
+                  value: INFO
+                - name: STEADYBIT_LOG_FORMAT
+                  value: text
+              image: ghcr.io/steadybit/extension-gcp:v0.0.0
+              imagePullPolicy: IfNotPresent
+              livenessProbe:
+                failureThreshold: 5
+                httpGet:
+                  path: /health/liveness
+                  port: 8081
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 5
+              name: extension
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /health/readiness
+                  port: 8081
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 1
+              resources:
+                limits:
+                  cpu: 200m
+                  memory: 128Mi
+                requests:
+                  cpu: 50m
+                  memory: 32Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                readOnlyRootFilesystem: true
+                runAsGroup: 10000
+                runAsNonRoot: true
+                runAsUser: 10000
+              volumeMounts:
+                - mountPath: /etc/gcp/secret
+                  name: secret
+                  readOnly: true
+          serviceAccountName: steadybit-extension-gcp
+          volumes:
+            - name: secret
+              secret:
+                items:
+                  - key: credentialsKeyfileJson
+                    path: credentials.json
+                secretName: extension-gcp
 manifest should match snapshot with extra env vars:
   1: |
     apiVersion: apps/v1
@@ -218,22 +277,9 @@ manifest should match snapshot with extra env vars:
           containers:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
-                  valueFrom:
-                    secretKeyRef:
-                      key: credentialsKeyfilePath
-                      name: steadybit-extension-gcp
-                      optional: true
-                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_JSON
-                  valueFrom:
-                    secretKeyRef:
-                      key: credentialsKeyfileJson
-                      name: steadybit-extension-gcp
-                      optional: true
+                  value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  valueFrom:
-                    secretKeyRef:
-                      key: projectID
-                      name: steadybit-extension-gcp
+                  value: null
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -316,22 +362,9 @@ manifest should match snapshot with extra labels:
           containers:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
-                  valueFrom:
-                    secretKeyRef:
-                      key: credentialsKeyfilePath
-                      name: steadybit-extension-gcp
-                      optional: true
-                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_JSON
-                  valueFrom:
-                    secretKeyRef:
-                      key: credentialsKeyfileJson
-                      name: steadybit-extension-gcp
-                      optional: true
+                  value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  valueFrom:
-                    secretKeyRef:
-                      key: projectID
-                      name: steadybit-extension-gcp
+                  value: null
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -405,22 +438,9 @@ manifest should match snapshot with mutual TLS:
           containers:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
-                  valueFrom:
-                    secretKeyRef:
-                      key: credentialsKeyfilePath
-                      name: steadybit-extension-gcp
-                      optional: true
-                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_JSON
-                  valueFrom:
-                    secretKeyRef:
-                      key: credentialsKeyfileJson
-                      name: steadybit-extension-gcp
-                      optional: true
+                  value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  valueFrom:
-                    secretKeyRef:
-                      key: projectID
-                      name: steadybit-extension-gcp
+                  value: some-project-id
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -514,22 +534,9 @@ manifest should match snapshot with mutual TLS using containerPaths:
           containers:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
-                  valueFrom:
-                    secretKeyRef:
-                      key: credentialsKeyfilePath
-                      name: steadybit-extension-gcp
-                      optional: true
-                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_JSON
-                  valueFrom:
-                    secretKeyRef:
-                      key: credentialsKeyfileJson
-                      name: steadybit-extension-gcp
-                      optional: true
+                  value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  valueFrom:
-                    secretKeyRef:
-                      key: projectID
-                      name: steadybit-extension-gcp
+                  value: null
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -609,22 +616,9 @@ manifest should match snapshot with podSecurityContext:
           containers:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
-                  valueFrom:
-                    secretKeyRef:
-                      key: credentialsKeyfilePath
-                      name: steadybit-extension-gcp
-                      optional: true
-                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_JSON
-                  valueFrom:
-                    secretKeyRef:
-                      key: credentialsKeyfileJson
-                      name: steadybit-extension-gcp
-                      optional: true
+                  value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  valueFrom:
-                    secretKeyRef:
-                      key: projectID
-                      name: steadybit-extension-gcp
+                  value: null
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -700,22 +694,9 @@ manifest should match snapshot with priority class:
           containers:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
-                  valueFrom:
-                    secretKeyRef:
-                      key: credentialsKeyfilePath
-                      name: steadybit-extension-gcp
-                      optional: true
-                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_JSON
-                  valueFrom:
-                    secretKeyRef:
-                      key: credentialsKeyfileJson
-                      name: steadybit-extension-gcp
-                      optional: true
+                  value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  valueFrom:
-                    secretKeyRef:
-                      key: projectID
-                      name: steadybit-extension-gcp
+                  value: null
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -790,22 +771,9 @@ manifest should match snapshot without TLS:
           containers:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
-                  valueFrom:
-                    secretKeyRef:
-                      key: credentialsKeyfilePath
-                      name: steadybit-extension-gcp
-                      optional: true
-                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_JSON
-                  valueFrom:
-                    secretKeyRef:
-                      key: credentialsKeyfileJson
-                      name: steadybit-extension-gcp
-                      optional: true
+                  value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  valueFrom:
-                    secretKeyRef:
-                      key: projectID
-                      name: steadybit-extension-gcp
+                  value: null
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT

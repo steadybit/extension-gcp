@@ -55,23 +55,15 @@ spec:
               memory: {{ .Values.resources.limits.memory }}
               cpu: {{ .Values.resources.limits.cpu }}
           env:
+            {{- if .Values.gcp.existingSecret }}
             - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "gcp.secret.name" . }}
-                  key: credentialsKeyfilePath
-                  optional: true
-            - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_JSON
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "gcp.secret.name" . }}
-                  key: credentialsKeyfileJson
-                  optional: true
+              value: /etc/gcp/secret/credentials.json
+            {{- else }}
+            - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
+              value: {{ .Values.gcp.credentialsKeyfilePath }}
+            {{- end }}
             - name: STEADYBIT_EXTENSION_PROJECT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "gcp.secret.name" . }}
-                  key: projectID
+              value: {{ .Values.gcp.projectID }}
             {{- if .Values.discovery.attributes.excludes.monitor }}
             - name: STEADYBIT_EXTENSION_DISCOVERY_ATTRIBUTES_EXCLUDES_VM
               value: {{ join "," .Values.discovery.attributes.excludes.vm | quote }}
@@ -85,6 +77,11 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           volumeMounts:
+            {{- if .Values.gcp.existingSecret }}
+            - name: secret
+              mountPath: "/etc/gcp/secret"
+              readOnly: true
+            {{- end }}
             {{- include "extensionlib.deployment.volumeMounts" (list .) | nindent 12 }}
           livenessProbe:
             initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
@@ -114,6 +111,14 @@ spec:
               drop:
                 - ALL
       volumes:
+        {{- if .Values.gcp.existingSecret }}
+        - name: secret
+          secret:
+            secretName: {{ include "gcp.secret.name" . }}
+            items:
+              - key: credentialsKeyfileJson
+                path: credentials.json
+        {{- end }}
         {{- include "extensionlib.deployment.volumes" (list .) | nindent 8 }}
       serviceAccountName: {{ .Values.serviceAccount.name }}
       {{- with .Values.nodeSelector }}
