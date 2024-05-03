@@ -51,3 +51,46 @@ helm upgrade steadybit-extension-gcp \
 ## Register the extension
 
 Make sure to register the extension at the steadybit platform. Please refer to the [documentation](https://docs.steadybit.com/integrate-with-steadybit/extensions/extension-installation) for more information.
+
+## Authorization scopes
+
+### Discovery
+
+To discover vm instances, the extension needs:
+
+#### OAuth Scopes
+one of the following OAuth scopes:
+
+- `https://www.googleapis.com/auth/compute.readonly`
+- `https://www.googleapis.com/auth/compute`
+- `https://www.googleapis.com/auth/cloud-platform`
+
+#### IAM Permissions
+In addition to any permissions specified on the fields above, authorization requires one or more of the following IAM permissions:
+
+- `compute.acceleratorTypes.list`
+
+To find predefined roles that contain those permissions, see [Compute Engine IAM Roles](https://cloud.google.com/compute/docs/access/iam).
+
+
+### Attack
+
+To attack vm instances, the extension needs:
+
+#### OAuth Scopes
+one of the following OAuth scopes:
+
+- `https://www.googleapis.com/auth/compute`
+- `https://www.googleapis.com/auth/cloud-platform`
+
+#### IAM Permissions
+
+In addition to any permissions specified on the fields above, authorization requires one or more of the following IAM permissions:
+
+- `compute.instances.reset`
+- `compute.instances.stop`
+- `compute.instances.suspend`
+- `compute.instances.delete`
+
+To find predefined roles that contain those permissions, see [Compute Engine IAM Roles](https://cloud.google.com/compute/docs/access/iam).
+
