@@ -3,6 +3,7 @@
 ## v1.0.9 (next)
 
 - Update dependencies (go 1.22)
+- refa config object
 
 ## v1.0.8
 

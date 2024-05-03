@@ -15,8 +15,6 @@ import (
 type Specification struct {
 	//STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
 	CredentialsKeyfilePath string `json:"credentialsKeyfilePath" required:"false" split_words:"true"`
-	// STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_JSON
-	CredentialsKeyfileJson string `json:"credentialsKeyfileJson" required:"false" split_words:"true"`
 	//STEADYBIT_EXTENSION_PROJECT_ID
 	ProjectID                     string   `json:"projectId" required:"false" split_words:"true"`
 	DiscoveryAttributesExcludesVM []string `json:"discoveryAttributesExcludesVM" required:"false" split_words:"true"`
