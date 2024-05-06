@@ -1,9 +1,10 @@
 # Changelog
 
-## v1.0.9 (next)
+## v1.0.9
 
 - Update dependencies (go 1.22)
-- refa config object
+- Refactored config object
+- Refactored helm chart. Breaking changes. Please refer to the [README](README.md) for more information on how to authenticate.
 
 ## v1.0.8
 

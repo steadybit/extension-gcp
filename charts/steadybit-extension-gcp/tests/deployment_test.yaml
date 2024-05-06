@@ -91,3 +91,11 @@ tests:
       priorityClassName: my-priority-class
     asserts:
       - matchSnapshot: {}
+
+  - it: check deprecated values
+    set:
+      gcp:
+        credentialsKeyfileJson: "blah"
+    asserts:
+      - failedTemplate:
+          errorMessage: "breaking change: gcp.credentialsKeyfileJson is deprecated, use gcp.credentialsKeyfilePath instead or put credentialsKeyfileJson into a secret"

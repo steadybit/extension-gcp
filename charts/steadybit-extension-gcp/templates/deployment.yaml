@@ -62,6 +62,9 @@ spec:
             - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
               value: {{ .Values.gcp.credentialsKeyfilePath }}
             {{- end }}
+            {{- if .Values.gcp.credentialsKeyfileJson }}
+            {{- fail "breaking change: gcp.credentialsKeyfileJson is deprecated, use gcp.credentialsKeyfilePath instead or put credentialsKeyfileJson into a secret" }}
+            {{- end }}
             - name: STEADYBIT_EXTENSION_PROJECT_ID
               value: {{ .Values.gcp.projectID }}
             {{- if .Values.discovery.attributes.excludes.monitor }}

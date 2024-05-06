@@ -18,6 +18,12 @@ The extension supports all environment variables provided by [steadybit/extensio
 
 When installed as linux package this configuration is in`/etc/steadybit/extension-gcp`.
 
+### Authorization configuration
+
+Provide the credentials to authorize the extension to access the Google Cloud API. The extension supports two ways to provide the credentials:
+Provide a JSON key file via the environment variable `STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH` and mount it to the extension.
+Or create a secret with the key `credentialsKeyfileJson` and provide the json there.
+
 ## Installation
 
 ### Using Docker
