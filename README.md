@@ -48,7 +48,7 @@ helm upgrade steadybit-extension-gcp \
     --wait \
     --timeout 5m0s \
     --create-namespace \
-    --namespace steadybit-extension \
+    --namespace steadybit-agent \
     --set gcp.projectID=YOUR_GCP_PROJECT_ID \
     --set gcp.credentialsKeyfilePath=PATH_TO_JSON_FILE \
     steadybit-extension-gcp/steadybit-extension-gcp
