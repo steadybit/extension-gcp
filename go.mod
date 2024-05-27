@@ -8,7 +8,7 @@ require (
 	cloud.google.com/go/compute v1.27.0
 	github.com/googleapis/gax-go/v2 v2.12.4
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/rs/zerolog v1.32.0
+	github.com/rs/zerolog v1.33.0
 	github.com/steadybit/action-kit/go/action_kit_api/v2 v2.9.0
 	github.com/steadybit/action-kit/go/action_kit_sdk v1.1.9
 	github.com/steadybit/action-kit/go/action_kit_test v1.2.14
