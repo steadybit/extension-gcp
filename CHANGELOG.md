@@ -1,8 +1,12 @@
 # Changelog
 
+## v1.0.11
+
+- fix: don't declare two enrichment rules from vm to container
+
 ## v1.0.10
 
-- Update dependencies)
+- Update dependencies
 
 ## v1.0.9
 
