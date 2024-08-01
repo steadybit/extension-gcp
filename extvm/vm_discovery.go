@@ -334,7 +334,11 @@ func (d *vmDiscovery) DescribeEnrichmentRules() []discovery_kit_api.TargetEnrich
 		getToKubernetesNodeEnrichmentRule(),
 	}
 	for _, targetType := range config.Config.EnrichVMDataForTargetTypes {
-		rules = append(rules, getVMToXEnrichmentRule(targetType))
+		if targetType == "com.steadybit.extension_host.host" || targetType == "com.steadybit.extension_container.container" || targetType == "com.steadybit.extension_kubernetes.kubernetes-node" {
+			log.Warn().Msgf("Target type %s is already covered by default rules. Omitting.", targetType)
+		} else {
+			rules = append(rules, getVMToXEnrichmentRule(targetType))
+		}
 	}
 	return rules
 }
