@@ -5,7 +5,7 @@ go 1.22.0
 toolchain go1.22.2
 
 require (
-	cloud.google.com/go/compute v1.27.5
+	cloud.google.com/go/compute v1.28.0
 	github.com/googleapis/gax-go/v2 v2.13.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/rs/zerolog v1.33.0
