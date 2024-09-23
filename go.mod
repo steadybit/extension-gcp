@@ -17,11 +17,11 @@ require (
 	github.com/steadybit/discovery-kit/go/discovery_kit_sdk v1.1.0
 	github.com/steadybit/extension-kit v1.8.15
 	github.com/stretchr/testify v1.9.0
-	google.golang.org/api v0.197.0
+	google.golang.org/api v0.198.0
 	google.golang.org/protobuf v1.34.2 // indirect
 )
 
-require google.golang.org/grpc v1.66.1 // indirect
+require google.golang.org/grpc v1.66.2 // indirect
 
 require (
 	github.com/KimMachineGun/automemlimit v0.6.1
@@ -29,9 +29,9 @@ require (
 )
 
 require (
-	cloud.google.com/go/auth v0.9.3 // indirect
+	cloud.google.com/go/auth v0.9.4 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.4 // indirect
-	cloud.google.com/go/compute/metadata v0.5.0 // indirect
+	cloud.google.com/go/compute/metadata v0.5.1 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/cilium/ebpf v0.16.0 // indirect
 	github.com/containerd/cgroups/v3 v3.0.3 // indirect
