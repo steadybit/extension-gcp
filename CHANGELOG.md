@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.12
+
+- Set new `Technology` property in extension description
+- Update dependencies (go 1.23)
+
 ## v1.0.11
 
 - fix: don't declare two enrichment rules from vm to container
