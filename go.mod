@@ -13,7 +13,7 @@ require (
 	github.com/steadybit/discovery-kit/go/discovery_kit_api v1.6.0
 	github.com/steadybit/discovery-kit/go/discovery_kit_commons v0.2.0
 	github.com/steadybit/discovery-kit/go/discovery_kit_sdk v1.2.1
-	github.com/steadybit/extension-kit v1.8.18
+	github.com/steadybit/extension-kit v1.8.19
 	github.com/stretchr/testify v1.9.0
 	google.golang.org/api v0.201.0
 	google.golang.org/protobuf v1.35.1 // indirect
