@@ -98,7 +98,7 @@ one of the following OAuth scopes:
 #### IAM Permissions
 In addition to any permissions specified on the fields above, authorization requires one or more of the following IAM permissions:
 
-- `compute.acceleratorTypes.list`
+- `compute.instances.list`
 
 To find predefined roles that contain those permissions, see [Compute Engine IAM Roles](https://cloud.google.com/compute/docs/access/iam).
 
