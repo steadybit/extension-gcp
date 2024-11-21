@@ -18,7 +18,7 @@ type Specification struct {
 	//STEADYBIT_EXTENSION_PROJECT_ID
 	ProjectID                     string   `json:"projectId" required:"false" split_words:"true"`
 	DiscoveryAttributesExcludesVM []string `json:"discoveryAttributesExcludesVM" required:"false" split_words:"true"`
-	EnrichVMDataForTargetTypes    []string `json:"EnrichScaleSetVMDataForTargetTypes" split_words:"true" default:"com.steadybit.extension_jvm.jvm-instance,com.steadybit.extension_kubernetes.kubernetes-deployment,com.steadybit.extension_kubernetes.kubernetes-pod,com.steadybit.extension_kubernetes.kubernetes-daemonset,com.steadybit.extension_kubernetes.kubernetes-statefulset,com.steadybit.extension_http.client-location"`
+	EnrichVMDataForTargetTypes    []string `json:"EnrichScaleSetVMDataForTargetTypes" split_words:"true" default:"com.steadybit.extension_jvm.jvm-instance,com.steadybit.extension_kubernetes.kubernetes-deployment,com.steadybit.extension_kubernetes.kubernetes-pod,com.steadybit.extension_kubernetes.kubernetes-daemonset,com.steadybit.extension_kubernetes.kubernetes-statefulset,com.steadybit.extension_http.client-location,com.steadybit.extension_jmeter.location,com.steadybit.extension_k6.location,com.steadybit.extension_gatling.location"`
 }
 
 var (
