@@ -56,12 +56,12 @@ func (e *virtualMachineStateAction) Describe() action_kit_api.ActionDescription 
 			TargetType: TargetIDVM,
 			SelectionTemplates: extutil.Ptr([]action_kit_api.TargetSelectionTemplate{
 				{
-					Label:       "by vm-name",
+					Label:       "vm-name",
 					Description: extutil.Ptr("Find gcp virtual machine by name"),
 					Query:       "gcp-vm.name=\"\"",
 				},
 				{
-					Label:       "by cluster name",
+					Label:       "cluster name",
 					Description: extutil.Ptr("Find gcp virtual machine by cluster name"),
 					Query:       "gcp-kubernetes-engine.cluster.name=\"\"",
 				},
