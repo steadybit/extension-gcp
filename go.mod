@@ -1,6 +1,9 @@
 module github.com/steadybit/extension-gcp
 
-go 1.23
+go 1.23.0
+
+toolchain go1.23.4
+
 require (
 	cloud.google.com/go/compute v1.31.1
 	github.com/googleapis/gax-go/v2 v2.14.1
