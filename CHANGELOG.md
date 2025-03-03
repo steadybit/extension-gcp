@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.14
+
+- update dependencies
+
 ## v1.0.13
 
 - extend enrichment to more kubernetes types
