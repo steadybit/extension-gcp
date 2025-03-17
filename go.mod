@@ -2,10 +2,10 @@ module github.com/steadybit/extension-gcp
 
 go 1.23.0
 
-toolchain go1.23.4
+toolchain go1.24.1
 
 require (
-	cloud.google.com/go/compute v1.34.0
+	cloud.google.com/go/compute v1.34.1
 	github.com/googleapis/gax-go/v2 v2.14.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/rs/zerolog v1.33.0
