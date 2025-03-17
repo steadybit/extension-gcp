@@ -2,7 +2,7 @@ module github.com/steadybit/extension-gcp
 
 go 1.23.0
 
-toolchain go1.23.4
+toolchain go1.24.1
 
 require (
 	cloud.google.com/go/compute v1.34.0
@@ -17,7 +17,7 @@ require (
 	github.com/steadybit/discovery-kit/go/discovery_kit_sdk v1.2.3
 	github.com/steadybit/extension-kit v1.9.0
 	github.com/stretchr/testify v1.10.0
-	google.golang.org/api v0.225.0
+	google.golang.org/api v0.226.0
 	google.golang.org/protobuf v1.36.5 // indirect
 )
 
