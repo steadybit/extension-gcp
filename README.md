@@ -124,3 +124,9 @@ In addition to any permissions specified on the fields above, authorization requ
 
 To find predefined roles that contain those permissions, see [Compute Engine IAM Roles](https://cloud.google.com/compute/docs/access/iam).
 
+## Version and Revision
+
+The version and revision of the extension:
+- are printed during the startup of the extension
+- are added as a Docker label to the image
+- are available via the `version.txt`/`revision.txt` files in the root of the image
