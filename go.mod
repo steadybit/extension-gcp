@@ -2,10 +2,8 @@ module github.com/steadybit/extension-gcp
 
 go 1.24
 
-toolchain go1.24.1
-
 require (
-	cloud.google.com/go/compute v1.35.0
+	cloud.google.com/go/compute v1.36.0
 	github.com/googleapis/gax-go/v2 v2.14.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/rs/zerolog v1.34.0
@@ -18,7 +16,7 @@ require (
 	github.com/steadybit/extension-kit v1.9.0
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/api v0.227.0
-	google.golang.org/protobuf v1.36.5 // indirect
+	google.golang.org/protobuf v1.36.6 // indirect
 )
 
 require google.golang.org/grpc v1.71.0 // indirect
