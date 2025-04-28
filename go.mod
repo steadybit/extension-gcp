@@ -15,11 +15,11 @@ require (
 	github.com/steadybit/discovery-kit/go/discovery_kit_sdk v1.2.3
 	github.com/steadybit/extension-kit v1.9.0
 	github.com/stretchr/testify v1.10.0
-	google.golang.org/api v0.229.0
+	google.golang.org/api v0.230.0
 	google.golang.org/protobuf v1.36.6 // indirect
 )
 
-require google.golang.org/grpc v1.71.1 // indirect
+require google.golang.org/grpc v1.72.0 // indirect
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.1
