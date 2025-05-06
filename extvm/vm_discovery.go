@@ -19,6 +19,7 @@ import (
 	"github.com/steadybit/extension-kit/extbuild"
 	"github.com/steadybit/extension-kit/extutil"
 	"google.golang.org/api/iterator"
+	"slices"
 	"strings"
 	"time"
 )
@@ -328,13 +329,20 @@ func getStringValue(val *string) string {
 }
 
 func (d *vmDiscovery) DescribeEnrichmentRules() []discovery_kit_api.TargetEnrichmentRule {
+	defaultEnrichmentTargetTypes := []string{
+		"com.steadybit.extension_host.host",
+		"com.steadybit.extension_kubernetes.kubernetes-node",
+		"com.steadybit.extension_host_windows.host",
+		"com.steadybit.extension_container.container",
+	}
 	rules := []discovery_kit_api.TargetEnrichmentRule{
-		getToHostEnrichmentRule(),
+		getToHostEnrichmentRule("host", "com.steadybit.extension_host.host"),
+		getToHostEnrichmentRule("k8s-node", "com.steadybit.extension_kubernetes.kubernetes-node"),
+		getToHostWindowsEnrichmentRule(),
 		getToContainerEnrichmentRule(),
-		getToKubernetesNodeEnrichmentRule(),
 	}
 	for _, targetType := range config.Config.EnrichVMDataForTargetTypes {
-		if targetType == "com.steadybit.extension_host.host" || targetType == "com.steadybit.extension_container.container" || targetType == "com.steadybit.extension_kubernetes.kubernetes-node" {
+		if slices.Contains(defaultEnrichmentTargetTypes, targetType) {
 			log.Warn().Msgf("Target type %s is already covered by default rules. Omitting.", targetType)
 		} else {
 			rules = append(rules, getVMToXEnrichmentRule(targetType))
@@ -343,9 +351,9 @@ func (d *vmDiscovery) DescribeEnrichmentRules() []discovery_kit_api.TargetEnrich
 	return rules
 }
 
-func getToHostEnrichmentRule() discovery_kit_api.TargetEnrichmentRule {
+func getToHostEnrichmentRule(targetName string, targetType string) discovery_kit_api.TargetEnrichmentRule {
 	return discovery_kit_api.TargetEnrichmentRule{
-		Id:      "com.steadybit.extension_gcp.gcp-vm-to-host",
+		Id:      "com.steadybit.extension_gcp.gcp-vm-to-" + targetName,
 		Version: extbuild.GetSemverVersionStringOrUnknown(),
 		Src: discovery_kit_api.SourceOrDestination{
 			Type: TargetIDVM,
@@ -354,7 +362,7 @@ func getToHostEnrichmentRule() discovery_kit_api.TargetEnrichmentRule {
 			},
 		},
 		Dest: discovery_kit_api.SourceOrDestination{
-			Type: "com.steadybit.extension_host.host",
+			Type: targetType,
 			Selector: map[string]string{
 				"host.hostname": "${src.gcp-vm.hostname}",
 			},
@@ -383,20 +391,63 @@ func getToHostEnrichmentRule() discovery_kit_api.TargetEnrichmentRule {
 		},
 	}
 }
-func getToKubernetesNodeEnrichmentRule() discovery_kit_api.TargetEnrichmentRule {
+
+func getToHostWindowsEnrichmentRule() discovery_kit_api.TargetEnrichmentRule {
 	return discovery_kit_api.TargetEnrichmentRule{
-		Id:      "com.steadybit.extension_gcp.gcp-vm-to-k8s-node",
+		Id:      "com.steadybit.extension_gcp.gcp-vm-to-host-windows",
 		Version: extbuild.GetSemverVersionStringOrUnknown(),
 		Src: discovery_kit_api.SourceOrDestination{
 			Type: TargetIDVM,
 			Selector: map[string]string{
-				"gcp-vm.hostname": "${dest.host.hostname}",
+				"gcp-vm.id": "${dest.gcp-vm.id}",
 			},
 		},
 		Dest: discovery_kit_api.SourceOrDestination{
-			Type: "com.steadybit.extension_kubernetes.kubernetes-node",
+			Type: "com.steadybit.extension_host_windows.host",
 			Selector: map[string]string{
-				"host.hostname": "${src.gcp-vm.hostname}",
+				"gcp-vm.id": "${src.gcp-vm.id}",
+			},
+		},
+		Attributes: []discovery_kit_api.Attribute{
+			{
+				Matcher: discovery_kit_api.StartsWith,
+				Name:    "gcp-vm.label.",
+			},
+			{
+				Matcher: discovery_kit_api.StartsWith,
+				Name:    "gcp-vm.",
+			},
+			{
+				Matcher: discovery_kit_api.StartsWith,
+				Name:    "gcp-kubernetes-engine.",
+			},
+			{
+				Matcher: discovery_kit_api.Equals,
+				Name:    "gcp.zone",
+			},
+			{
+				Matcher: discovery_kit_api.Equals,
+				Name:    "gcp.project.id",
+			},
+		},
+	}
+}
+
+func getToContainerEnrichmentRule() discovery_kit_api.TargetEnrichmentRule {
+	return discovery_kit_api.TargetEnrichmentRule{
+		Id:      "com.steadybit.extension_gcp.gcp-vm-to-container",
+		Version: extbuild.GetSemverVersionStringOrUnknown(),
+
+		Src: discovery_kit_api.SourceOrDestination{
+			Type: TargetIDVM,
+			Selector: map[string]string{
+				"gcp-vm.hostname": "${dest.container.host}",
+			},
+		},
+		Dest: discovery_kit_api.SourceOrDestination{
+			Type: "com.steadybit.extension_container.container",
+			Selector: map[string]string{
+				"container.host": "${src.gcp-vm.hostname}",
 			},
 		},
 		Attributes: []discovery_kit_api.Attribute{
@@ -442,48 +493,6 @@ func getVMToXEnrichmentRule(destTargetType string) discovery_kit_api.TargetEnric
 			},
 		},
 		Attributes: []discovery_kit_api.Attribute{
-			{
-				Matcher: discovery_kit_api.Equals,
-				Name:    "gcp.zone",
-			},
-			{
-				Matcher: discovery_kit_api.Equals,
-				Name:    "gcp.project.id",
-			},
-		},
-	}
-}
-
-func getToContainerEnrichmentRule() discovery_kit_api.TargetEnrichmentRule {
-	return discovery_kit_api.TargetEnrichmentRule{
-		Id:      "com.steadybit.extension_gcp.gcp-vm-to-container",
-		Version: extbuild.GetSemverVersionStringOrUnknown(),
-
-		Src: discovery_kit_api.SourceOrDestination{
-			Type: TargetIDVM,
-			Selector: map[string]string{
-				"gcp-vm.hostname": "${dest.container.host}",
-			},
-		},
-		Dest: discovery_kit_api.SourceOrDestination{
-			Type: "com.steadybit.extension_container.container",
-			Selector: map[string]string{
-				"container.host": "${src.gcp-vm.hostname}",
-			},
-		},
-		Attributes: []discovery_kit_api.Attribute{
-			{
-				Matcher: discovery_kit_api.StartsWith,
-				Name:    "gcp-vm.label.",
-			},
-			{
-				Matcher: discovery_kit_api.StartsWith,
-				Name:    "gcp-vm.",
-			},
-			{
-				Matcher: discovery_kit_api.StartsWith,
-				Name:    "gcp-kubernetes-engine.",
-			},
 			{
 				Matcher: discovery_kit_api.Equals,
 				Name:    "gcp.zone",
