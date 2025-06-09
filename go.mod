@@ -3,7 +3,7 @@ module github.com/steadybit/extension-gcp
 go 1.24.0
 
 require (
-	cloud.google.com/go/compute v1.38.0
+	cloud.google.com/go/compute v1.39.0
 	github.com/googleapis/gax-go/v2 v2.14.2
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/rs/zerolog v1.34.0
@@ -19,7 +19,7 @@ require (
 	google.golang.org/protobuf v1.36.6 // indirect
 )
 
-require google.golang.org/grpc v1.72.1 // indirect
+require google.golang.org/grpc v1.72.2 // indirect
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.2
@@ -91,8 +91,8 @@ require (
 	golang.org/x/text v0.25.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
 	google.golang.org/genproto v0.0.0-20250505200425-f936aa4a68b2 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250505200425-f936aa4a68b2 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250512202823-5a2f75b736a9 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20250528174236-200df99c418a // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250519155744-55703ea1f237 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
