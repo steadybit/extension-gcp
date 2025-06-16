@@ -22,7 +22,7 @@ require (
 require google.golang.org/grpc v1.72.2 // indirect
 
 require (
-	github.com/KimMachineGun/automemlimit v0.7.2
+	github.com/KimMachineGun/automemlimit v0.7.3
 	go.uber.org/automaxprocs v1.6.0
 )
 
