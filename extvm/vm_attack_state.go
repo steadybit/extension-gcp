@@ -77,7 +77,7 @@ func (e *virtualMachineStateAction) Describe() action_kit_api.ActionDescription 
 				Label:       "Action",
 				Description: extutil.Ptr("The kind of state change operation to execute for the gcp virtual machines"),
 				Required:    extutil.Ptr(true),
-				Type:        action_kit_api.String,
+				Type:        action_kit_api.ActionParameterTypeString,
 				Options: extutil.Ptr([]action_kit_api.ParameterOption{
 					action_kit_api.ExplicitParameterOption{
 						Label: "Reset",
