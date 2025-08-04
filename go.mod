@@ -15,11 +15,11 @@ require (
 	github.com/steadybit/discovery-kit/go/discovery_kit_sdk v1.3.0
 	github.com/steadybit/extension-kit v1.10.0
 	github.com/stretchr/testify v1.10.0
-	google.golang.org/api v0.243.0
+	google.golang.org/api v0.244.0
 	google.golang.org/protobuf v1.36.6 // indirect
 )
 
-require google.golang.org/grpc v1.73.0 // indirect
+require google.golang.org/grpc v1.74.2 // indirect
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.4
@@ -38,7 +38,7 @@ require (
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fxamacker/cbor/v2 v2.8.0 // indirect
 	github.com/getkin/kin-openapi v0.132.0 // indirect
-	github.com/go-logr/logr v1.4.2 // indirect
+	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.21.1 // indirect
 	github.com/go-openapi/jsonreference v0.21.0 // indirect
@@ -92,7 +92,7 @@ require (
 	golang.org/x/time v0.12.0 // indirect
 	google.golang.org/genproto v0.0.0-20250603155806-513f23925822 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250603155806-513f23925822 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250715232539-7130f93afb79 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250728155136-f173205681a0 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
