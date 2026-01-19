@@ -15,7 +15,7 @@ require (
 	github.com/steadybit/discovery-kit/go/discovery_kit_sdk v1.3.2
 	github.com/steadybit/extension-kit v1.10.1
 	github.com/stretchr/testify v1.11.1
-	google.golang.org/api v0.259.0
+	google.golang.org/api v0.260.0
 	google.golang.org/protobuf v1.36.11 // indirect
 )
 
@@ -59,7 +59,7 @@ require (
 	github.com/google/gnostic-models v0.7.0 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/googleapis/enterprise-certificate-proxy v0.3.7 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.3.9 // indirect
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
