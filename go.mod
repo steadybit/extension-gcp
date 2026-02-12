@@ -21,10 +21,7 @@ require (
 
 require google.golang.org/grpc v1.78.0 // indirect
 
-require (
-	github.com/KimMachineGun/automemlimit v0.7.5
-	go.uber.org/automaxprocs v1.6.0
-)
+require github.com/KimMachineGun/automemlimit v0.7.5
 
 require (
 	cloud.google.com/go/auth v0.18.1 // indirect
