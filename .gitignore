@@ -4,3 +4,5 @@
 /licenses
 /snyk.sarif
 /gpg.key
+
+.env
