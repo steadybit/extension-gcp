@@ -99,3 +99,11 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "breaking change: gcp.credentialsKeyfileJson is deprecated, use gcp.credentialsKeyfilePath instead or put credentialsKeyfileJson into a secret"
+
+  - it: manifest should match snapshot with global priority class
+    set:
+      global:
+        priorityClassName: my-global-priority-class
+    asserts:
+      - matchSnapshot: {}
+
