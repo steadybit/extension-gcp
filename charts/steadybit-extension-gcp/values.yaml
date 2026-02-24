@@ -2,13 +2,17 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 image:
+  # image.registry -- The container registry to use. Defaults to global.image.registry or ghcr.io.
+  registry: null
   # image.name -- The container image to use for the Steadybit scaffold extension.
-  name: ghcr.io/steadybit/extension-gcp
+  name: steadybit/extension-gcp
   # image.tag -- tag name of the extension-gcp container image to use. Defaults to appVersion of this chart.
   # See https://github.com/steadybit/extension-gcp/pkgs/container/extension-gcp/versions for all tags.
   tag: null
   # image.pullPolicy -- Specifies when to pull the image container.
   pullPolicy: IfNotPresent
+  # image.pullSecrets -- List of image pull secret names.
+  pullSecrets: []
 
 tls:
   server:
