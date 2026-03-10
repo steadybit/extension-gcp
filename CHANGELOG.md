@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.20
+
+- feat(chart): split image.name into image.registry + image.name
+- Support global.priorityClassName
+- Support enrichment for argo rollouts
+- Update alpine packages in Docker image to address CVEs
+- Update dependencies
+
 ## v1.0.19
 
 - Update dependencies
