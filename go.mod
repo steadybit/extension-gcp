@@ -19,7 +19,7 @@ require (
 	google.golang.org/protobuf v1.36.11 // indirect
 )
 
-require google.golang.org/grpc v1.79.2 // indirect
+require google.golang.org/grpc v1.79.3 // indirect
 
 require github.com/KimMachineGun/automemlimit v0.7.5
 
