@@ -6,7 +6,6 @@ import (
 	"context"
 	"github.com/googleapis/gax-go/v2"
 	"github.com/steadybit/extension-gcp/config"
-	"github.com/steadybit/extension-kit/extutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"testing"
@@ -31,16 +30,16 @@ func TestInstancesToTargets(t *testing.T) {
 	id := uint64(42)
 	instances := []*computepb.Instance{
 		{
-			Name:               extutil.Ptr("myVm"),
+			Name:               new("myVm"),
 			Id:                 &id,
-			Hostname:           extutil.Ptr("asd"),
-			Description:        extutil.Ptr("description"),
-			CpuPlatform:        extutil.Ptr("intel"),
-			MachineType:        extutil.Ptr("fat"),
-			SourceMachineImage: extutil.Ptr("18.04.5 LTS"),
-			Status:             extutil.Ptr("top"),
-			StatusMessage:      extutil.Ptr("top status"),
-			Zone:               extutil.Ptr("/asd/us-east1-a"),
+			Hostname:           new("asd"),
+			Description:        new("description"),
+			CpuPlatform:        new("intel"),
+			MachineType:        new("fat"),
+			SourceMachineImage: new("18.04.5 LTS"),
+			Status:             new("top"),
+			StatusMessage:      new("top status"),
+			Zone:               new("/asd/us-east1-a"),
 			Tags: &computepb.Tags{
 				Items: []string{"Tags1", "Tags2"},
 			},
@@ -51,12 +50,12 @@ func TestInstancesToTargets(t *testing.T) {
 			Metadata: &computepb.Metadata{
 				Items: []*computepb.Items{
 					{
-						Key:   extutil.Ptr("cluster-name"),
-						Value: extutil.Ptr("my_cluster"),
+						Key:   new("cluster-name"),
+						Value: new("my_cluster"),
 					},
 					{
-						Key:   extutil.Ptr("cluster-location"),
-						Value: extutil.Ptr("us-east1-a"),
+						Key:   new("cluster-location"),
+						Value: new("us-east1-a"),
 					},
 				},
 			},
