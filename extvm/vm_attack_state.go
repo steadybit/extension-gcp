@@ -14,7 +14,6 @@ import (
 	"github.com/steadybit/action-kit/go/action_kit_sdk"
 	extension_kit "github.com/steadybit/extension-kit"
 	"github.com/steadybit/extension-kit/extbuild"
-	"github.com/steadybit/extension-kit/extutil"
 )
 
 type virtualMachineStateAction struct {
@@ -51,34 +50,34 @@ func (e *virtualMachineStateAction) Describe() action_kit_api.ActionDescription 
 		Label:       "Change Virtual Machine State",
 		Description: "Reset, stop, suspend or delete Google Cloud virtual machines",
 		Version:     extbuild.GetSemverVersionStringOrUnknown(),
-		Icon:        extutil.Ptr(targetIcon),
-		TargetSelection: extutil.Ptr(action_kit_api.TargetSelection{
+		Icon:        new(targetIcon),
+		TargetSelection: new(action_kit_api.TargetSelection{
 			TargetType: TargetIDVM,
-			SelectionTemplates: extutil.Ptr([]action_kit_api.TargetSelectionTemplate{
+			SelectionTemplates: new([]action_kit_api.TargetSelectionTemplate{
 				{
 					Label:       "vm-name",
-					Description: extutil.Ptr("Find gcp virtual machine by name"),
+					Description: new("Find gcp virtual machine by name"),
 					Query:       "gcp-vm.name=\"\"",
 				},
 				{
 					Label:       "cluster name",
-					Description: extutil.Ptr("Find gcp virtual machine by cluster name"),
+					Description: new("Find gcp virtual machine by cluster name"),
 					Query:       "gcp-kubernetes-engine.cluster.name=\"\"",
 				},
 			}),
 		}),
-		Technology:  extutil.Ptr("GCP"),
-		Category:    extutil.Ptr("Virtual Machines"),
+		Technology:  new("GCP"),
+		Category:    new("Virtual Machines"),
 		TimeControl: action_kit_api.TimeControlInstantaneous,
 		Kind:        action_kit_api.Attack,
 		Parameters: []action_kit_api.ActionParameter{
 			{
 				Name:        "action",
 				Label:       "Action",
-				Description: extutil.Ptr("The kind of state change operation to execute for the gcp virtual machines"),
-				Required:    extutil.Ptr(true),
+				Description: new("The kind of state change operation to execute for the gcp virtual machines"),
+				Required:    new(true),
 				Type:        action_kit_api.ActionParameterTypeString,
-				Options: extutil.Ptr([]action_kit_api.ParameterOption{
+				Options: new([]action_kit_api.ParameterOption{
 					action_kit_api.ExplicitParameterOption{
 						Label: "Reset",
 						Value: "reset",

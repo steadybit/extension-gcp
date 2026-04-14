@@ -1,6 +1,6 @@
 module github.com/steadybit/extension-gcp
 
-go 1.25.7
+go 1.26.2
 
 require (
 	cloud.google.com/go/compute v1.59.0
