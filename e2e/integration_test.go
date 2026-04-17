@@ -79,7 +79,9 @@ func testStopAction(server *mockComputeServer) func(t *testing.T, m *e2e.Minikub
 			nil,
 		)
 		require.NoError(t, err)
-		require.NoError(t, exec.Wait())
+		// The action is instantaneous (no status poll, no stop hook) so exec.Wait() would
+		// block forever. Cancelling releases the harness goroutine immediately.
+		defer func() { _ = exec.Cancel() }()
 
 		require.Eventually(t, func() bool {
 			return len(server.StopRequests()) > before
