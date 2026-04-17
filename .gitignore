@@ -6,3 +6,4 @@
 /gpg.key
 
 .env
+/*.local
