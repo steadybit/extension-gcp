@@ -163,7 +163,7 @@ func TestGcpVirtualMachineStateAction_Suspend(t *testing.T) {
 		return true
 	})).Return(nil, nil)
 
-	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, error) {
+	action := virtualMachineStateAction{clientProvider: func(ctx context.Context) (virtualMachineStateChangeApi, error) {
 		return api, nil
 	}}
 
@@ -192,7 +192,7 @@ func TestGcpVirtualMachineStateAction_Delete(t *testing.T) {
 		return true
 	})).Return(nil, nil)
 
-	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, error) {
+	action := virtualMachineStateAction{clientProvider: func(ctx context.Context) (virtualMachineStateChangeApi, error) {
 		return api, nil
 	}}
 
@@ -221,7 +221,7 @@ func TestGcpVirtualMachineStateAction_Stop(t *testing.T) {
 		return true
 	})).Return(nil, nil)
 
-	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, error) {
+	action := virtualMachineStateAction{clientProvider: func(ctx context.Context) (virtualMachineStateChangeApi, error) {
 		return api, nil
 	}}
 
@@ -250,7 +250,7 @@ func TestGcpVirtualMachineStateAction_Reset(t *testing.T) {
 		return true
 	})).Return(nil, nil)
 
-	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, error) {
+	action := virtualMachineStateAction{clientProvider: func(ctx context.Context) (virtualMachineStateChangeApi, error) {
 		return api, nil
 	}}
 
@@ -278,7 +278,7 @@ func TestStartVirtualMachineStateChangeForwardsError(t *testing.T) {
 		require.Equal(t, "my-vm", req.Instance)
 		return true
 	})).Return(nil, errors.New("expected"))
-	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, error) {
+	action := virtualMachineStateAction{clientProvider: func(ctx context.Context) (virtualMachineStateChangeApi, error) {
 		return api, nil
 	}}
 

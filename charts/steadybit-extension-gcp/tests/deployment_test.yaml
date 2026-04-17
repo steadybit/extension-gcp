@@ -146,18 +146,3 @@ tests:
             - global-pull-secret
     asserts:
       - matchSnapshot: {}
-
-  - it: manifest should match snapshot with multiple project IDs
-    set:
-      gcp:
-        projectIDs: "proj-a,proj-b"
-        workerThreads: 3
-    asserts:
-      - matchSnapshot: {}
-
-  - it: manifest should match snapshot with advanced projects impersonation
-    set:
-      gcp:
-        projectsAdvanced: '[{"projectId":"proj-a","impersonateServiceAccount":"sa@proj-a.iam.gserviceaccount.com"}]'
-    asserts:
-      - matchSnapshot: {}

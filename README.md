@@ -8,16 +8,11 @@ Learn about the capabilities of this extension in our [Reliability Hub](https://
 
 ## Configuration
 
-| Environment Variable                                   | Helm value                       | Meaning                                                                                                                                                                                               | Required | Default                                        |
-|--------------------------------------------------------|----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|------------------------------------------------|
-| `STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH`         | gcp.credentialsKeyfilePath       | To authorize using a JSON key file via location path (https://cloud.google.com/iam/docs/managing-service-account-keys)                                                                                | false    | Tries to get a client with default google apis |
-| `STEADYBIT_EXTENSION_PROJECT_ID`                       | gcp.projectID                    | Legacy single-project configuration. Kept for backward compatibility. Mutually exclusive with `STEADYBIT_EXTENSION_PROJECT_IDS` and `STEADYBIT_EXTENSION_PROJECTS_ADVANCED`.                          | false    |                                                |
-| `STEADYBIT_EXTENSION_PROJECT_IDS`                      | gcp.projectIDs                   | Comma-separated list of GCP project IDs to discover. All projects are accessed with the same credentials (ADC or `CREDENTIALS_KEYFILE_PATH`).                                                         | false    |                                                |
-| `STEADYBIT_EXTENSION_PROJECTS_ADVANCED`                | gcp.projectsAdvanced             | JSON array configuring per-project service-account impersonation, e.g. `[{"projectId":"proj-a","impersonateServiceAccount":"sa@proj-a.iam.gserviceaccount.com"}]`.                                    | false    |                                                |
-| `STEADYBIT_EXTENSION_WORKER_THREADS`                   | gcp.workerThreads                | Number of goroutines used to fan discovery across configured projects.                                                                                                                                | false    | 1                                              |
-| `STEADYBIT_EXTENSION_DISCOVERY_ATTRIBUTES_EXCLUDES_VM` | discovery.attributes.excludes.vm | List of Target Attributes which will be excluded during discovery. Checked by key equality and supporting trailing "*"                                                                                | false    |                                                |
-
-Exactly one of `STEADYBIT_EXTENSION_PROJECT_ID`, `STEADYBIT_EXTENSION_PROJECT_IDS`, or `STEADYBIT_EXTENSION_PROJECTS_ADVANCED` must be set; setting more than one fails startup.
+| Environment Variable                                   | Helm value                       | Meaning                                                                                                                                              | Required | Default                                        |
+|--------------------------------------------------------|----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|----------|------------------------------------------------|
+| `STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH`         | gcp.credentialsKeyfilePath       | To authorize using a JSON key file via location path (https://cloud.google.com/iam/docs/managing-service-account-keys)                               | false    | Tries to get a client with default google apis |
+| `STEADYBIT_EXTENSION_PROJECT_ID`                       | gcp.projectID                    | The Google Cloud Project ID to be used                                                                                                               | true     |                                                |
+| `STEADYBIT_EXTENSION_DISCOVERY_ATTRIBUTES_EXCLUDES_VM` | discovery.attributes.excludes.vm | List of Target Attributes which will be excluded during discovery. Checked by key equality and supporting trailing "*"                               | false    |                                                |
 
 The extension supports all environment variables provided by [steadybit/extension-kit](https://github.com/steadybit/extension-kit#environment-variables).
 
@@ -28,36 +23,6 @@ When installed as linux package this configuration is in`/etc/steadybit/extensio
 Provide the credentials to authorize the extension to access the Google Cloud API. The extension supports two ways to provide the credentials:
 Provide a JSON key file via the environment variable `STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH` and mount it to the extension.
 Or create a secret with the key `credentialsKeyfileJson` and provide the json there.
-
-### Multi-project configuration
-
-The extension can discover resources across multiple GCP projects. Two modes are supported:
-
-#### Shared credentials (simple)
-
-List the projects in `STEADYBIT_EXTENSION_PROJECT_IDS` / `gcp.projectIDs`. The same identity (ADC or keyfile) is used to call every project, so that identity must hold the required permissions in each project.
-
-```
---set gcp.projectIDs="proj-a,proj-b,proj-c"
-```
-
-#### Per-project service-account impersonation (advanced)
-
-Use `STEADYBIT_EXTENSION_PROJECTS_ADVANCED` / `gcp.projectsAdvanced` to define a dedicated service account per project. At runtime the extension's base identity exchanges tokens via the IAM Credentials API (`iam.serviceAccounts.getAccessToken`) to act as each target service account. This is the recommended pattern for environments that isolate permissions per project.
-
-```yaml
-gcp:
-  projectsAdvanced: |
-    [
-      {"projectId":"proj-a","impersonateServiceAccount":"extension@proj-a.iam.gserviceaccount.com"},
-      {"projectId":"proj-b","impersonateServiceAccount":"extension@proj-b.iam.gserviceaccount.com"}
-    ]
-```
-
-Prerequisites for impersonation:
-
-1. Each target project has a dedicated service account (e.g. `extension@proj-a.iam.gserviceaccount.com`) with the IAM roles it needs to perform the configured attacks.
-2. The identity the extension runs as (its base ADC or keyfile service account) has the `roles/iam.serviceAccountTokenCreator` role on every target service account. See [Service account impersonation](https://cloud.google.com/iam/docs/service-account-impersonation).
 
 ## Installation
 

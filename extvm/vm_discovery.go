@@ -16,7 +16,6 @@ import (
 	"github.com/steadybit/discovery-kit/go/discovery_kit_commons"
 	"github.com/steadybit/discovery-kit/go/discovery_kit_sdk"
 	"github.com/steadybit/extension-gcp/config"
-	"github.com/steadybit/extension-gcp/utils"
 	"github.com/steadybit/extension-kit/extbuild"
 	"github.com/steadybit/extension-kit/extutil"
 	"google.golang.org/api/iterator"
@@ -202,26 +201,29 @@ func (d *vmDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescript
 }
 
 func (d *vmDiscovery) DiscoverTargets(ctx context.Context) ([]discovery_kit_api.Target, error) {
-	return utils.ForEveryConfiguredGcpAccess(func(access *utils.GcpAccess, ctx context.Context) ([]discovery_kit_api.Target, error) {
-		client, err := newInstancesClientForAccess(ctx, access)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get client for project '%s': %w", access.ProjectID, err)
-		}
-		defer func() { _ = client.Close() }()
+	instancesClient, err := getGcpInstancesClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get client: %w", err)
+	}
+	defer func() { _ = instancesClient.Close() }()
 
-		instances, err := getAllVirtualMachinesInstances(ctx, client, access.ProjectID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to list virtual machines in project '%s': %w", access.ProjectID, err)
-		}
-		return instancesToTargets(instances, access.ProjectID), nil
-	}, ctx, "virtual-machines")
+	instances, err := getAllVirtualMachinesInstances(ctx, instancesClient)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all virtual machines: %w", err)
+	}
+	return instancesToTargets(instances), nil
 }
 
 type GCPInstancesApi interface {
 	AggregatedList(ctx context.Context, req *computepb.AggregatedListInstancesRequest, opts ...gax.CallOption) *compute.InstancesScopedListPairIterator
 }
 
-func getAllVirtualMachinesInstances(ctx context.Context, client GCPInstancesApi, projectID string) ([]*computepb.Instance, error) {
+func getAllVirtualMachinesInstances(ctx context.Context, client GCPInstancesApi) ([]*computepb.Instance, error) {
+	projectID := config.Config.ProjectID
+	if projectID == "" {
+		log.Error().Msgf("project id is not set")
+		return nil, errors.New("project id is not set")
+	}
 	req := &computepb.AggregatedListInstancesRequest{
 		Project: projectID,
 	}
@@ -249,15 +251,15 @@ func getAllVirtualMachinesInstances(ctx context.Context, client GCPInstancesApi,
 	}
 	return allInstances, nil
 }
-func instancesToTargets(instances []*computepb.Instance, projectID string) []discovery_kit_api.Target {
+func instancesToTargets(instances []*computepb.Instance) []discovery_kit_api.Target {
 	targets := make([]discovery_kit_api.Target, 0)
 	for _, instance := range instances {
-		targets = instanceToTarget(instance, projectID, targets)
+		targets = instanceToTarget(instance, targets)
 	}
 	return discovery_kit_commons.ApplyAttributeExcludes(targets, config.Config.DiscoveryAttributesExcludesVM)
 }
 
-func instanceToTarget(instance *computepb.Instance, projectID string, targets []discovery_kit_api.Target) []discovery_kit_api.Target {
+func instanceToTarget(instance *computepb.Instance, targets []discovery_kit_api.Target) []discovery_kit_api.Target {
 	attributes := make(map[string][]string)
 
 	attributes["gcp-vm.name"] = []string{getStringValue(instance.Name)}
@@ -272,7 +274,7 @@ func instanceToTarget(instance *computepb.Instance, projectID string, targets []
 	attributes["gcp-vm.status-message"] = []string{getStringValue(instance.StatusMessage)}
 	attributes["gcp.zone-url"] = []string{getStringValue(instance.Zone)}
 	attributes["gcp.zone"] = []string{getZone(instance)}
-	attributes["gcp.project.id"] = []string{projectID}
+	attributes["gcp.project.id"] = []string{config.Config.ProjectID}
 	attributes["gcp-kubernetes-engine.cluster.name"] = []string{getMetadata(instance.Metadata, "cluster-name")}
 	attributes["gcp-kubernetes-engine.cluster.location"] = []string{getMetadata(instance.Metadata, "cluster-location")}
 

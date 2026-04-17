@@ -12,13 +12,12 @@ import (
 	"github.com/googleapis/gax-go/v2"
 	"github.com/steadybit/action-kit/go/action_kit_api/v2"
 	"github.com/steadybit/action-kit/go/action_kit_sdk"
-	"github.com/steadybit/extension-gcp/utils"
 	extension_kit "github.com/steadybit/extension-kit"
 	"github.com/steadybit/extension-kit/extbuild"
 )
 
 type virtualMachineStateAction struct {
-	clientProvider func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, error)
+	clientProvider func(ctx context.Context) (virtualMachineStateChangeApi, error)
 }
 
 var _ action_kit_sdk.Action[VirtualMachineStateChangeState] = (*virtualMachineStateAction)(nil)
@@ -130,7 +129,7 @@ func (e *virtualMachineStateAction) Prepare(_ context.Context, state *VirtualMac
 }
 
 func (e *virtualMachineStateAction) Start(ctx context.Context, state *VirtualMachineStateChangeState) (*action_kit_api.StartResult, error) {
-	client, err := e.clientProvider(ctx, state.ProjectId)
+	client, err := e.clientProvider(ctx)
 	if err != nil {
 		return nil, extension_kit.ToError("Failed to initialize gcp client", err)
 	}
@@ -170,10 +169,6 @@ func (e *virtualMachineStateAction) Start(ctx context.Context, state *VirtualMac
 	return nil, nil
 }
 
-func defaultClientProvider(ctx context.Context, projectID string) (virtualMachineStateChangeApi, error) {
-	access, err := utils.GetGcpAccess(projectID)
-	if err != nil {
-		return nil, err
-	}
-	return newInstancesClientForAccess(ctx, access)
+func defaultClientProvider(ctx context.Context) (virtualMachineStateChangeApi, error) {
+	return getGcpInstancesClient(ctx)
 }

@@ -3,7 +3,6 @@
 ## (next)
 
 - Bump Go to 1.26.2
-- feat: support discovery across multiple GCP projects via `STEADYBIT_EXTENSION_PROJECT_IDS` (shared credentials) or `STEADYBIT_EXTENSION_PROJECTS_ADVANCED` (per-project service-account impersonation). The legacy `STEADYBIT_EXTENSION_PROJECT_ID` continues to work.
 
 ## v1.0.22
 

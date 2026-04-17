@@ -14,7 +14,6 @@ import (
 	"github.com/steadybit/discovery-kit/go/discovery_kit_sdk"
 	"github.com/steadybit/extension-gcp/config"
 	"github.com/steadybit/extension-gcp/extvm"
-	"github.com/steadybit/extension-gcp/utils"
 	"github.com/steadybit/extension-kit/extbuild"
 	"github.com/steadybit/extension-kit/exthealth"
 	"github.com/steadybit/extension-kit/exthttp"
@@ -47,7 +46,6 @@ func main() {
 	// configuration obtained from environment variables.
 	config.ParseConfiguration()
 	config.ValidateConfiguration()
-	utils.InitializeGcpAccess(config.Config)
 
 	// This call registers a handler for the extension's root path. This is the path initially accessed
 	// by the Steadybit agent to obtain the extension's capabilities.
