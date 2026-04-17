@@ -84,6 +84,10 @@ spec:
             - name: STEADYBIT_EXTENSION_DISCOVERY_ATTRIBUTES_EXCLUDES_VM
               value: {{ join "," .Values.discovery.attributes.excludes.vm | quote }}
             {{- end }}
+            {{- if .Values.testing.computeEndpoint }}
+            - name: STEADYBIT_EXTENSION_COMPUTE_ENDPOINT
+              value: {{ .Values.testing.computeEndpoint | quote }}
+            {{- end }}
             {{- include "extensionlib.deployment.env" (list .) | nindent 12 }}
             {{- with .Values.extraEnv }}
               {{- toYaml . | nindent 12 }}

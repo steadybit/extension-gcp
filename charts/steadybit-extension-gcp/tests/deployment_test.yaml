@@ -161,3 +161,12 @@ tests:
         projectsAdvanced: '[{"projectId":"proj-a","impersonateServiceAccount":"sa@proj-a.iam.gserviceaccount.com"}]'
     asserts:
       - matchSnapshot: {}
+
+  - it: manifest should match snapshot with testing compute endpoint
+    set:
+      gcp:
+        projectID: mock-project
+      testing:
+        computeEndpoint: http://host.minikube.internal:12345
+    asserts:
+      - matchSnapshot: {}

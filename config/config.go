@@ -26,7 +26,9 @@ type Specification struct {
 	//STEADYBIT_EXTENSION_PROJECTS_ADVANCED - JSON array of {projectId, impersonateServiceAccount}. Enables per-project service-account impersonation.
 	ProjectsAdvanced ProjectsAdvanced `json:"projectsAdvanced" required:"false" split_words:"true"`
 	//STEADYBIT_EXTENSION_WORKER_THREADS - number of goroutines used to fan out discovery across projects.
-	WorkerThreads                 int      `json:"workerThreads" required:"false" split_words:"true" default:"1"`
+	WorkerThreads int `json:"workerThreads" required:"false" split_words:"true" default:"1"`
+	//STEADYBIT_EXTENSION_COMPUTE_ENDPOINT - override the Compute API endpoint. Intended for testing only; when set the client skips authentication.
+	ComputeEndpoint               string   `json:"computeEndpoint" required:"false" split_words:"true"`
 	DiscoveryAttributesExcludesVM []string `json:"discoveryAttributesExcludesVM" required:"false" split_words:"true"`
 	EnrichVMDataForTargetTypes    []string `json:"EnrichVMDataForTargetTypes" split_words:"true" default:"com.steadybit.extension_jvm.jvm-instance,com.steadybit.extension_kubernetes.argo-rollout,com.steadybit.extension_kubernetes.kubernetes-deployment,com.steadybit.extension_kubernetes.kubernetes-pod,com.steadybit.extension_kubernetes.kubernetes-daemonset,com.steadybit.extension_kubernetes.kubernetes-statefulset,com.steadybit.extension_http.client-location,com.steadybit.extension_jmeter.location,com.steadybit.extension_k6.location,com.steadybit.extension_gatling.location"`
 }

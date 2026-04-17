@@ -30,7 +30,7 @@ var projects map[string]GcpAccess
 func InitializeGcpAccess(spec config.Specification) {
 	projects = make(map[string]GcpAccess)
 	for _, p := range config.ResolvedProjects() {
-		opts, err := buildClientOptions(spec.CredentialsKeyfilePath, p.ImpersonateServiceAccount)
+		opts, err := buildClientOptions(spec, p.ImpersonateServiceAccount)
 		if err != nil {
 			log.Error().Err(err).Str("project", p.ProjectID).Msg("Failed to build GCP client options; project will be ignored until extension is restarted.")
 			continue
@@ -47,10 +47,15 @@ func InitializeGcpAccess(spec config.Specification) {
 	}
 }
 
-func buildClientOptions(credentialsKeyfilePath, impersonateServiceAccount string) ([]option.ClientOption, error) {
+func buildClientOptions(spec config.Specification, impersonateServiceAccount string) ([]option.ClientOption, error) {
+	if spec.ComputeEndpoint != "" {
+		log.Warn().Str("endpoint", spec.ComputeEndpoint).Msg("STEADYBIT_EXTENSION_COMPUTE_ENDPOINT is set; GCP clients will skip authentication. This must only be used for testing.")
+		return []option.ClientOption{option.WithEndpoint(spec.ComputeEndpoint), option.WithoutAuthentication()}, nil
+	}
+
 	var sourceOpts []option.ClientOption
-	if credentialsKeyfilePath != "" {
-		sourceOpts = append(sourceOpts, option.WithCredentialsFile(credentialsKeyfilePath))
+	if spec.CredentialsKeyfilePath != "" {
+		sourceOpts = append(sourceOpts, option.WithCredentialsFile(spec.CredentialsKeyfilePath))
 	}
 	if impersonateServiceAccount == "" {
 		return sourceOpts, nil
