@@ -8,8 +8,8 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"regexp"
-	"strings"
 	"sync"
 
 	"github.com/rs/zerolog/log"
@@ -127,11 +127,13 @@ func (m *mockComputeServer) StopRequests() []instanceRef {
 	return append([]instanceRef(nil), m.stopRequests...)
 }
 
-// hostPort extracts the "host:port" suffix of the mock server URL, suitable for
-// constructing an endpoint reachable from inside minikube via host.minikube.internal.
-func (m *mockComputeServer) hostPort() string {
-	u := m.Server.URL
-	u = strings.TrimPrefix(u, "http://")
-	u = strings.TrimPrefix(u, "https://")
-	return u
+// port returns the port the mock server is listening on. The host part of the
+// server URL is bound to 0.0.0.0 and is not reachable from inside a minikube
+// pod, so callers combine this port with `host.minikube.internal`.
+func (m *mockComputeServer) port() string {
+	u, err := url.Parse(m.Server.URL)
+	if err != nil {
+		panic(fmt.Sprintf("mock compute server: cannot parse URL %q: %v", m.Server.URL, err))
+	}
+	return u.Port()
 }

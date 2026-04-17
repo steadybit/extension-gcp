@@ -34,7 +34,7 @@ func TestWithMinikube(t *testing.T) {
 			return []string{
 				"--set", "logging.level=debug",
 				"--set", "gcp.projectID=" + mockProjectID,
-				"--set", "testing.computeEndpoint=http://host.minikube.internal:" + server.hostPort(),
+				"--set", "testing.computeEndpoint=http://host.minikube.internal:" + server.port(),
 			}
 		},
 	}
