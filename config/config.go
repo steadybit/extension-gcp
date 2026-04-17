@@ -20,9 +20,9 @@ type Specification struct {
 	//STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
 	CredentialsKeyfilePath string `json:"credentialsKeyfilePath" required:"false" split_words:"true"`
 	//STEADYBIT_EXTENSION_PROJECT_ID - legacy single-project config, kept for backward compatibility.
-	ProjectID string `json:"projectId" required:"false" split_words:"true"`
+	ProjectId string `json:"projectId" required:"false" split_words:"true"`
 	//STEADYBIT_EXTENSION_PROJECT_IDS - comma-separated list of GCP project IDs to discover. Uses the same credentials for all projects.
-	ProjectIDs []string `json:"projectIds" required:"false" split_words:"true"`
+	ProjectIds []string `json:"projectIds" required:"false" split_words:"true"`
 	//STEADYBIT_EXTENSION_PROJECTS_ADVANCED - JSON array of {projectId, impersonateServiceAccount}. Enables per-project service-account impersonation.
 	ProjectsAdvanced ProjectsAdvanced `json:"projectsAdvanced" required:"false" split_words:"true"`
 	//STEADYBIT_EXTENSION_WORKER_THREADS - number of goroutines used to fan out discovery across projects.
@@ -58,8 +58,8 @@ func ParseConfiguration() {
 		log.Fatal().Err(err).Msgf("Failed to parse configuration from environment.")
 	}
 
-	Config.ProjectID = strings.TrimSpace(Config.ProjectID)
-	Config.ProjectIDs = trimAndFilter(Config.ProjectIDs)
+	Config.ProjectId = strings.TrimSpace(Config.ProjectId)
+	Config.ProjectIds = trimAndFilter(Config.ProjectIds)
 }
 
 func ValidateConfiguration() {
@@ -75,9 +75,9 @@ func ResolvedProjects() []ProjectAdvanced {
 	if len(Config.ProjectsAdvanced) > 0 {
 		return Config.ProjectsAdvanced
 	}
-	ids := Config.ProjectIDs
-	if len(ids) == 0 && Config.ProjectID != "" {
-		ids = []string{Config.ProjectID}
+	ids := Config.ProjectIds
+	if len(ids) == 0 && Config.ProjectId != "" {
+		ids = []string{Config.ProjectId}
 	}
 	projects := make([]ProjectAdvanced, 0, len(ids))
 	for _, id := range ids {
@@ -88,10 +88,10 @@ func ResolvedProjects() []ProjectAdvanced {
 
 func validateProjects(c *Specification) error {
 	sources := 0
-	if c.ProjectID != "" {
+	if c.ProjectId != "" {
 		sources++
 	}
-	if len(c.ProjectIDs) > 0 {
+	if len(c.ProjectIds) > 0 {
 		sources++
 	}
 	if len(c.ProjectsAdvanced) > 0 {
@@ -103,7 +103,7 @@ func validateProjects(c *Specification) error {
 	if sources > 1 {
 		return fmt.Errorf("only one of STEADYBIT_EXTENSION_PROJECT_ID, STEADYBIT_EXTENSION_PROJECT_IDS, STEADYBIT_EXTENSION_PROJECTS_ADVANCED may be set")
 	}
-	if err := checkDuplicateIDs("STEADYBIT_EXTENSION_PROJECT_IDS", c.ProjectIDs); err != nil {
+	if err := checkDuplicateIDs("STEADYBIT_EXTENSION_PROJECT_IDS", c.ProjectIds); err != nil {
 		return err
 	}
 	seen := make(map[string]struct{})

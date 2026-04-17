@@ -12,12 +12,12 @@ import (
 )
 
 func TestValidateProjects_LegacySingleProjectAccepted(t *testing.T) {
-	spec := &Specification{ProjectID: "proj-a"}
+	spec := &Specification{ProjectId: "proj-a"}
 	require.NoError(t, validateProjects(spec))
 }
 
 func TestValidateProjects_PluralListAccepted(t *testing.T) {
-	spec := &Specification{ProjectIDs: []string{"proj-a", "proj-b"}}
+	spec := &Specification{ProjectIds: []string{"proj-a", "proj-b"}}
 	require.NoError(t, validateProjects(spec))
 }
 
@@ -36,7 +36,7 @@ func TestValidateProjects_NoSourceRejected(t *testing.T) {
 }
 
 func TestValidateProjects_LegacyAndPluralRejected(t *testing.T) {
-	spec := &Specification{ProjectID: "proj-a", ProjectIDs: []string{"proj-b"}}
+	spec := &Specification{ProjectId: "proj-a", ProjectIds: []string{"proj-b"}}
 	err := validateProjects(spec)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "only one of")
@@ -44,7 +44,7 @@ func TestValidateProjects_LegacyAndPluralRejected(t *testing.T) {
 
 func TestValidateProjects_PluralAndAdvancedRejected(t *testing.T) {
 	spec := &Specification{
-		ProjectIDs:       []string{"proj-a"},
+		ProjectIds:       []string{"proj-a"},
 		ProjectsAdvanced: ProjectsAdvanced{{ProjectID: "proj-b"}},
 	}
 	err := validateProjects(spec)
@@ -54,7 +54,7 @@ func TestValidateProjects_PluralAndAdvancedRejected(t *testing.T) {
 
 func TestValidateProjects_LegacyAndAdvancedRejected(t *testing.T) {
 	spec := &Specification{
-		ProjectID:        "proj-a",
+		ProjectId:        "proj-a",
 		ProjectsAdvanced: ProjectsAdvanced{{ProjectID: "proj-b"}},
 	}
 	err := validateProjects(spec)
@@ -63,7 +63,7 @@ func TestValidateProjects_LegacyAndAdvancedRejected(t *testing.T) {
 }
 
 func TestValidateProjects_PluralDuplicateProjectRejected(t *testing.T) {
-	spec := &Specification{ProjectIDs: []string{"proj-a", "proj-a"}}
+	spec := &Specification{ProjectIds: []string{"proj-a", "proj-a"}}
 	err := validateProjects(spec)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "duplicate projectId 'proj-a'")
@@ -107,7 +107,7 @@ func TestResolvedProjects_PrefersAdvanced(t *testing.T) {
 	t.Cleanup(func() { Config = original })
 
 	Config = Specification{
-		ProjectIDs:       []string{"plural-a"},
+		ProjectIds:       []string{"plural-a"},
 		ProjectsAdvanced: ProjectsAdvanced{{ProjectID: "adv-a"}},
 	}
 	resolved := ResolvedProjects()
@@ -119,7 +119,7 @@ func TestResolvedProjects_FallsBackToLegacy(t *testing.T) {
 	original := Config
 	t.Cleanup(func() { Config = original })
 
-	Config = Specification{ProjectID: "legacy-a"}
+	Config = Specification{ProjectId: "legacy-a"}
 	resolved := ResolvedProjects()
 	require.Len(t, resolved, 1)
 	assert.Equal(t, "legacy-a", resolved[0].ProjectID)
@@ -130,7 +130,7 @@ func TestResolvedProjects_UsesPlural(t *testing.T) {
 	original := Config
 	t.Cleanup(func() { Config = original })
 
-	Config = Specification{ProjectIDs: []string{"plural-a", "plural-b"}}
+	Config = Specification{ProjectIds: []string{"plural-a", "plural-b"}}
 	resolved := ResolvedProjects()
 	require.Len(t, resolved, 2)
 	assert.Equal(t, "plural-a", resolved[0].ProjectID)
