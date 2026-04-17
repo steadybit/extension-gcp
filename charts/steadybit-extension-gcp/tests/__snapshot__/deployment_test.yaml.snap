@@ -32,6 +32,8 @@ manifest should match snapshot using podAnnotations and Labels:
                   value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
                   value: some-project-id
+                - name: STEADYBIT_EXTENSION_WORKER_THREADS
+                  value: "1"
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -108,7 +110,9 @@ manifest should match snapshot with TLS:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: null
+                  value: ""
+                - name: STEADYBIT_EXTENSION_WORKER_THREADS
+                  value: "1"
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -165,6 +169,87 @@ manifest should match snapshot with TLS:
               secret:
                 optional: false
                 secretName: server-cert
+manifest should match snapshot with advanced projects impersonation:
+  1: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        steadybit.com/discovery-disabled: "true"
+        steadybit.com/extension: "true"
+      name: RELEASE-NAME-steadybit-extension-gcp
+      namespace: NAMESPACE
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app.kubernetes.io/instance: RELEASE-NAME
+          app.kubernetes.io/name: steadybit-extension-gcp
+      template:
+        metadata:
+          annotations:
+            oneagent.dynatrace.com/injection: "false"
+          labels:
+            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/name: steadybit-extension-gcp
+            steadybit.com/discovery-disabled: "true"
+            steadybit.com/extension: "true"
+        spec:
+          containers:
+            - env:
+                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
+                  value: null
+                - name: STEADYBIT_EXTENSION_PROJECT_ID
+                  value: ""
+                - name: STEADYBIT_EXTENSION_PROJECTS_ADVANCED
+                  value: '[{"projectId":"proj-a","impersonateServiceAccount":"sa@proj-a.iam.gserviceaccount.com"}]'
+                - name: STEADYBIT_EXTENSION_WORKER_THREADS
+                  value: "1"
+                - name: STEADYBIT_LOG_LEVEL
+                  value: INFO
+                - name: STEADYBIT_LOG_FORMAT
+                  value: text
+              image: ghcr.io/steadybit/extension-gcp:v0.0.0
+              imagePullPolicy: IfNotPresent
+              livenessProbe:
+                failureThreshold: 5
+                httpGet:
+                  path: /health/liveness
+                  port: 8081
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 5
+              name: extension
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /health/readiness
+                  port: 8081
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 1
+              resources:
+                limits:
+                  cpu: 200m
+                  memory: 48Mi
+                requests:
+                  cpu: 50m
+                  memory: 24Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                readOnlyRootFilesystem: true
+              volumeMounts: null
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          serviceAccountName: steadybit-extension-gcp
+          volumes: null
 manifest should match snapshot with credentials secret path:
   1: |
     apiVersion: apps/v1
@@ -197,6 +282,8 @@ manifest should match snapshot with credentials secret path:
                   value: /etc/gcp/secret/credentials.json
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
                   value: some-project-id
+                - name: STEADYBIT_EXTENSION_WORKER_THREADS
+                  value: "1"
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -282,7 +369,9 @@ manifest should match snapshot with custom image registry:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: null
+                  value: ""
+                - name: STEADYBIT_EXTENSION_WORKER_THREADS
+                  value: "1"
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -359,7 +448,9 @@ manifest should match snapshot with extra env vars:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: null
+                  value: ""
+                - name: STEADYBIT_EXTENSION_WORKER_THREADS
+                  value: "1"
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -445,7 +536,9 @@ manifest should match snapshot with extra labels:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: null
+                  value: ""
+                - name: STEADYBIT_EXTENSION_WORKER_THREADS
+                  value: "1"
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -522,7 +615,9 @@ manifest should match snapshot with global image pull secrets:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: null
+                  value: ""
+                - name: STEADYBIT_EXTENSION_WORKER_THREADS
+                  value: "1"
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -601,7 +696,9 @@ manifest should match snapshot with global image registry:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: null
+                  value: ""
+                - name: STEADYBIT_EXTENSION_WORKER_THREADS
+                  value: "1"
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -678,7 +775,9 @@ manifest should match snapshot with global priority class:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: null
+                  value: ""
+                - name: STEADYBIT_EXTENSION_WORKER_THREADS
+                  value: "1"
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -756,7 +855,9 @@ manifest should match snapshot with image pull secrets:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: null
+                  value: ""
+                - name: STEADYBIT_EXTENSION_WORKER_THREADS
+                  value: "1"
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -835,7 +936,90 @@ manifest should match snapshot with legacy image name containing registry:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
+                  value: ""
+                - name: STEADYBIT_EXTENSION_WORKER_THREADS
+                  value: "1"
+                - name: STEADYBIT_LOG_LEVEL
+                  value: INFO
+                - name: STEADYBIT_LOG_FORMAT
+                  value: text
+              image: ghcr.io/steadybit/extension-gcp:v0.0.0
+              imagePullPolicy: IfNotPresent
+              livenessProbe:
+                failureThreshold: 5
+                httpGet:
+                  path: /health/liveness
+                  port: 8081
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 5
+              name: extension
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /health/readiness
+                  port: 8081
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 1
+              resources:
+                limits:
+                  cpu: 200m
+                  memory: 48Mi
+                requests:
+                  cpu: 50m
+                  memory: 24Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                readOnlyRootFilesystem: true
+              volumeMounts: null
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          serviceAccountName: steadybit-extension-gcp
+          volumes: null
+manifest should match snapshot with multiple project IDs:
+  1: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        steadybit.com/discovery-disabled: "true"
+        steadybit.com/extension: "true"
+      name: RELEASE-NAME-steadybit-extension-gcp
+      namespace: NAMESPACE
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app.kubernetes.io/instance: RELEASE-NAME
+          app.kubernetes.io/name: steadybit-extension-gcp
+      template:
+        metadata:
+          annotations:
+            oneagent.dynatrace.com/injection: "false"
+          labels:
+            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/name: steadybit-extension-gcp
+            steadybit.com/discovery-disabled: "true"
+            steadybit.com/extension: "true"
+        spec:
+          containers:
+            - env:
+                - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
+                - name: STEADYBIT_EXTENSION_PROJECT_ID
+                  value: ""
+                - name: STEADYBIT_EXTENSION_PROJECT_IDS
+                  value: proj-a,proj-b
+                - name: STEADYBIT_EXTENSION_WORKER_THREADS
+                  value: "3"
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -913,6 +1097,8 @@ manifest should match snapshot with mutual TLS:
                   value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
                   value: some-project-id
+                - name: STEADYBIT_EXTENSION_WORKER_THREADS
+                  value: "1"
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -1009,7 +1195,9 @@ manifest should match snapshot with mutual TLS using containerPaths:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: null
+                  value: ""
+                - name: STEADYBIT_EXTENSION_WORKER_THREADS
+                  value: "1"
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -1092,7 +1280,9 @@ manifest should match snapshot with podSecurityContext:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: null
+                  value: ""
+                - name: STEADYBIT_EXTENSION_WORKER_THREADS
+                  value: "1"
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -1170,7 +1360,9 @@ manifest should match snapshot with priority class:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: null
+                  value: ""
+                - name: STEADYBIT_EXTENSION_WORKER_THREADS
+                  value: "1"
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
@@ -1248,7 +1440,9 @@ manifest should match snapshot without TLS:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
                 - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: null
+                  value: ""
+                - name: STEADYBIT_EXTENSION_WORKER_THREADS
+                  value: "1"
                 - name: STEADYBIT_LOG_LEVEL
                   value: INFO
                 - name: STEADYBIT_LOG_FORMAT
