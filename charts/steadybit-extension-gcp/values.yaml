@@ -136,7 +136,14 @@ extraEnvFrom: []
 
 gcp:
   credentialsKeyfilePath: ""
+  # gcp.projectID -- Legacy single-project configuration. Kept for backward compatibility. Do not set together with projectIDs or projectsAdvanced.
   projectID: ""
+  # gcp.projectIDs -- Comma-separated list of GCP project IDs to discover when using a single credential across all projects. Example: "proj-a,proj-b".
+  projectIDs: ""
+  # gcp.projectsAdvanced -- JSON array enabling per-project service-account impersonation. Example: '[{"projectId":"proj-a","impersonateServiceAccount":"sa@proj-a.iam.gserviceaccount.com"}]'.
+  projectsAdvanced: ""
+  # gcp.workerThreads -- Number of goroutines used to fan discovery across configured projects.
+  workerThreads: 1
   # gcp.existingSecret -- If defined, will skip secret creation and instead assume that the referenced secret contains the key credentialsKeyfileJson
   existingSecret: null
 

@@ -67,7 +67,19 @@ spec:
             {{- fail "breaking change: gcp.credentialsKeyfileJson is deprecated, use gcp.credentialsKeyfilePath instead or put credentialsKeyfileJson into a secret" }}
             {{- end }}
             - name: STEADYBIT_EXTENSION_PROJECT_ID
-              value: {{ .Values.gcp.projectID }}
+              value: {{ .Values.gcp.projectID | quote }}
+            {{- if .Values.gcp.projectIDs }}
+            - name: STEADYBIT_EXTENSION_PROJECT_IDS
+              value: {{ .Values.gcp.projectIDs | quote }}
+            {{- end }}
+            {{- if .Values.gcp.projectsAdvanced }}
+            - name: STEADYBIT_EXTENSION_PROJECTS_ADVANCED
+              value: {{ .Values.gcp.projectsAdvanced | quote }}
+            {{- end }}
+            {{- if .Values.gcp.workerThreads }}
+            - name: STEADYBIT_EXTENSION_WORKER_THREADS
+              value: {{ .Values.gcp.workerThreads | quote }}
+            {{- end }}
             {{- if .Values.discovery.attributes.excludes.vm }}
             - name: STEADYBIT_EXTENSION_DISCOVERY_ATTRIBUTES_EXCLUDES_VM
               value: {{ join "," .Values.discovery.attributes.excludes.vm | quote }}

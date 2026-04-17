@@ -1,14 +1,15 @@
 package extvm
 
 import (
+	"context"
+	"testing"
+
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
-	"context"
 	"github.com/googleapis/gax-go/v2"
 	"github.com/steadybit/extension-gcp/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"testing"
 )
 
 type gcpResourceGraphClientMock struct {
@@ -25,7 +26,6 @@ func (m *gcpResourceGraphClientMock) AggregatedList(ctx context.Context, req *co
 
 func TestInstancesToTargets(t *testing.T) {
 	// Given
-	config.Config.ProjectID = "p_extension_gcp"
 	config.Config.DiscoveryAttributesExcludesVM = []string{"gcp-vm.label.tag1"}
 	id := uint64(42)
 	instances := []*computepb.Instance{
@@ -63,7 +63,7 @@ func TestInstancesToTargets(t *testing.T) {
 	}
 
 	// When
-	targets := instancesToTargets(instances)
+	targets := instancesToTargets(instances, "p_extension_gcp")
 
 	// Then
 	assert.Equal(t, 1, len(targets))
@@ -90,16 +90,4 @@ func TestInstancesToTargets(t *testing.T) {
 	assert.NotContains(t, target.Attributes, "gcp-vm.label.tag1")
 	_, present := target.Attributes["label.name"]
 	assert.False(t, present)
-}
-
-func TestMissingProjectId(t *testing.T) {
-	// Given
-	mockedApi := new(gcpResourceGraphClientMock)
-	config.Config.ProjectID = ""
-
-	// When
-	_, err := getAllVirtualMachinesInstances(context.Background(), mockedApi)
-
-	// Then
-	assert.Equal(t, err.Error(), "project id is not set")
 }
