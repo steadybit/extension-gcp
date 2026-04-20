@@ -109,8 +109,6 @@ manifest should match snapshot with TLS:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
-                - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: ""
                 - name: STEADYBIT_EXTENSION_WORKER_THREADS
                   value: "1"
                 - name: STEADYBIT_LOG_LEVEL
@@ -199,8 +197,6 @@ manifest should match snapshot with advanced projects impersonation:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
-                - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: ""
                 - name: STEADYBIT_EXTENSION_PROJECTS_ADVANCED
                   value: '[{"projectId":"proj-a","impersonateServiceAccount":"sa@proj-a.iam.gserviceaccount.com"}]'
                 - name: STEADYBIT_EXTENSION_WORKER_THREADS
@@ -368,8 +364,6 @@ manifest should match snapshot with custom image registry:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
-                - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: ""
                 - name: STEADYBIT_EXTENSION_WORKER_THREADS
                   value: "1"
                 - name: STEADYBIT_LOG_LEVEL
@@ -447,8 +441,6 @@ manifest should match snapshot with extra env vars:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
-                - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: ""
                 - name: STEADYBIT_EXTENSION_WORKER_THREADS
                   value: "1"
                 - name: STEADYBIT_LOG_LEVEL
@@ -535,8 +527,6 @@ manifest should match snapshot with extra labels:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
-                - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: ""
                 - name: STEADYBIT_EXTENSION_WORKER_THREADS
                   value: "1"
                 - name: STEADYBIT_LOG_LEVEL
@@ -614,8 +604,6 @@ manifest should match snapshot with global image pull secrets:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
-                - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: ""
                 - name: STEADYBIT_EXTENSION_WORKER_THREADS
                   value: "1"
                 - name: STEADYBIT_LOG_LEVEL
@@ -695,8 +683,6 @@ manifest should match snapshot with global image registry:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
-                - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: ""
                 - name: STEADYBIT_EXTENSION_WORKER_THREADS
                   value: "1"
                 - name: STEADYBIT_LOG_LEVEL
@@ -774,8 +760,6 @@ manifest should match snapshot with global priority class:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
-                - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: ""
                 - name: STEADYBIT_EXTENSION_WORKER_THREADS
                   value: "1"
                 - name: STEADYBIT_LOG_LEVEL
@@ -854,8 +838,6 @@ manifest should match snapshot with image pull secrets:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
-                - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: ""
                 - name: STEADYBIT_EXTENSION_WORKER_THREADS
                   value: "1"
                 - name: STEADYBIT_LOG_LEVEL
@@ -935,8 +917,6 @@ manifest should match snapshot with legacy image name containing registry:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
-                - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: ""
                 - name: STEADYBIT_EXTENSION_WORKER_THREADS
                   value: "1"
                 - name: STEADYBIT_LOG_LEVEL
@@ -1014,8 +994,6 @@ manifest should match snapshot with multiple project IDs:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
-                - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: ""
                 - name: STEADYBIT_EXTENSION_PROJECT_IDS
                   value: proj-a,proj-b
                 - name: STEADYBIT_EXTENSION_WORKER_THREADS
@@ -1194,8 +1172,6 @@ manifest should match snapshot with mutual TLS using containerPaths:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
-                - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: ""
                 - name: STEADYBIT_EXTENSION_WORKER_THREADS
                   value: "1"
                 - name: STEADYBIT_LOG_LEVEL
@@ -1279,8 +1255,6 @@ manifest should match snapshot with podSecurityContext:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
-                - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: ""
                 - name: STEADYBIT_EXTENSION_WORKER_THREADS
                   value: "1"
                 - name: STEADYBIT_LOG_LEVEL
@@ -1359,8 +1333,6 @@ manifest should match snapshot with priority class:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
-                - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: ""
                 - name: STEADYBIT_EXTENSION_WORKER_THREADS
                   value: "1"
                 - name: STEADYBIT_LOG_LEVEL
@@ -1520,8 +1492,6 @@ manifest should match snapshot without TLS:
             - env:
                 - name: STEADYBIT_EXTENSION_CREDENTIALS_KEYFILE_PATH
                   value: null
-                - name: STEADYBIT_EXTENSION_PROJECT_ID
-                  value: ""
                 - name: STEADYBIT_EXTENSION_WORKER_THREADS
                   value: "1"
                 - name: STEADYBIT_LOG_LEVEL

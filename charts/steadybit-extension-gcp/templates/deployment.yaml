@@ -66,8 +66,10 @@ spec:
             {{- if .Values.gcp.credentialsKeyfileJson }}
             {{- fail "breaking change: gcp.credentialsKeyfileJson is deprecated, use gcp.credentialsKeyfilePath instead or put credentialsKeyfileJson into a secret" }}
             {{- end }}
+            {{- if .Values.gcp.projectID }}
             - name: STEADYBIT_EXTENSION_PROJECT_ID
               value: {{ .Values.gcp.projectID | quote }}
+            {{- end }}
             {{- if .Values.gcp.projectIDs }}
             - name: STEADYBIT_EXTENSION_PROJECT_IDS
               value: {{ .Values.gcp.projectIDs | quote }}
