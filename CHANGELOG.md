@@ -1,7 +1,12 @@
 # Changelog
 
+## v1.0.25 (next release)
+
+- Allow starting vm instances with the existing VM attack action.
+
 ## v1.0.24
-- feat: support discovery across multiple GCP projects via `STEADYBIT_EXTENSION_PROJECT_IDS` (shared credentials) or `STEADYBIT_EXTENSION_PROJECTS_ADVANCED` (per-project service-account impersonation). The legacy `STEADYBIT_EXTENSION_PROJECT_ID` continues to work.
+
+- Support discovery across multiple GCP projects via `STEADYBIT_EXTENSION_PROJECT_IDS` (shared credentials) or `STEADYBIT_EXTENSION_PROJECTS_ADVANCED` (per-project service-account impersonation). The legacy `STEADYBIT_EXTENSION_PROJECT_ID` continues to work.
 
 ## v1.0.23
 

@@ -5,10 +5,11 @@
 package extvm
 
 import (
-	compute "cloud.google.com/go/compute/apiv1"
-	"cloud.google.com/go/compute/apiv1/computepb"
 	"context"
 	"fmt"
+
+	compute "cloud.google.com/go/compute/apiv1"
+	"cloud.google.com/go/compute/apiv1/computepb"
 	"github.com/googleapis/gax-go/v2"
 	"github.com/steadybit/action-kit/go/action_kit_api/v2"
 	"github.com/steadybit/action-kit/go/action_kit_sdk"
@@ -35,6 +36,7 @@ type virtualMachineStateChangeApi interface {
 	Stop(ctx context.Context, req *computepb.StopInstanceRequest, opts ...gax.CallOption) (*compute.Operation, error)
 	Reset(ctx context.Context, req *computepb.ResetInstanceRequest, opts ...gax.CallOption) (*compute.Operation, error)
 	Suspend(ctx context.Context, req *computepb.SuspendInstanceRequest, opts ...gax.CallOption) (*compute.Operation, error)
+	Start(ctx context.Context, req *computepb.StartInstanceRequest, opts ...gax.CallOption) (*compute.Operation, error)
 }
 
 func NewVirtualMachineStateAction() action_kit_sdk.Action[VirtualMachineStateChangeState] {
@@ -49,7 +51,7 @@ func (e *virtualMachineStateAction) Describe() action_kit_api.ActionDescription 
 	return action_kit_api.ActionDescription{
 		Id:          VirtualMachineStateActionId,
 		Label:       "Change Virtual Machine State",
-		Description: "Reset, stop, suspend or delete Google Cloud virtual machines",
+		Description: "Reset, stop, suspend, delete or start Google Cloud virtual machines",
 		Version:     extbuild.GetSemverVersionStringOrUnknown(),
 		Icon:        new(targetIcon),
 		TargetSelection: new(action_kit_api.TargetSelection{
@@ -94,6 +96,10 @@ func (e *virtualMachineStateAction) Describe() action_kit_api.ActionDescription 
 					action_kit_api.ExplicitParameterOption{
 						Label: "Suspend",
 						Value: "suspend",
+					},
+					action_kit_api.ExplicitParameterOption{
+						Label: "Start",
+						Value: "start",
 					},
 				}),
 			},
@@ -155,6 +161,12 @@ func (e *virtualMachineStateAction) Start(ctx context.Context, state *VirtualMac
 		})
 	} else if state.Action == "suspend" {
 		_, err = client.Suspend(ctx, &computepb.SuspendInstanceRequest{
+			Zone:     state.Zone,
+			Project:  state.ProjectId,
+			Instance: state.VmName,
+		})
+	} else if state.Action == "start" {
+		_, err = client.Start(ctx, &computepb.StartInstanceRequest{
 			Zone:     state.Zone,
 			Project:  state.ProjectId,
 			Instance: state.VmName,

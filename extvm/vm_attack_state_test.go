@@ -1,10 +1,12 @@
 package extvm
 
 import (
-	compute "cloud.google.com/go/compute/apiv1"
-	"cloud.google.com/go/compute/apiv1/computepb"
 	"context"
 	"errors"
+	"testing"
+
+	compute "cloud.google.com/go/compute/apiv1"
+	"cloud.google.com/go/compute/apiv1/computepb"
 	"github.com/googleapis/gax-go/v2"
 	"github.com/steadybit/action-kit/go/action_kit_api/v2"
 	extension_kit "github.com/steadybit/extension-kit"
@@ -12,7 +14,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestGcpVirtualMachineStateAction_Prepare(t *testing.T) {
@@ -148,7 +149,13 @@ func (m *gcpClientApiMock) Reset(ctx context.Context, req *computepb.ResetInstan
 	args := m.Called(ctx, req)
 	return nil, args.Error(1)
 }
+
 func (m *gcpClientApiMock) Suspend(ctx context.Context, req *computepb.SuspendInstanceRequest, _ ...gax.CallOption) (*compute.Operation, error) {
+	args := m.Called(ctx, req)
+	return nil, args.Error(1)
+}
+
+func (m *gcpClientApiMock) Start(ctx context.Context, req *computepb.StartInstanceRequest, _ ...gax.CallOption) (*compute.Operation, error) {
 	args := m.Called(ctx, req)
 	return nil, args.Error(1)
 }
@@ -260,6 +267,35 @@ func TestGcpVirtualMachineStateAction_Reset(t *testing.T) {
 		VmName:    "my-vm",
 		Zone:      "us-central1-a",
 		Action:    "reset",
+	})
+
+	// Then
+	assert.NoError(t, err)
+	assert.Nil(t, result)
+
+	api.AssertExpectations(t)
+}
+
+func TestGcpVirtualMachineStateAction_Start(t *testing.T) {
+	// Given
+	api := new(gcpClientApiMock)
+	api.On("Start", mock.Anything, mock.MatchedBy(func(req *computepb.StartInstanceRequest) bool {
+		require.Equal(t, "42", req.Project)
+		require.Equal(t, "us-central1-a", req.Zone)
+		require.Equal(t, "my-vm", req.Instance)
+		return true
+	})).Return(nil, nil)
+
+	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, error) {
+		return api, nil
+	}}
+
+	// When
+	result, err := action.Start(context.Background(), &VirtualMachineStateChangeState{
+		ProjectId: "42",
+		VmName:    "my-vm",
+		Zone:      "us-central1-a",
+		Action:    "start",
 	})
 
 	// Then
