@@ -133,6 +133,7 @@ To attack vm instances, the extension needs the following IAM permissions:
 - `compute.instances.stop`
 - `compute.instances.suspend`
 - `compute.instances.delete`
+- `compute.instances.start`
 
 ### Create Role and ServiceAccount
 
@@ -143,6 +144,7 @@ To attack vm instances, the extension needs the following IAM permissions:
 - `compute.instances.stop`
 - `compute.instances.suspend`
 - `compute.instances.delete`
+- `compute.instances.start`
 
 2. Create a service account using the role "steadybit-extension-gcp".
 3. Create an access key for that service account and download the JSON key to key.json
