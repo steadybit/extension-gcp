@@ -24,8 +24,10 @@ import (
 )
 
 // MigDeleteInstancesState holds the sampled instance URLs to delete on Start.
-// Only zonal MIGs are supported by this attack. Regional MIGs would require RegionInstanceGroupManagers
-// client semantics; left as a follow-up.
+// This attack is destructive and is NOT reversible: deleted instances are gone; the MIG creates new
+// replacements per its scaling/heal policies. Recovery time depends on the MIG's autoscaler / surge
+// configuration; a MIG with autoscaling disabled and targetSize manually managed will stay undersized
+// until an operator intervenes.
 type MigDeleteInstancesState struct {
 	ProjectID  string
 	Scope      string // "zonal" or "regional"
@@ -92,9 +94,10 @@ func (a *migDeleteInstancesAttack) Describe() action_kit_api.ActionDescription {
 	return action_kit_api.ActionDescription{
 		Id:    MigDeleteInstancesActionId,
 		Label: "Delete MIG instances",
-		Description: "Deletes a percentage of RUNNING instances from a Managed Instance Group. The MIG re-creates the deleted instances within minutes. " +
+		Description: "Destructively deletes a percentage of RUNNING instances from a Managed Instance Group. The MIG creates new replacements per " +
+			"its scaling/heal policies — typical recovery is minutes, but a MIG without autoscaling can stay undersized indefinitely. " +
 			"Validates that workloads on the MIG tolerate the loss of N% of nodes. " +
-			"This is an instantaneous attack — there is no automatic rollback; the MIG handles instance replacement.",
+			"This attack is not reversible: the deleted instances are gone. Percentages above 50% require explicit confirmation.",
 		Version: extbuild.GetSemverVersionStringOrUnknown(),
 		Icon:    extutil.Ptr(targetIcon),
 		TargetSelection: extutil.Ptr(action_kit_api.TargetSelection{
@@ -123,6 +126,15 @@ func (a *migDeleteInstancesAttack) Describe() action_kit_api.ActionDescription {
 				MinValue:     extutil.Ptr(1),
 				MaxValue:     extutil.Ptr(100),
 			},
+			{
+				Name:         "confirmHighImpact",
+				Label:        "Allow percentages above 50%",
+				Description:  extutil.Ptr("Required to enable percentages above 50%. Acknowledges that more than half the MIG will be deleted simultaneously."),
+				Type:         action_kit_api.ActionParameterTypeBoolean,
+				DefaultValue: extutil.Ptr("false"),
+				Order:        extutil.Ptr(2),
+				Required:     extutil.Ptr(false),
+			},
 		},
 	}
 }
@@ -138,6 +150,9 @@ func (a *migDeleteInstancesAttack) Prepare(ctx context.Context, state *MigDelete
 	pct := extutil.ToInt(request.Config["percentage"])
 	if pct < 1 || pct > 100 {
 		return nil, extension_kit.ToError("percentage must be between 1 and 100.", nil)
+	}
+	if pct > 50 && !extutil.ToBool(request.Config["confirmHighImpact"]) {
+		return nil, extension_kit.ToError("Percentages above 50% require the 'Allow percentages above 50%' flag — half the MIG will be deleted at once.", nil)
 	}
 	state.Percentage = pct
 

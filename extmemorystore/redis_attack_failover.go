@@ -19,11 +19,13 @@ import (
 )
 
 // RedisFailoverState is enough to trigger a failover. Only STANDARD_HA tier instances support failover.
-// The attack is instantaneous — running another failover restores the previous primary if needed.
+// The attack is instantaneous and is not reversible: it exercises the same code path as a real zonal
+// outage on the primary node.
 type RedisFailoverState struct {
-	ProjectID    string
-	InstanceName string // fully-qualified: projects/<p>/locations/<region>/instances/<id>
-	InstanceID   string
+	ProjectID          string
+	InstanceName       string // fully-qualified: projects/<p>/locations/<region>/instances/<id>
+	InstanceID         string
+	DataProtectionMode string
 }
 
 type redisFailoverAttack struct {
@@ -56,7 +58,8 @@ func (a *redisFailoverAttack) Describe() action_kit_api.ActionDescription {
 		Label: "Trigger Memorystore for Redis failover",
 		Description: "Triggers a failover from the primary node to a replica for a STANDARD_HA tier Memorystore for Redis instance. " +
 			"Validates that connection-pool retry / reconnect logic survives the brief read/write interruption. " +
-			"There is no automatic rollback; running another failover swaps roles back if desired.",
+			"This is not reversible — it exercises the same code path as a real primary-node outage. " +
+			"FORCE_DATA_LOSS may drop in-flight writes that have not yet been replicated.",
 		Version: extbuild.GetSemverVersionStringOrUnknown(),
 		Icon:    extutil.Ptr(targetIcon),
 		TargetSelection: extutil.Ptr(action_kit_api.TargetSelection{
@@ -112,6 +115,7 @@ func (a *redisFailoverAttack) Prepare(_ context.Context, state *RedisFailoverSta
 		return nil, extension_kit.ToError(fmt.Sprintf("Memorystore instance %s is not STANDARD_HA; failover requires a high-availability instance", state.InstanceID), nil)
 	}
 	state.InstanceName = fmt.Sprintf("projects/%s/locations/%s/instances/%s", state.ProjectID, region, state.InstanceID)
+	state.DataProtectionMode = extutil.ToString(request.Config["dataProtectionMode"])
 	return nil, nil
 }
 
@@ -121,7 +125,7 @@ func (a *redisFailoverAttack) Start(ctx context.Context, state *RedisFailoverSta
 		return nil, extension_kit.ToError(fmt.Sprintf("Failed to initialize CloudRedis client for project %s", state.ProjectID), err)
 	}
 	defer closer()
-	mode := dataProtectionFromString("")
+	mode := dataProtectionFromString(state.DataProtectionMode)
 	// FailoverInstance returns a long-running operation; we don't wait — chaos = fire-and-forget.
 	_, err = client.FailoverInstance(ctx, &redispb.FailoverInstanceRequest{
 		Name:               state.InstanceName,
