@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 steadybit GmbH. All rights reserved.
+ * Copyright 2026 steadybit GmbH. All rights reserved.
  */
 
 package extpubsub
