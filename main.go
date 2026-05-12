@@ -13,6 +13,15 @@ import (
 	"github.com/steadybit/discovery-kit/go/discovery_kit_api"
 	"github.com/steadybit/discovery-kit/go/discovery_kit_sdk"
 	"github.com/steadybit/extension-gcp/config"
+	"github.com/steadybit/extension-gcp/extcloudrun"
+	"github.com/steadybit/extension-gcp/extcloudsql"
+	"github.com/steadybit/extension-gcp/extdisk"
+	"github.com/steadybit/extension-gcp/extgke"
+	"github.com/steadybit/extension-gcp/extmemorystore"
+	"github.com/steadybit/extension-gcp/extmig"
+	"github.com/steadybit/extension-gcp/extnat"
+	"github.com/steadybit/extension-gcp/extpubsub"
+	"github.com/steadybit/extension-gcp/extspanner"
 	"github.com/steadybit/extension-gcp/extvm"
 	"github.com/steadybit/extension-gcp/utils"
 	"github.com/steadybit/extension-kit/extbuild"
@@ -56,6 +65,46 @@ func main() {
 	// you do not have a need for all of them.
 	discovery_kit_sdk.Register(extvm.NewVirtualMachineDiscovery())
 	action_kit_sdk.RegisterAction(extvm.NewVirtualMachineStateAction())
+
+	// Opt-in modules added in feat/expand-gcp-targets-and-attacks. All disabled by default.
+	if config.Config.DiscoveryEnableGkeCluster {
+		discovery_kit_sdk.Register(extgke.NewClusterDiscovery())
+	}
+	if config.Config.DiscoveryEnableGkeNodePool {
+		discovery_kit_sdk.Register(extgke.NewNodePoolDiscovery())
+		action_kit_sdk.RegisterAction(extgke.NewNodePoolTerminateInstancesAction())
+	}
+	if config.Config.DiscoveryEnableMig {
+		discovery_kit_sdk.Register(extmig.NewMigDiscovery())
+		action_kit_sdk.RegisterAction(extmig.NewMigDeleteInstancesAction())
+	}
+	if config.Config.DiscoveryEnableCloudNat {
+		discovery_kit_sdk.Register(extnat.NewNatDiscovery())
+		action_kit_sdk.RegisterAction(extnat.NewCloudNatDisassociateAction())
+	}
+	if config.Config.DiscoveryEnablePersistentDisk {
+		discovery_kit_sdk.Register(extdisk.NewDiskDiscovery())
+	}
+	if config.Config.DiscoveryEnableCloudSql {
+		discovery_kit_sdk.Register(extcloudsql.NewInstanceDiscovery())
+		action_kit_sdk.RegisterAction(extcloudsql.NewInstanceFailoverAction())
+	}
+	if config.Config.DiscoveryEnableSpanner {
+		discovery_kit_sdk.Register(extspanner.NewInstanceDiscovery())
+	}
+	if config.Config.DiscoveryEnablePubSubTopic {
+		discovery_kit_sdk.Register(extpubsub.NewTopicDiscovery())
+	}
+	if config.Config.DiscoveryEnablePubSubSubscription {
+		discovery_kit_sdk.Register(extpubsub.NewSubscriptionDiscovery())
+	}
+	if config.Config.DiscoveryEnableMemorystoreRedis {
+		discovery_kit_sdk.Register(extmemorystore.NewRedisDiscovery())
+		action_kit_sdk.RegisterAction(extmemorystore.NewRedisFailoverAction())
+	}
+	if config.Config.DiscoveryEnableCloudRun {
+		discovery_kit_sdk.Register(extcloudrun.NewServiceDiscovery())
+	}
 
 	exthttp.RegisterHttpHandler("/", exthttp.IfNoneMatchHandler(func() string { return startedAt }, exthttp.GetterAsHandler(getExtensionList)))
 

@@ -86,6 +86,94 @@ spec:
             - name: STEADYBIT_EXTENSION_DISCOVERY_ATTRIBUTES_EXCLUDES_VM
               value: {{ join "," .Values.discovery.attributes.excludes.vm | quote }}
             {{- end }}
+            {{- if .Values.discovery.enable.gkeCluster }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ENABLE_GKE_CLUSTER
+              value: "true"
+            {{- end }}
+            {{- if .Values.discovery.attributes.excludes.gkeCluster }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ATTRIBUTES_EXCLUDES_GKE_CLUSTER
+              value: {{ join "," .Values.discovery.attributes.excludes.gkeCluster | quote }}
+            {{- end }}
+            {{- if .Values.discovery.enable.gkeNodePool }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ENABLE_GKE_NODE_POOL
+              value: "true"
+            {{- end }}
+            {{- if .Values.discovery.attributes.excludes.gkeNodePool }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ATTRIBUTES_EXCLUDES_GKE_NODE_POOL
+              value: {{ join "," .Values.discovery.attributes.excludes.gkeNodePool | quote }}
+            {{- end }}
+            {{- if .Values.discovery.enable.mig }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ENABLE_MIG
+              value: "true"
+            {{- end }}
+            {{- if .Values.discovery.attributes.excludes.mig }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ATTRIBUTES_EXCLUDES_MIG
+              value: {{ join "," .Values.discovery.attributes.excludes.mig | quote }}
+            {{- end }}
+            {{- if .Values.discovery.enable.cloudNat }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ENABLE_CLOUD_NAT
+              value: "true"
+            {{- end }}
+            {{- if .Values.discovery.attributes.excludes.cloudNat }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ATTRIBUTES_EXCLUDES_CLOUD_NAT
+              value: {{ join "," .Values.discovery.attributes.excludes.cloudNat | quote }}
+            {{- end }}
+            {{- if .Values.discovery.enable.persistentDisk }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ENABLE_PERSISTENT_DISK
+              value: "true"
+            {{- end }}
+            {{- if .Values.discovery.attributes.excludes.persistentDisk }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ATTRIBUTES_EXCLUDES_PERSISTENT_DISK
+              value: {{ join "," .Values.discovery.attributes.excludes.persistentDisk | quote }}
+            {{- end }}
+            {{- if .Values.discovery.enable.cloudSql }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ENABLE_CLOUD_SQL
+              value: "true"
+            {{- end }}
+            {{- if .Values.discovery.attributes.excludes.cloudSql }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ATTRIBUTES_EXCLUDES_CLOUD_SQL
+              value: {{ join "," .Values.discovery.attributes.excludes.cloudSql | quote }}
+            {{- end }}
+            {{- if .Values.discovery.enable.spanner }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ENABLE_SPANNER
+              value: "true"
+            {{- end }}
+            {{- if .Values.discovery.attributes.excludes.spanner }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ATTRIBUTES_EXCLUDES_SPANNER
+              value: {{ join "," .Values.discovery.attributes.excludes.spanner | quote }}
+            {{- end }}
+            {{- if .Values.discovery.enable.pubSubTopic }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ENABLE_PUB_SUB_TOPIC
+              value: "true"
+            {{- end }}
+            {{- if .Values.discovery.attributes.excludes.pubSubTopic }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ATTRIBUTES_EXCLUDES_PUB_SUB_TOPIC
+              value: {{ join "," .Values.discovery.attributes.excludes.pubSubTopic | quote }}
+            {{- end }}
+            {{- if .Values.discovery.enable.pubSubSubscription }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ENABLE_PUB_SUB_SUBSCRIPTION
+              value: "true"
+            {{- end }}
+            {{- if .Values.discovery.attributes.excludes.pubSubSubscription }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ATTRIBUTES_EXCLUDES_PUB_SUB_SUBSCRIPTION
+              value: {{ join "," .Values.discovery.attributes.excludes.pubSubSubscription | quote }}
+            {{- end }}
+            {{- if .Values.discovery.enable.memorystoreRedis }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ENABLE_MEMORYSTORE_REDIS
+              value: "true"
+            {{- end }}
+            {{- if .Values.discovery.attributes.excludes.memorystoreRedis }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ATTRIBUTES_EXCLUDES_MEMORYSTORE_REDIS
+              value: {{ join "," .Values.discovery.attributes.excludes.memorystoreRedis | quote }}
+            {{- end }}
+            {{- if .Values.discovery.enable.cloudRun }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ENABLE_CLOUD_RUN
+              value: "true"
+            {{- end }}
+            {{- if .Values.discovery.attributes.excludes.cloudRun }}
+            - name: STEADYBIT_EXTENSION_DISCOVERY_ATTRIBUTES_EXCLUDES_CLOUD_RUN
+              value: {{ join "," .Values.discovery.attributes.excludes.cloudRun | quote }}
+            {{- end }}
             {{- if .Values.testing.computeEndpoint }}
             - name: STEADYBIT_EXTENSION_COMPUTE_ENDPOINT
               value: {{ .Values.testing.computeEndpoint | quote }}
