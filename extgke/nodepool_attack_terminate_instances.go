@@ -27,8 +27,10 @@ import (
 )
 
 // NodePoolTerminateInstancesState captures enough state to execute the terminate-instances attack.
-// The attack is instantaneous — there's no automatic rollback; GKE's underlying MIG re-creates the deleted
-// instances within minutes (mirrors the EKS / AKS terminate-instances pattern).
+// This attack is destructive and is NOT reversible: deleted instances are gone; the MIG behind the node
+// pool creates new replacements driven by its scaling/heal policies (mirrors the EKS / AKS pattern).
+// Replacement time depends on cluster-autoscaler and surge configuration; on a misconfigured pool the
+// pool can remain undersized indefinitely.
 type NodePoolTerminateInstancesState struct {
 	ProjectID    string
 	ClusterName  string
@@ -80,10 +82,11 @@ func (a *nodePoolTerminateInstancesAttack) Describe() action_kit_api.ActionDescr
 	return action_kit_api.ActionDescription{
 		Id:    NodePoolTerminateInstancesActionId,
 		Label: "Terminate GKE node pool instances",
-		Description: "Deletes a percentage of instances from a GKE node pool via the underlying Managed Instance Group(s). " +
-			"The MIG re-creates the deleted instances within minutes. Validates pod rescheduling, PDB enforcement, " +
+		Description: "Destructively deletes a percentage of instances from a GKE node pool via the underlying Managed Instance Group(s). " +
+			"The MIG creates new replacements driven by its scaling/heal policies — typical recovery is minutes, but a node pool with " +
+			"cluster-autoscaler disabled or surge=0 can stay undersized indefinitely. Validates pod rescheduling, PDB enforcement, " +
 			"cluster-autoscaler scale-up, and stateful workload zonal failover. " +
-			"This is an instantaneous attack — there is no automatic rollback; GKE handles instance replacement.",
+			"This attack is not reversible: the deleted instances are gone. Percentages above 50% require explicit confirmation.",
 		Version: extbuild.GetSemverVersionStringOrUnknown(),
 		Icon:    extutil.Ptr(targetIcon),
 		TargetSelection: extutil.Ptr(action_kit_api.TargetSelection{
@@ -112,6 +115,15 @@ func (a *nodePoolTerminateInstancesAttack) Describe() action_kit_api.ActionDescr
 				MinValue:     extutil.Ptr(1),
 				MaxValue:     extutil.Ptr(100),
 			},
+			{
+				Name:         "confirmHighImpact",
+				Label:        "Allow percentages above 50%",
+				Description:  extutil.Ptr("Required to enable percentages above 50%. Acknowledges that more than half the node pool will be deleted simultaneously."),
+				Type:         action_kit_api.ActionParameterTypeBoolean,
+				DefaultValue: extutil.Ptr("false"),
+				Order:        extutil.Ptr(2),
+				Required:     extutil.Ptr(false),
+			},
 		},
 	}
 }
@@ -127,6 +139,9 @@ func (a *nodePoolTerminateInstancesAttack) Prepare(ctx context.Context, state *N
 	pct := extutil.ToInt(request.Config["percentage"])
 	if pct < 1 || pct > 100 {
 		return nil, extension_kit.ToError("percentage must be between 1 and 100.", nil)
+	}
+	if pct > 50 && !extutil.ToBool(request.Config["confirmHighImpact"]) {
+		return nil, extension_kit.ToError("Percentages above 50% require the 'Allow percentages above 50%' flag — half the node pool will be deleted at once.", nil)
 	}
 	state.Percentage = pct
 
