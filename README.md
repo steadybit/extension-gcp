@@ -19,6 +19,36 @@ Learn about the capabilities of this extension in our [Reliability Hub](https://
 
 Exactly one of `STEADYBIT_EXTENSION_PROJECT_ID`, `STEADYBIT_EXTENSION_PROJECT_IDS`, or `STEADYBIT_EXTENSION_PROJECTS_ADVANCED` must be set; setting more than one fails startup.
 
+### Opt-in discoveries
+
+These discoveries are disabled by default. Set the matching env var (or Helm `discovery.enable.*` flag) to `true` to enable each module. Per-module `STEADYBIT_EXTENSION_DISCOVERY_ATTRIBUTES_EXCLUDES_*` lists work the same way as the VM one.
+
+| Module                            | Env var                                                  | Helm flag                                  |
+|-----------------------------------|----------------------------------------------------------|--------------------------------------------|
+| GKE cluster                       | `STEADYBIT_EXTENSION_DISCOVERY_ENABLE_GKE_CLUSTER`       | `discovery.enable.gkeCluster`              |
+| GKE node pool (+ terminate-instances attack) | `STEADYBIT_EXTENSION_DISCOVERY_ENABLE_GKE_NODE_POOL`     | `discovery.enable.gkeNodePool`             |
+| Managed Instance Group (+ delete-instances attack) | `STEADYBIT_EXTENSION_DISCOVERY_ENABLE_MIG`               | `discovery.enable.mig`                     |
+| Cloud NAT (+ disassociate-subnet attack) | `STEADYBIT_EXTENSION_DISCOVERY_ENABLE_CLOUD_NAT`          | `discovery.enable.cloudNat`                |
+| Persistent Disk                   | `STEADYBIT_EXTENSION_DISCOVERY_ENABLE_PERSISTENT_DISK`   | `discovery.enable.persistentDisk`          |
+| Cloud SQL (+ failover attack)     | `STEADYBIT_EXTENSION_DISCOVERY_ENABLE_CLOUD_SQL`         | `discovery.enable.cloudSql`                |
+| Spanner instance                  | `STEADYBIT_EXTENSION_DISCOVERY_ENABLE_SPANNER`           | `discovery.enable.spanner`                 |
+| Pub/Sub topic                     | `STEADYBIT_EXTENSION_DISCOVERY_ENABLE_PUB_SUB_TOPIC`     | `discovery.enable.pubSubTopic`             |
+| Pub/Sub subscription              | `STEADYBIT_EXTENSION_DISCOVERY_ENABLE_PUB_SUB_SUBSCRIPTION` | `discovery.enable.pubSubSubscription`   |
+| Memorystore Redis (+ failover attack) | `STEADYBIT_EXTENSION_DISCOVERY_ENABLE_MEMORYSTORE_REDIS` | `discovery.enable.memorystoreRedis`        |
+| Cloud Run service                 | `STEADYBIT_EXTENSION_DISCOVERY_ENABLE_CLOUD_RUN`         | `discovery.enable.cloudRun`                |
+
+### Attack safety
+
+The five new attacks are not all reversible. Read this before turning them on in production:
+
+| Attack | Reversibility | What actually happens |
+|--------|---------------|------------------------|
+| GKE node pool: terminate-instances | **Destructive, self-healing.** Deleted instances are gone forever; the MIG creates new replacements per its scaling/heal policies. Recovery time depends on cluster-autoscaler and surge config — a misconfigured pool may stay undersized indefinitely. Percentages above 50% require an explicit confirmation flag. |
+| MIG: delete-instances | **Destructive, self-healing.** Same model as the GKE attack: the MIG creates new replacements. A MIG without autoscaling stays undersized until an operator intervenes. Percentages above 50% require explicit confirmation. |
+| Cloud NAT: disassociate subnetworks | **Truly reversible.** Original subnetwork list is captured at Prepare and restored at Stop. Re-fetches the router on every patch so concurrent edits to other NATs on the same router are preserved. If Stop never runs (agent crash, abandoned experiment), the NAT stays disassociated until an operator restores it. |
+| Cloud SQL: failover | **Not reversible.** Promotes the REGIONAL standby to primary; Cloud SQL rebuilds a new HA standby behind it. Exercises the same code path as a real zonal outage. Gated on `availability-type=REGIONAL`. |
+| Memorystore Redis: failover | **Not reversible.** Promotes the standby for STANDARD_HA instances; exercises the same code path as a real primary-node outage. `FORCE_DATA_LOSS` may drop in-flight writes that have not yet been replicated. Gated on `tier=STANDARD_HA`. |
+
 The extension supports all environment variables provided by [steadybit/extension-kit](https://github.com/steadybit/extension-kit#environment-variables).
 
 When installed as linux package this configuration is in`/etc/steadybit/extension-gcp`.
@@ -125,6 +155,18 @@ To discover vm instances, the extension needs the following IAM permissions:
 
 - `compute.instances.list`
 
+For the opt-in discoveries, the extension additionally needs:
+
+- GKE cluster / node pool: `container.clusters.list`, `container.clusters.get`, `container.nodePools.list`
+- MIG: `compute.instanceGroupManagers.list`, `compute.regionInstanceGroupManagers.list`
+- Cloud NAT: `compute.routers.list`
+- Persistent Disk: `compute.disks.list`, `compute.regionDisks.list`
+- Cloud SQL: `cloudsql.instances.list`
+- Spanner: `spanner.instances.list`
+- Pub/Sub: `pubsub.topics.list`, `pubsub.subscriptions.list`
+- Memorystore Redis: `redis.instances.list`
+- Cloud Run: `run.services.list`
+
 ### Attack
 
 To attack vm instances, the extension needs the following IAM permissions:
@@ -134,6 +176,14 @@ To attack vm instances, the extension needs the following IAM permissions:
 - `compute.instances.suspend`
 - `compute.instances.delete`
 - `compute.instances.start`
+
+For the opt-in attacks, the extension additionally needs:
+
+- GKE node pool terminate-instances: `compute.instances.delete` on the underlying MIG (`compute.instanceGroupManagers.delete*Instances`), `compute.instanceGroupManagers.listManagedInstances`
+- MIG delete-instances: `compute.instanceGroupManagers.deleteInstances` (and `compute.regionInstanceGroupManagers.deleteInstances` for regional MIGs)
+- Cloud NAT disassociate: `compute.routers.get`, `compute.routers.patch`
+- Cloud SQL failover: `cloudsql.instances.failover`
+- Memorystore Redis failover: `redis.instances.failover`
 
 ### Create Role and ServiceAccount
 
