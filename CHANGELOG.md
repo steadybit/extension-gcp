@@ -3,6 +3,7 @@
 ## v1.0.25 (next release)
 
 - Allow starting vm instances with the existing VM attack action.
+- Bump Go to 1.26.3
 
 ## v1.0.24
 
