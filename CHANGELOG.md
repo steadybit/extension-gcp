@@ -1,6 +1,11 @@
 # Changelog
 
-## v1.0.25 (next release)
+## v1.0.26
+
+- Support discovery group attribute via `STEADYBIT_EXTENSION_DISCOVERY_GROUP` env var (or `discovery.group` Helm value) — when set, the extension adds `steadybit.group=<value>` to every discovered target
+- Update dependencies
+
+## v1.0.25
 
 - Allow starting vm instances with the existing VM attack action.
 - Bump Go to 1.26.3
