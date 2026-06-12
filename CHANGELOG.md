@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.0.27
+
+- chore(deps): bump cloud.google.com/go/compute from 1.63.0 to 1.64.0
+- chore(deps): bump google.golang.org/api from 0.279.0 to 0.280.0
+- chore(deps): bump google.golang.org/api from 0.280.0 to 0.282.0
+- chore(deps): bump google.golang.org/api from 0.282.0 to 0.283.0
+- chore(deps): bump goreleaser/goreleaser from v2.15.4 to v2.16.0
+- chore: update to go 1.26.4
+- feat: add weekly auto patch-release workflow
+
 ## v1.0.26
 
 - Support discovery group attribute via `STEADYBIT_EXTENSION_DISCOVERY_GROUP` env var (or `discovery.group` Helm value) — when set, the extension adds `steadybit.group=<value>` to every discovered target
