@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.28
+
+- chore(deps): bump alpine from 3.23 to 3.24
+- chore(deps): bump google.golang.org/api from 0.283.0 to 0.284.0
+
 ## v1.0.27
 
 - chore(deps): bump cloud.google.com/go/compute from 1.63.0 to 1.64.0
