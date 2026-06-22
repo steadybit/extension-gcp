@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.29
+
+- build: rename workflow_dispatch input labels for the GH UI
+- chore(deps): bump github.com/steadybit/extension-kit
+- chore(deps): bump google.golang.org/api from 0.284.0 to 0.285.0
+
 ## v1.0.28
 
 - chore(deps): bump alpine from 3.23 to 3.24
