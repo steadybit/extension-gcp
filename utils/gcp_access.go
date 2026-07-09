@@ -91,10 +91,7 @@ func ForEveryConfiguredGcpAccess(
 		return []discovery_kit_api.Target{}, nil
 	}
 
-	workers := config.Config.WorkerThreads
-	if workers < 1 {
-		workers = 1
-	}
+	workers := max(config.Config.WorkerThreads, 1)
 	if workers > count {
 		workers = count
 	}
@@ -121,7 +118,7 @@ func ForEveryConfiguredGcpAccess(
 	close(accessChan)
 
 	result := make([]discovery_kit_api.Target, 0)
-	for i := 0; i < count; i++ {
+	for range count {
 		if targets := <-resultsChan; targets != nil {
 			result = append(result, targets...)
 		}
