@@ -1,5 +1,20 @@
 # Changelog
 
+## v1.0.30
+
+- chore(deps): bump github.com/googleapis/gax-go/v2 from 2.22.0 to 2.23.0
+- chore(deps): bump github.com/steadybit/action-kit/go/action_kit_sdk
+- chore(deps): bump github.com/steadybit/discovery-kit/go/discovery_kit_sdk
+- chore(deps): bump github.com/steadybit/extension-kit
+- chore(deps): bump go to 1.26.5 (#357)
+- chore(deps): bump google.golang.org/api from 0.285.0 to 0.286.0
+- chore(deps): bump google.golang.org/api from 0.286.0 to 0.287.0
+- chore(deps): bump google.golang.org/api from 0.287.1 to 0.288.0
+- chore(deps): bump goreleaser/goreleaser from v2.16.0 to v2.17.0
+- chore: add Claude Code workflows (#350)
+- chore: silence SonarQube finding on secrets: inherit in Claude workflows
+- refactor: register extension index via exthttp.RegisterRevisionedHandler (#358)
+
 ## v1.0.29
 
 - chore(deps): bump github.com/steadybit/extension-kit
