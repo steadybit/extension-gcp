@@ -195,8 +195,12 @@ func toClusterTarget(c *containerpb.Cluster, projectID string) discovery_kit_api
 		attributes["gcp.gke.cluster.node-locations"] = locs
 	}
 
-	private := c.PrivateClusterConfig != nil && c.PrivateClusterConfig.EnablePrivateEndpoint
-	attributes["gcp.gke.cluster.private-cluster"] = []string{strconv.FormatBool(private)}
+	// "private cluster" in GKE parlance = worker nodes have no public IPs (EnablePrivateNodes).
+	// EnablePrivateEndpoint is a distinct control-plane setting (whether the API server has a public IP)
+	// and drives api-server-open-to-internet below.
+	privateNodes := c.PrivateClusterConfig != nil && c.PrivateClusterConfig.EnablePrivateNodes
+	privateEndpoint := c.PrivateClusterConfig != nil && c.PrivateClusterConfig.EnablePrivateEndpoint
+	attributes["gcp.gke.cluster.private-cluster"] = []string{strconv.FormatBool(privateNodes)}
 
 	manEnabled := false
 	var manCidrs []string
@@ -215,7 +219,7 @@ func toClusterTarget(c *containerpb.Cluster, projectID string) discovery_kit_api
 	}
 	// True iff the API server is reachable from the public internet without IP restriction.
 	// Private endpoint => not internet-reachable. Public endpoint AND no authorized-networks restriction => open.
-	attributes["gcp.gke.cluster.api-server-open-to-internet"] = []string{strconv.FormatBool(!private && !manEnabled)}
+	attributes["gcp.gke.cluster.api-server-open-to-internet"] = []string{strconv.FormatBool(!privateEndpoint && !manEnabled)}
 
 	wiEnabled := c.WorkloadIdentityConfig != nil && c.WorkloadIdentityConfig.WorkloadPool != ""
 	attributes["gcp.gke.cluster.workload-identity-enabled"] = []string{strconv.FormatBool(wiEnabled)}

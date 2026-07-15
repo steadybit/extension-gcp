@@ -47,7 +47,6 @@ type migInstancesApi interface {
 }
 
 type nodePoolTerminateInstancesAttack struct {
-	gkeClientProvider func(ctx context.Context, opts ...interface{}) (clusterManagerApi, func(), error)
 	migClientProvider func(ctx context.Context, projectID string) (migInstancesApi, func(), error)
 	rng               func(n int) []int
 }
@@ -56,9 +55,6 @@ var _ action_kit_sdk.Action[NodePoolTerminateInstancesState] = (*nodePoolTermina
 
 func NewNodePoolTerminateInstancesAction() action_kit_sdk.Action[NodePoolTerminateInstancesState] {
 	return &nodePoolTerminateInstancesAttack{
-		gkeClientProvider: func(ctx context.Context, opts ...interface{}) (clusterManagerApi, func(), error) {
-			panic("gkeClientProvider not used at runtime; the attack creates its client inline via utils.GetGcpAccess")
-		},
 		migClientProvider: func(ctx context.Context, projectID string) (migInstancesApi, func(), error) {
 			access, err := utils.GetGcpAccess(projectID)
 			if err != nil {
