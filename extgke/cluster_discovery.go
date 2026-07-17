@@ -212,7 +212,12 @@ func toClusterTarget(c *containerpb.Cluster, projectID string) discovery_kit_api
 				continue
 			}
 			manCidrs = append(manCidrs, b.CidrBlock)
-			if b.CidrBlock != "0.0.0.0/0" && b.CidrBlock != "::/0" {
+			// Only credit a restriction when MAN is actually enabled. The API can
+			// return a stale CidrBlocks list on a disabled config; without this
+			// gate, a MAN-disabled cluster with leftover non-wildcard entries
+			// would be misreported as "restricted" (the opposite direction of the
+			// 0.0.0.0/0 misreport this fix is about).
+			if manEnabled && b.CidrBlock != "0.0.0.0/0" && b.CidrBlock != "::/0" {
 				manRestricted = true
 			}
 		}
