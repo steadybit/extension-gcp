@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -168,78 +167,106 @@ func toClusterTarget(c *containerpb.Cluster, projectID string) discovery_kit_api
 	// the kubeconfig context, which for GKE is the cluster name unless explicitly overridden).
 	attributes[attrK8sClusterName] = []string{c.Name}
 
-	if c.CurrentMasterVersion != "" {
-		attributes[attrClusterKubernetesVersion] = []string{c.CurrentMasterVersion}
-	}
-	if c.Status != containerpb.Cluster_STATUS_UNSPECIFIED {
-		attributes["gcp.gke.cluster.status"] = []string{c.Status.String()}
-	}
-	if c.ReleaseChannel != nil && c.ReleaseChannel.Channel != containerpb.ReleaseChannel_UNSPECIFIED {
-		attributes[attrClusterReleaseChannel] = []string{c.ReleaseChannel.Channel.String()}
-	}
-	if c.LoggingService != "" {
-		attributes[attrClusterLoggingService] = []string{c.LoggingService}
-	}
-	if c.MonitoringService != "" {
-		attributes[attrClusterMonitoringService] = []string{c.MonitoringService}
-	}
-	if c.Network != "" {
-		attributes[attrClusterNetwork] = []string{c.Network}
-	}
-	if c.Subnetwork != "" {
-		attributes[attrClusterSubnetwork] = []string{c.Subnetwork}
-	}
-	if len(c.Locations) > 0 {
-		locs := append([]string(nil), c.Locations...)
-		sort.Strings(locs)
-		attributes["gcp.gke.cluster.node-locations"] = locs
-	}
+	utils.SetStr(attributes, attrClusterKubernetesVersion, c.CurrentMasterVersion)
+	utils.SetStr(attributes, attrClusterLoggingService, c.LoggingService)
+	utils.SetStr(attributes, attrClusterMonitoringService, c.MonitoringService)
+	utils.SetStr(attributes, attrClusterNetwork, c.Network)
+	utils.SetStr(attributes, attrClusterSubnetwork, c.Subnetwork)
 
-	// "private cluster" in GKE parlance = worker nodes have no public IPs (EnablePrivateNodes).
-	// EnablePrivateEndpoint is a distinct control-plane setting (whether the API server has a public IP)
-	// and drives api-server-open-to-internet below.
-	privateNodes := c.PrivateClusterConfig != nil && c.PrivateClusterConfig.EnablePrivateNodes
-	privateEndpoint := c.PrivateClusterConfig != nil && c.PrivateClusterConfig.EnablePrivateEndpoint
-	attributes[attrClusterPrivateCluster] = []string{strconv.FormatBool(privateNodes)}
-
-	manEnabled := false
-	var manCidrs []string
-	if c.MasterAuthorizedNetworksConfig != nil {
-		manEnabled = c.MasterAuthorizedNetworksConfig.Enabled
-		for _, b := range c.MasterAuthorizedNetworksConfig.CidrBlocks {
-			if b != nil && b.CidrBlock != "" {
-				manCidrs = append(manCidrs, b.CidrBlock)
-			}
-		}
-	}
-	attributes[attrClusterMasterAuthorizedNetsEnabled] = []string{strconv.FormatBool(manEnabled)}
-	if len(manCidrs) > 0 {
-		sort.Strings(manCidrs)
-		attributes[attrClusterMasterAuthorizedNetsCidrs] = manCidrs
-	}
-	// True iff the API server is reachable from the public internet without IP restriction.
-	// Private endpoint => not internet-reachable. Public endpoint AND no authorized-networks restriction => open.
-	attributes[attrClusterApiServerOpenToInternet] = []string{strconv.FormatBool(!privateEndpoint && !manEnabled)}
-
-	wiEnabled := c.WorkloadIdentityConfig != nil && c.WorkloadIdentityConfig.WorkloadPool != ""
-	attributes[attrClusterWorkloadIdentityEnabled] = []string{strconv.FormatBool(wiEnabled)}
-
-	shielded := c.ShieldedNodes != nil && c.ShieldedNodes.Enabled
-	attributes[attrClusterShieldedNodesEnabled] = []string{strconv.FormatBool(shielded)}
-
-	if c.BinaryAuthorization != nil && c.BinaryAuthorization.EvaluationMode != containerpb.BinaryAuthorization_EVALUATION_MODE_UNSPECIFIED {
-		attributes[attrClusterBinaryAuthEvalMode] = []string{c.BinaryAuthorization.EvaluationMode.String()}
-	}
-
-	for k, v := range c.ResourceLabels {
-		attributes[fmt.Sprintf("gcp.gke.cluster.label.%s", strings.ToLower(k))] = []string{v}
-	}
+	addClusterStatusAttrs(attributes, c.Status)
+	addReleaseChannelAttrs(attributes, c.ReleaseChannel)
+	addNodeLocationsAttrs(attributes, c.Locations)
+	addNetworkAccessAttrs(attributes, c.PrivateClusterConfig, c.MasterAuthorizedNetworksConfig)
+	addWorkloadIdentityAttrs(attributes, c.WorkloadIdentityConfig)
+	addShieldedNodesAttrs(attributes, c.ShieldedNodes)
+	addBinaryAuthAttrs(attributes, c.BinaryAuthorization)
+	addClusterLabelAttrs(attributes, c.ResourceLabels)
 
 	return discovery_kit_api.Target{
 		Id:         fmt.Sprintf("projects/%s/locations/%s/clusters/%s", projectID, c.Location, c.Name),
 		TargetType: TargetIDCluster,
 		Label:      c.Name,
 		Attributes: attributes,
+	}
+}
+
+func addClusterStatusAttrs(attrs map[string][]string, status containerpb.Cluster_Status) {
+	if status == containerpb.Cluster_STATUS_UNSPECIFIED {
+		return
+	}
+	attrs["gcp.gke.cluster.status"] = []string{status.String()}
+}
+
+func addReleaseChannelAttrs(attrs map[string][]string, rc *containerpb.ReleaseChannel) {
+	if rc == nil || rc.Channel == containerpb.ReleaseChannel_UNSPECIFIED {
+		return
+	}
+	attrs[attrClusterReleaseChannel] = []string{rc.Channel.String()}
+}
+
+func addNodeLocationsAttrs(attrs map[string][]string, locations []string) {
+	if len(locations) == 0 {
+		return
+	}
+	locs := append([]string(nil), locations...)
+	sort.Strings(locs)
+	attrs["gcp.gke.cluster.node-locations"] = locs
+}
+
+// addNetworkAccessAttrs emits the three attributes that together describe control-plane and worker-node
+// network exposure. They are coupled because api-server-open-to-internet is derived from both private-cluster
+// and master-authorized-networks state.
+//
+// "private cluster" in GKE parlance = worker nodes have no public IPs (EnablePrivateNodes).
+// EnablePrivateEndpoint is a distinct control-plane setting (whether the API server has a public IP)
+// and drives api-server-open-to-internet.
+func addNetworkAccessAttrs(attrs map[string][]string, pc *containerpb.PrivateClusterConfig, man *containerpb.MasterAuthorizedNetworksConfig) {
+	privateNodes := pc != nil && pc.EnablePrivateNodes
+	privateEndpoint := pc != nil && pc.EnablePrivateEndpoint
+	utils.SetBool(attrs, attrClusterPrivateCluster, privateNodes)
+
+	manEnabled, manCidrs := extractMasterAuthorizedNetworks(man)
+	utils.SetBool(attrs, attrClusterMasterAuthorizedNetsEnabled, manEnabled)
+	if len(manCidrs) > 0 {
+		sort.Strings(manCidrs)
+		attrs[attrClusterMasterAuthorizedNetsCidrs] = manCidrs
+	}
+	// True iff the API server is reachable from the public internet without IP restriction.
+	// Private endpoint => not internet-reachable. Public endpoint AND no authorized-networks restriction => open.
+	utils.SetBool(attrs, attrClusterApiServerOpenToInternet, !privateEndpoint && !manEnabled)
+}
+
+func extractMasterAuthorizedNetworks(man *containerpb.MasterAuthorizedNetworksConfig) (bool, []string) {
+	if man == nil {
+		return false, nil
+	}
+	var cidrs []string
+	for _, b := range man.CidrBlocks {
+		if b != nil && b.CidrBlock != "" {
+			cidrs = append(cidrs, b.CidrBlock)
+		}
+	}
+	return man.Enabled, cidrs
+}
+
+func addWorkloadIdentityAttrs(attrs map[string][]string, wi *containerpb.WorkloadIdentityConfig) {
+	utils.SetBool(attrs, attrClusterWorkloadIdentityEnabled, wi != nil && wi.WorkloadPool != "")
+}
+
+func addShieldedNodesAttrs(attrs map[string][]string, sn *containerpb.ShieldedNodes) {
+	utils.SetBool(attrs, attrClusterShieldedNodesEnabled, sn != nil && sn.Enabled)
+}
+
+func addBinaryAuthAttrs(attrs map[string][]string, ba *containerpb.BinaryAuthorization) {
+	if ba == nil || ba.EvaluationMode == containerpb.BinaryAuthorization_EVALUATION_MODE_UNSPECIFIED {
+		return
+	}
+	attrs[attrClusterBinaryAuthEvalMode] = []string{ba.EvaluationMode.String()}
+}
+
+func addClusterLabelAttrs(attrs map[string][]string, labels map[string]string) {
+	for k, v := range labels {
+		utils.SetStr(attrs, fmt.Sprintf("gcp.gke.cluster.label.%s", strings.ToLower(k)), v)
 	}
 }
 

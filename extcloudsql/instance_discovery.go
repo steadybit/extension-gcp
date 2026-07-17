@@ -7,7 +7,6 @@ package extcloudsql
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -116,56 +115,13 @@ func toInstanceTarget(inst *sqladmin.DatabaseInstance, projectID string) discove
 	attributes := make(map[string][]string)
 	attributes["gcp.project.id"] = []string{projectID}
 	attributes["gcp.cloudsql.instance.name"] = []string{inst.Name}
-	if inst.DatabaseVersion != "" {
-		attributes[attrDatabaseVersion] = []string{inst.DatabaseVersion}
-	}
-	if inst.Region != "" {
-		attributes[attrRegion] = []string{inst.Region}
-	}
-	if inst.GceZone != "" {
-		attributes["gcp.cloudsql.gce-zone"] = []string{inst.GceZone}
-	}
-	if inst.SecondaryGceZone != "" {
-		attributes["gcp.cloudsql.secondary-gce-zone"] = []string{inst.SecondaryGceZone}
-	}
-	if inst.State != "" {
-		attributes["gcp.cloudsql.state"] = []string{inst.State}
-	}
-	if inst.InstanceType != "" {
-		attributes["gcp.cloudsql.instance-type"] = []string{inst.InstanceType}
-	}
-	if inst.Settings != nil {
-		if inst.Settings.Tier != "" {
-			attributes[attrTier] = []string{inst.Settings.Tier}
-		}
-		if inst.Settings.AvailabilityType != "" {
-			attributes[attrAvailabilityType] = []string{inst.Settings.AvailabilityType}
-		}
-		if inst.Settings.BackupConfiguration != nil {
-			attributes["gcp.cloudsql.backup-enabled"] = []string{strconv.FormatBool(inst.Settings.BackupConfiguration.Enabled)}
-			attributes["gcp.cloudsql.point-in-time-recovery-enabled"] = []string{strconv.FormatBool(inst.Settings.BackupConfiguration.PointInTimeRecoveryEnabled)}
-		}
-		attributes["gcp.cloudsql.deletion-protection-enabled"] = []string{strconv.FormatBool(inst.Settings.DeletionProtectionEnabled)}
-		if inst.Settings.IpConfiguration != nil {
-			attributes["gcp.cloudsql.public-network-access"] = []string{strconv.FormatBool(inst.Settings.IpConfiguration.Ipv4Enabled)}
-			if inst.Settings.IpConfiguration.PrivateNetwork != "" {
-				attributes["gcp.cloudsql.private-network"] = []string{inst.Settings.IpConfiguration.PrivateNetwork}
-			}
-			attributes["gcp.cloudsql.require-ssl"] = []string{strconv.FormatBool(inst.Settings.IpConfiguration.RequireSsl)}
-		}
-		if inst.Settings.DataDiskType != "" {
-			attributes["gcp.cloudsql.disk-type"] = []string{inst.Settings.DataDiskType}
-		}
-		if inst.Settings.DataDiskSizeGb > 0 {
-			attributes["gcp.cloudsql.disk-size-gb"] = []string{strconv.FormatInt(inst.Settings.DataDiskSizeGb, 10)}
-		}
-		if inst.Settings.MaintenanceWindow != nil && inst.Settings.MaintenanceWindow.Day > 0 {
-			attributes["gcp.cloudsql.maintenance-window.day"] = []string{strconv.FormatInt(inst.Settings.MaintenanceWindow.Day, 10)}
-		}
-		for k, v := range inst.Settings.UserLabels {
-			attributes[fmt.Sprintf("gcp.cloudsql.label.%s", strings.ToLower(k))] = []string{v}
-		}
-	}
+	utils.SetStr(attributes, attrDatabaseVersion, inst.DatabaseVersion)
+	utils.SetStr(attributes, attrRegion, inst.Region)
+	utils.SetStr(attributes, "gcp.cloudsql.gce-zone", inst.GceZone)
+	utils.SetStr(attributes, "gcp.cloudsql.secondary-gce-zone", inst.SecondaryGceZone)
+	utils.SetStr(attributes, "gcp.cloudsql.state", inst.State)
+	utils.SetStr(attributes, "gcp.cloudsql.instance-type", inst.InstanceType)
+	addSettingsAttrs(attributes, inst.Settings)
 
 	return discovery_kit_api.Target{
 		Id:         fmt.Sprintf("projects/%s/instances/%s", projectID, inst.Name),
@@ -173,4 +129,45 @@ func toInstanceTarget(inst *sqladmin.DatabaseInstance, projectID string) discove
 		Label:      inst.Name,
 		Attributes: attributes,
 	}
+}
+
+func addSettingsAttrs(attrs map[string][]string, s *sqladmin.Settings) {
+	if s == nil {
+		return
+	}
+	utils.SetStr(attrs, attrTier, s.Tier)
+	utils.SetStr(attrs, attrAvailabilityType, s.AvailabilityType)
+	addBackupAttrs(attrs, s.BackupConfiguration)
+	utils.SetBool(attrs, "gcp.cloudsql.deletion-protection-enabled", s.DeletionProtectionEnabled)
+	addIpConfigAttrs(attrs, s.IpConfiguration)
+	utils.SetStr(attrs, "gcp.cloudsql.disk-type", s.DataDiskType)
+	utils.SetInt64IfPositive(attrs, "gcp.cloudsql.disk-size-gb", s.DataDiskSizeGb)
+	addMaintWindowAttrs(attrs, s.MaintenanceWindow)
+	for k, v := range s.UserLabels {
+		utils.SetStr(attrs, fmt.Sprintf("gcp.cloudsql.label.%s", strings.ToLower(k)), v)
+	}
+}
+
+func addBackupAttrs(attrs map[string][]string, b *sqladmin.BackupConfiguration) {
+	if b == nil {
+		return
+	}
+	utils.SetBool(attrs, "gcp.cloudsql.backup-enabled", b.Enabled)
+	utils.SetBool(attrs, "gcp.cloudsql.point-in-time-recovery-enabled", b.PointInTimeRecoveryEnabled)
+}
+
+func addIpConfigAttrs(attrs map[string][]string, ip *sqladmin.IpConfiguration) {
+	if ip == nil {
+		return
+	}
+	utils.SetBool(attrs, "gcp.cloudsql.public-network-access", ip.Ipv4Enabled)
+	utils.SetStr(attrs, "gcp.cloudsql.private-network", ip.PrivateNetwork)
+	utils.SetBool(attrs, "gcp.cloudsql.require-ssl", ip.RequireSsl)
+}
+
+func addMaintWindowAttrs(attrs map[string][]string, m *sqladmin.MaintenanceWindow) {
+	if m == nil {
+		return
+	}
+	utils.SetInt64IfPositive(attrs, "gcp.cloudsql.maintenance-window.day", m.Day)
 }

@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -145,54 +144,21 @@ func toDiskTarget(disk *computepb.Disk, zone, region, projectID string) discover
 	attributes := make(map[string][]string)
 	attributes[attrProjectID] = []string{projectID}
 	attributes["gcp.persistent-disk.name"] = []string{disk.GetName()}
-	if zone != "" {
-		attributes[attrZone] = []string{zone}
-	}
-	if region != "" {
-		attributes["gcp.persistent-disk.region"] = []string{region}
-	}
-	if t := disk.GetType(); t != "" {
-		// type is a URL; surface the last path component for readability.
-		if i := strings.LastIndex(t, "/"); i >= 0 {
-			attributes[attrType] = []string{t[i+1:]}
-		} else {
-			attributes[attrType] = []string{t}
-		}
-	}
-	if v := disk.GetSizeGb(); v > 0 {
-		attributes[attrSizeGB] = []string{strconv.Itoa(int(v))}
-	}
-	if v := disk.GetStatus(); v != "" {
-		attributes["gcp.persistent-disk.status"] = []string{v}
-	}
-	if users := disk.GetUsers(); len(users) > 0 {
-		sorted := append([]string(nil), users...)
-		sort.Strings(sorted)
-		attributes["gcp.persistent-disk.users"] = sorted
-	}
-	if v := disk.GetSourceImage(); v != "" {
-		attributes["gcp.persistent-disk.source-image"] = []string{v}
-	}
-	if v := disk.GetSourceSnapshot(); v != "" {
-		attributes["gcp.persistent-disk.source-snapshot"] = []string{v}
-	}
-	if dek := disk.GetDiskEncryptionKey(); dek != nil && dek.GetKmsKeyName() != "" {
-		attributes["gcp.persistent-disk.kms-key-name"] = []string{dek.GetKmsKeyName()}
-	}
-	if v := disk.GetPhysicalBlockSizeBytes(); v > 0 {
-		attributes["gcp.persistent-disk.physical-block-size-bytes"] = []string{strconv.Itoa(int(v))}
-	}
-	if v := disk.GetProvisionedIops(); v > 0 {
-		attributes["gcp.persistent-disk.provisioned-iops"] = []string{strconv.Itoa(int(v))}
-	}
-	if v := disk.GetProvisionedThroughput(); v > 0 {
-		attributes["gcp.persistent-disk.provisioned-throughput"] = []string{strconv.Itoa(int(v))}
-	}
-	if v := disk.GetArchitecture(); v != "" {
-		attributes["gcp.persistent-disk.architecture"] = []string{v}
-	}
+	utils.SetStr(attributes, attrZone, zone)
+	utils.SetStr(attributes, "gcp.persistent-disk.region", region)
+	utils.SetStr(attributes, attrType, shortDiskType(disk.GetType()))
+	utils.SetInt64IfPositive(attributes, attrSizeGB, disk.GetSizeGb())
+	utils.SetStr(attributes, "gcp.persistent-disk.status", disk.GetStatus())
+	addDiskUsersAttr(attributes, disk.GetUsers())
+	utils.SetStr(attributes, "gcp.persistent-disk.source-image", disk.GetSourceImage())
+	utils.SetStr(attributes, "gcp.persistent-disk.source-snapshot", disk.GetSourceSnapshot())
+	addDiskEncryptionAttrs(attributes, disk.GetDiskEncryptionKey())
+	utils.SetInt64IfPositive(attributes, "gcp.persistent-disk.physical-block-size-bytes", disk.GetPhysicalBlockSizeBytes())
+	utils.SetInt64IfPositive(attributes, "gcp.persistent-disk.provisioned-iops", disk.GetProvisionedIops())
+	utils.SetInt64IfPositive(attributes, "gcp.persistent-disk.provisioned-throughput", disk.GetProvisionedThroughput())
+	utils.SetStr(attributes, "gcp.persistent-disk.architecture", disk.GetArchitecture())
 	for k, v := range disk.GetLabels() {
-		attributes[fmt.Sprintf("gcp.persistent-disk.label.%s", strings.ToLower(k))] = []string{v}
+		utils.SetStr(attributes, fmt.Sprintf("gcp.persistent-disk.label.%s", strings.ToLower(k)), v)
 	}
 
 	return discovery_kit_api.Target{
@@ -201,4 +167,32 @@ func toDiskTarget(disk *computepb.Disk, zone, region, projectID string) discover
 		Label:      disk.GetName(),
 		Attributes: attributes,
 	}
+}
+
+// shortDiskType returns the last path component of a disk type URL; the raw
+// value is returned unchanged when it has no "/" separator or is empty.
+func shortDiskType(t string) string {
+	if t == "" {
+		return ""
+	}
+	if i := strings.LastIndex(t, "/"); i >= 0 {
+		return t[i+1:]
+	}
+	return t
+}
+
+func addDiskUsersAttr(attrs map[string][]string, users []string) {
+	if len(users) == 0 {
+		return
+	}
+	sorted := append([]string(nil), users...)
+	sort.Strings(sorted)
+	attrs["gcp.persistent-disk.users"] = sorted
+}
+
+func addDiskEncryptionAttrs(attrs map[string][]string, dek *computepb.CustomerEncryptionKey) {
+	if dek == nil {
+		return
+	}
+	utils.SetStr(attrs, "gcp.persistent-disk.kms-key-name", dek.GetKmsKeyName())
 }

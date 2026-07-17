@@ -139,58 +139,57 @@ func toMigTarget(mig *computepb.InstanceGroupManager, scope, location, projectID
 	attributes[attrScope] = []string{scope}
 	attributes[attrLocation] = []string{location}
 	attributes[attrTargetSize] = []string{strconv.Itoa(int(mig.GetTargetSize()))}
-	if v := mig.GetBaseInstanceName(); v != "" {
-		attributes["gcp.mig.base-instance-name"] = []string{v}
-	}
-	if v := mig.GetInstanceTemplate(); v != "" {
-		attributes["gcp.mig.instance-template"] = []string{v}
-	}
-
-	if dp := mig.GetDistributionPolicy(); dp != nil {
-		if v := dp.GetTargetShape(); v != "" {
-			attributes["gcp.mig.distribution-policy.target-shape"] = []string{v}
-		}
-		zones := make([]string, 0, len(dp.GetZones()))
-		for _, z := range dp.GetZones() {
-			if z != nil && z.Zone != nil && *z.Zone != "" {
-				zones = append(zones, *z.Zone)
-			}
-		}
-		if len(zones) > 0 {
-			attributes["gcp.mig.distribution-policy.zones"] = zones
-		}
-	}
-
-	if up := mig.GetUpdatePolicy(); up != nil {
-		if v := up.GetType(); v != "" {
-			attributes["gcp.mig.update-policy.type"] = []string{v}
-		}
-		if v := up.GetReplacementMethod(); v != "" {
-			attributes["gcp.mig.update-policy.replacement-method"] = []string{v}
-		}
-		if v := up.GetMinimalAction(); v != "" {
-			attributes["gcp.mig.update-policy.minimal-action"] = []string{v}
-		}
-	}
-
-	if ahps := mig.GetAutoHealingPolicies(); len(ahps) > 0 {
-		hcs := make([]string, 0, len(ahps))
-		for _, p := range ahps {
-			if p != nil && p.HealthCheck != nil && *p.HealthCheck != "" {
-				hcs = append(hcs, *p.HealthCheck)
-			}
-		}
-		if len(hcs) > 0 {
-			attributes["gcp.mig.auto-healing-policies.health-check"] = hcs
-		}
-	}
-
-	attributes["gcp.mig.stateful-policy.configured"] = []string{strconv.FormatBool(mig.GetStatefulPolicy() != nil)}
+	utils.SetStr(attributes, "gcp.mig.base-instance-name", mig.GetBaseInstanceName())
+	utils.SetStr(attributes, "gcp.mig.instance-template", mig.GetInstanceTemplate())
+	addDistributionPolicyAttrs(attributes, mig.GetDistributionPolicy())
+	addUpdatePolicyAttrs(attributes, mig.GetUpdatePolicy())
+	addAutoHealingAttrs(attributes, mig.GetAutoHealingPolicies())
+	utils.SetBool(attributes, "gcp.mig.stateful-policy.configured", mig.GetStatefulPolicy() != nil)
 
 	return discovery_kit_api.Target{
 		Id:         mig.GetSelfLink(),
 		TargetType: TargetIDMig,
 		Label:      mig.GetName(),
 		Attributes: attributes,
+	}
+}
+
+func addDistributionPolicyAttrs(attrs map[string][]string, dp *computepb.DistributionPolicy) {
+	if dp == nil {
+		return
+	}
+	utils.SetStr(attrs, "gcp.mig.distribution-policy.target-shape", dp.GetTargetShape())
+	zones := make([]string, 0, len(dp.GetZones()))
+	for _, z := range dp.GetZones() {
+		if z != nil && z.Zone != nil && *z.Zone != "" {
+			zones = append(zones, *z.Zone)
+		}
+	}
+	if len(zones) > 0 {
+		attrs["gcp.mig.distribution-policy.zones"] = zones
+	}
+}
+
+func addUpdatePolicyAttrs(attrs map[string][]string, up *computepb.InstanceGroupManagerUpdatePolicy) {
+	if up == nil {
+		return
+	}
+	utils.SetStr(attrs, "gcp.mig.update-policy.type", up.GetType())
+	utils.SetStr(attrs, "gcp.mig.update-policy.replacement-method", up.GetReplacementMethod())
+	utils.SetStr(attrs, "gcp.mig.update-policy.minimal-action", up.GetMinimalAction())
+}
+
+func addAutoHealingAttrs(attrs map[string][]string, ahps []*computepb.InstanceGroupManagerAutoHealingPolicy) {
+	if len(ahps) == 0 {
+		return
+	}
+	hcs := make([]string, 0, len(ahps))
+	for _, p := range ahps {
+		if p != nil && p.HealthCheck != nil && *p.HealthCheck != "" {
+			hcs = append(hcs, *p.HealthCheck)
+		}
+	}
+	if len(hcs) > 0 {
+		attrs["gcp.mig.auto-healing-policies.health-check"] = hcs
 	}
 }

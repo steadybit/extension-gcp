@@ -7,7 +7,6 @@ package extpubsub
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -126,51 +125,23 @@ func toSubscriptionTarget(s *pubsubpb.Subscription, projectID string) discovery_
 	attributes := make(map[string][]string)
 	attributes[attrProjectID] = []string{projectID}
 	attributes["gcp.pubsub.subscription.name"] = []string{name}
-	if s.Topic != "" {
-		attributes[attrSubscriptionTopic] = []string{s.Topic}
-	}
+	utils.SetStr(attributes, attrSubscriptionTopic, s.Topic)
 	attributes[attrSubscriptionDeliveryType] = []string{deliveryType(s)}
-	if s.AckDeadlineSeconds > 0 {
-		attributes[attrSubscriptionAckDeadlineSeconds] = []string{strconv.Itoa(int(s.AckDeadlineSeconds))}
-	}
-	if s.MessageRetentionDuration != nil {
-		attributes["gcp.pubsub.subscription.message-retention-duration"] = []string{s.MessageRetentionDuration.AsDuration().String()}
-	}
-	attributes["gcp.pubsub.subscription.retain-acked-messages"] = []string{strconv.FormatBool(s.RetainAckedMessages)}
-	attributes["gcp.pubsub.subscription.enable-message-ordering"] = []string{strconv.FormatBool(s.EnableMessageOrdering)}
-	attributes["gcp.pubsub.subscription.enable-exactly-once-delivery"] = []string{strconv.FormatBool(s.EnableExactlyOnceDelivery)}
-	attributes["gcp.pubsub.subscription.detached"] = []string{strconv.FormatBool(s.Detached)}
-	if s.Filter != "" {
-		attributes["gcp.pubsub.subscription.filter"] = []string{s.Filter}
-	}
-	if s.State != pubsubpb.Subscription_STATE_UNSPECIFIED {
-		attributes["gcp.pubsub.subscription.state"] = []string{s.State.String()}
-	}
-	if s.PushConfig != nil && s.PushConfig.PushEndpoint != "" {
-		attributes["gcp.pubsub.subscription.push-config.endpoint"] = []string{s.PushConfig.PushEndpoint}
-	}
-	if s.DeadLetterPolicy != nil {
-		if s.DeadLetterPolicy.DeadLetterTopic != "" {
-			attributes["gcp.pubsub.subscription.dead-letter-policy.topic"] = []string{s.DeadLetterPolicy.DeadLetterTopic}
-		}
-		if s.DeadLetterPolicy.MaxDeliveryAttempts > 0 {
-			attributes["gcp.pubsub.subscription.dead-letter-policy.max-delivery-attempts"] = []string{strconv.Itoa(int(s.DeadLetterPolicy.MaxDeliveryAttempts))}
-		}
-	}
-	if s.RetryPolicy != nil {
-		if s.RetryPolicy.MinimumBackoff != nil {
-			attributes["gcp.pubsub.subscription.retry-policy.minimum-backoff"] = []string{s.RetryPolicy.MinimumBackoff.AsDuration().String()}
-		}
-		if s.RetryPolicy.MaximumBackoff != nil {
-			attributes["gcp.pubsub.subscription.retry-policy.maximum-backoff"] = []string{s.RetryPolicy.MaximumBackoff.AsDuration().String()}
-		}
-	}
-	if s.ExpirationPolicy != nil && s.ExpirationPolicy.Ttl != nil {
-		attributes["gcp.pubsub.subscription.expiration-policy.ttl"] = []string{s.ExpirationPolicy.Ttl.AsDuration().String()}
-	}
+	utils.SetInt64IfPositive(attributes, attrSubscriptionAckDeadlineSeconds, int64(s.AckDeadlineSeconds))
+	addMessageRetentionAttr(attributes, s)
+	utils.SetBool(attributes, "gcp.pubsub.subscription.retain-acked-messages", s.RetainAckedMessages)
+	utils.SetBool(attributes, "gcp.pubsub.subscription.enable-message-ordering", s.EnableMessageOrdering)
+	utils.SetBool(attributes, "gcp.pubsub.subscription.enable-exactly-once-delivery", s.EnableExactlyOnceDelivery)
+	utils.SetBool(attributes, "gcp.pubsub.subscription.detached", s.Detached)
+	utils.SetStr(attributes, "gcp.pubsub.subscription.filter", s.Filter)
+	addStateAttr(attributes, s.State)
+	addPushConfigAttrs(attributes, s.PushConfig)
+	addDeadLetterPolicyAttrs(attributes, s.DeadLetterPolicy)
+	addRetryPolicyAttrs(attributes, s.RetryPolicy)
+	addExpirationPolicyAttrs(attributes, s.ExpirationPolicy)
 
 	for k, v := range s.Labels {
-		attributes[fmt.Sprintf("gcp.pubsub.subscription.label.%s", strings.ToLower(k))] = []string{v}
+		utils.SetStr(attributes, fmt.Sprintf("gcp.pubsub.subscription.label.%s", strings.ToLower(k)), v)
 	}
 
 	return discovery_kit_api.Target{
@@ -178,6 +149,56 @@ func toSubscriptionTarget(s *pubsubpb.Subscription, projectID string) discovery_
 		TargetType: TargetIDSubscription,
 		Label:      name,
 		Attributes: attributes,
+	}
+}
+
+func addMessageRetentionAttr(attrs map[string][]string, s *pubsubpb.Subscription) {
+	if s.MessageRetentionDuration == nil {
+		return
+	}
+	attrs["gcp.pubsub.subscription.message-retention-duration"] = []string{s.MessageRetentionDuration.AsDuration().String()}
+}
+
+func addStateAttr(attrs map[string][]string, state pubsubpb.Subscription_State) {
+	if state == pubsubpb.Subscription_STATE_UNSPECIFIED {
+		return
+	}
+	attrs["gcp.pubsub.subscription.state"] = []string{state.String()}
+}
+
+func addPushConfigAttrs(attrs map[string][]string, p *pubsubpb.PushConfig) {
+	if p == nil {
+		return
+	}
+	utils.SetStr(attrs, "gcp.pubsub.subscription.push-config.endpoint", p.PushEndpoint)
+}
+
+func addDeadLetterPolicyAttrs(attrs map[string][]string, d *pubsubpb.DeadLetterPolicy) {
+	if d == nil {
+		return
+	}
+	utils.SetStr(attrs, "gcp.pubsub.subscription.dead-letter-policy.topic", d.DeadLetterTopic)
+	utils.SetInt64IfPositive(attrs, "gcp.pubsub.subscription.dead-letter-policy.max-delivery-attempts", int64(d.MaxDeliveryAttempts))
+}
+
+func addRetryPolicyAttrs(attrs map[string][]string, r *pubsubpb.RetryPolicy) {
+	if r == nil {
+		return
+	}
+	if r.MinimumBackoff != nil {
+		attrs["gcp.pubsub.subscription.retry-policy.minimum-backoff"] = []string{r.MinimumBackoff.AsDuration().String()}
+	}
+	if r.MaximumBackoff != nil {
+		attrs["gcp.pubsub.subscription.retry-policy.maximum-backoff"] = []string{r.MaximumBackoff.AsDuration().String()}
+	}
+}
+
+func addExpirationPolicyAttrs(attrs map[string][]string, e *pubsubpb.ExpirationPolicy) {
+	if e == nil {
+		return
+	}
+	if e.Ttl != nil {
+		attrs["gcp.pubsub.subscription.expiration-policy.ttl"] = []string{e.Ttl.AsDuration().String()}
 	}
 }
 

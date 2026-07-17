@@ -135,61 +135,16 @@ func toNodePoolTarget(np *containerpb.NodePool, cluster *containerpb.Cluster, pr
 	attributes["k8s.cluster-name"] = []string{cluster.Name}
 	attributes["gcp.gke.nodepool.name"] = []string{np.Name}
 
-	if np.Version != "" {
-		attributes[attrNodePoolKubernetesVersion] = []string{np.Version}
-	}
-	if np.Status != containerpb.NodePool_STATUS_UNSPECIFIED {
-		attributes["gcp.gke.nodepool.status"] = []string{np.Status.String()}
-	}
-	if np.Config != nil {
-		if np.Config.MachineType != "" {
-			attributes[attrNodePoolMachineType] = []string{np.Config.MachineType}
-		}
-		if np.Config.DiskType != "" {
-			attributes["gcp.gke.nodepool.disk-type"] = []string{np.Config.DiskType}
-		}
-		if np.Config.DiskSizeGb > 0 {
-			attributes["gcp.gke.nodepool.disk-size-gb"] = []string{strconv.Itoa(int(np.Config.DiskSizeGb))}
-		}
-		if np.Config.ImageType != "" {
-			attributes["gcp.gke.nodepool.image-type"] = []string{np.Config.ImageType}
-		}
-		attributes["gcp.gke.nodepool.preemptible"] = []string{strconv.FormatBool(np.Config.Preemptible)}
-		attributes["gcp.gke.nodepool.spot"] = []string{strconv.FormatBool(np.Config.Spot)}
-	}
-	asEnabled := np.Autoscaling != nil && np.Autoscaling.Enabled
-	attributes[attrNodePoolAutoscalingEnabled] = []string{strconv.FormatBool(asEnabled)}
-	if asEnabled {
-		attributes["gcp.gke.nodepool.autoscaling.min-node-count"] = []string{strconv.Itoa(int(np.Autoscaling.MinNodeCount))}
-		attributes["gcp.gke.nodepool.autoscaling.max-node-count"] = []string{strconv.Itoa(int(np.Autoscaling.MaxNodeCount))}
-	}
-	if np.MaxPodsConstraint != nil && np.MaxPodsConstraint.MaxPodsPerNode > 0 {
-		attributes["gcp.gke.nodepool.max-pods-per-node"] = []string{strconv.Itoa(int(np.MaxPodsConstraint.MaxPodsPerNode))}
-	}
-	if np.Management != nil {
-		attributes["gcp.gke.nodepool.management.auto-upgrade"] = []string{strconv.FormatBool(np.Management.AutoUpgrade)}
-		attributes["gcp.gke.nodepool.management.auto-repair"] = []string{strconv.FormatBool(np.Management.AutoRepair)}
-	}
-	if np.UpgradeSettings != nil {
-		attributes["gcp.gke.nodepool.upgrade-settings.max-surge"] = []string{strconv.Itoa(int(np.UpgradeSettings.MaxSurge))}
-		attributes["gcp.gke.nodepool.upgrade-settings.max-unavailable"] = []string{strconv.Itoa(int(np.UpgradeSettings.MaxUnavailable))}
-	}
-	if len(np.Locations) > 0 {
-		locs := append([]string(nil), np.Locations...)
-		sort.Strings(locs)
-		attributes["gcp.gke.nodepool.locations"] = locs
-	}
-	if len(np.InstanceGroupUrls) > 0 {
-		urls := append([]string(nil), np.InstanceGroupUrls...)
-		sort.Strings(urls)
-		attributes["gcp.gke.nodepool.instance-group-urls"] = urls
-	}
+	utils.SetStr(attributes, attrNodePoolKubernetesVersion, np.Version)
 
-	if np.Config != nil {
-		for k, v := range np.Config.Labels {
-			attributes[fmt.Sprintf("gcp.gke.nodepool.label.%s", strings.ToLower(k))] = []string{v}
-		}
-	}
+	addNodePoolStatusAttrs(attributes, np.Status)
+	addNodePoolConfigAttrs(attributes, np.Config)
+	addNodePoolAutoscalingAttrs(attributes, np.Autoscaling)
+	addNodePoolMaxPodsAttrs(attributes, np.MaxPodsConstraint)
+	addNodePoolManagementAttrs(attributes, np.Management)
+	addNodePoolUpgradeSettingsAttrs(attributes, np.UpgradeSettings)
+	addNodePoolLocationsAttrs(attributes, np.Locations)
+	addNodePoolInstanceGroupUrlsAttrs(attributes, np.InstanceGroupUrls)
 
 	return discovery_kit_api.Target{
 		Id:         fmt.Sprintf("projects/%s/locations/%s/clusters/%s/nodePools/%s", projectID, cluster.Location, cluster.Name, np.Name),
@@ -197,4 +152,77 @@ func toNodePoolTarget(np *containerpb.NodePool, cluster *containerpb.Cluster, pr
 		Label:      fmt.Sprintf("%s/%s", cluster.Name, np.Name),
 		Attributes: attributes,
 	}
+}
+
+func addNodePoolStatusAttrs(attrs map[string][]string, status containerpb.NodePool_Status) {
+	if status == containerpb.NodePool_STATUS_UNSPECIFIED {
+		return
+	}
+	attrs["gcp.gke.nodepool.status"] = []string{status.String()}
+}
+
+func addNodePoolConfigAttrs(attrs map[string][]string, cfg *containerpb.NodeConfig) {
+	if cfg == nil {
+		return
+	}
+	utils.SetStr(attrs, attrNodePoolMachineType, cfg.MachineType)
+	utils.SetStr(attrs, "gcp.gke.nodepool.disk-type", cfg.DiskType)
+	utils.SetInt64IfPositive(attrs, "gcp.gke.nodepool.disk-size-gb", int64(cfg.DiskSizeGb))
+	utils.SetStr(attrs, "gcp.gke.nodepool.image-type", cfg.ImageType)
+	utils.SetBool(attrs, "gcp.gke.nodepool.preemptible", cfg.Preemptible)
+	utils.SetBool(attrs, "gcp.gke.nodepool.spot", cfg.Spot)
+	for k, v := range cfg.Labels {
+		utils.SetStr(attrs, fmt.Sprintf("gcp.gke.nodepool.label.%s", strings.ToLower(k)), v)
+	}
+}
+
+func addNodePoolAutoscalingAttrs(attrs map[string][]string, as *containerpb.NodePoolAutoscaling) {
+	asEnabled := as != nil && as.Enabled
+	utils.SetBool(attrs, attrNodePoolAutoscalingEnabled, asEnabled)
+	if !asEnabled {
+		return
+	}
+	attrs["gcp.gke.nodepool.autoscaling.min-node-count"] = []string{strconv.Itoa(int(as.MinNodeCount))}
+	attrs["gcp.gke.nodepool.autoscaling.max-node-count"] = []string{strconv.Itoa(int(as.MaxNodeCount))}
+}
+
+func addNodePoolMaxPodsAttrs(attrs map[string][]string, mpc *containerpb.MaxPodsConstraint) {
+	if mpc == nil {
+		return
+	}
+	utils.SetInt64IfPositive(attrs, "gcp.gke.nodepool.max-pods-per-node", mpc.MaxPodsPerNode)
+}
+
+func addNodePoolManagementAttrs(attrs map[string][]string, m *containerpb.NodeManagement) {
+	if m == nil {
+		return
+	}
+	utils.SetBool(attrs, "gcp.gke.nodepool.management.auto-upgrade", m.AutoUpgrade)
+	utils.SetBool(attrs, "gcp.gke.nodepool.management.auto-repair", m.AutoRepair)
+}
+
+func addNodePoolUpgradeSettingsAttrs(attrs map[string][]string, us *containerpb.NodePool_UpgradeSettings) {
+	if us == nil {
+		return
+	}
+	attrs["gcp.gke.nodepool.upgrade-settings.max-surge"] = []string{strconv.Itoa(int(us.MaxSurge))}
+	attrs["gcp.gke.nodepool.upgrade-settings.max-unavailable"] = []string{strconv.Itoa(int(us.MaxUnavailable))}
+}
+
+func addNodePoolLocationsAttrs(attrs map[string][]string, locations []string) {
+	if len(locations) == 0 {
+		return
+	}
+	locs := append([]string(nil), locations...)
+	sort.Strings(locs)
+	attrs["gcp.gke.nodepool.locations"] = locs
+}
+
+func addNodePoolInstanceGroupUrlsAttrs(attrs map[string][]string, urls []string) {
+	if len(urls) == 0 {
+		return
+	}
+	out := append([]string(nil), urls...)
+	sort.Strings(out)
+	attrs["gcp.gke.nodepool.instance-group-urls"] = out
 }

@@ -7,7 +7,6 @@ package extcloudrun
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -120,46 +119,18 @@ func toServiceTarget(s *runpb.Service, projectID string) discovery_kit_api.Targe
 	attributes := make(map[string][]string)
 	attributes[attrProjectID] = []string{projectID}
 	attributes["gcp.cloudrun.service.name"] = []string{name}
-	if location != "" {
-		attributes[attrLocation] = []string{location}
-	}
+	utils.SetStr(attributes, attrLocation, location)
 	if s.Ingress != runpb.IngressTraffic_INGRESS_TRAFFIC_UNSPECIFIED {
 		attributes[attrIngress] = []string{s.Ingress.String()}
 	}
 	if s.LaunchStage != 0 {
 		attributes["gcp.cloudrun.service.launch-stage"] = []string{s.LaunchStage.String()}
 	}
-	attributes["gcp.cloudrun.service.invoker-iam-disabled"] = []string{strconv.FormatBool(s.InvokerIamDisabled)}
-	attributes["gcp.cloudrun.service.iap-enabled"] = []string{strconv.FormatBool(s.IapEnabled)}
+	utils.SetBool(attributes, "gcp.cloudrun.service.invoker-iam-disabled", s.InvokerIamDisabled)
+	utils.SetBool(attributes, "gcp.cloudrun.service.iap-enabled", s.IapEnabled)
 
-	if s.Scaling != nil {
-		if s.Scaling.MinInstanceCount > 0 {
-			attributes["gcp.cloudrun.service.scaling.min-instance-count"] = []string{strconv.Itoa(int(s.Scaling.MinInstanceCount))}
-		}
-		if s.Scaling.ScalingMode != runpb.ServiceScaling_SCALING_MODE_UNSPECIFIED {
-			attributes["gcp.cloudrun.service.scaling.scaling-mode"] = []string{s.Scaling.ScalingMode.String()}
-		}
-	}
-
-	if tpl := s.Template; tpl != nil {
-		if tpl.MaxInstanceRequestConcurrency > 0 {
-			attributes["gcp.cloudrun.service.template.max-instance-request-concurrency"] = []string{strconv.Itoa(int(tpl.MaxInstanceRequestConcurrency))}
-		}
-		if tpl.Timeout != nil {
-			attributes["gcp.cloudrun.service.template.timeout"] = []string{tpl.Timeout.AsDuration().String()}
-		}
-		if tpl.ServiceAccount != "" {
-			attributes["gcp.cloudrun.service.template.service-account"] = []string{tpl.ServiceAccount}
-		}
-		if tpl.Scaling != nil {
-			if tpl.Scaling.MinInstanceCount > 0 {
-				attributes["gcp.cloudrun.service.template.scaling.min-instance-count"] = []string{strconv.Itoa(int(tpl.Scaling.MinInstanceCount))}
-			}
-			if tpl.Scaling.MaxInstanceCount > 0 {
-				attributes["gcp.cloudrun.service.template.scaling.max-instance-count"] = []string{strconv.Itoa(int(tpl.Scaling.MaxInstanceCount))}
-			}
-		}
-	}
+	addServiceScalingAttrs(attributes, s.Scaling)
+	addServiceTemplateAttrs(attributes, s.Template)
 
 	if len(s.Urls) > 0 {
 		attributes["gcp.cloudrun.service.urls"] = append([]string(nil), s.Urls...)
@@ -175,6 +146,36 @@ func toServiceTarget(s *runpb.Service, projectID string) discovery_kit_api.Targe
 		Label:      name,
 		Attributes: attributes,
 	}
+}
+
+func addServiceScalingAttrs(attrs map[string][]string, sc *runpb.ServiceScaling) {
+	if sc == nil {
+		return
+	}
+	utils.SetInt64IfPositive(attrs, "gcp.cloudrun.service.scaling.min-instance-count", int64(sc.MinInstanceCount))
+	if sc.ScalingMode != runpb.ServiceScaling_SCALING_MODE_UNSPECIFIED {
+		attrs["gcp.cloudrun.service.scaling.scaling-mode"] = []string{sc.ScalingMode.String()}
+	}
+}
+
+func addServiceTemplateAttrs(attrs map[string][]string, tpl *runpb.RevisionTemplate) {
+	if tpl == nil {
+		return
+	}
+	utils.SetInt64IfPositive(attrs, "gcp.cloudrun.service.template.max-instance-request-concurrency", int64(tpl.MaxInstanceRequestConcurrency))
+	if tpl.Timeout != nil {
+		attrs["gcp.cloudrun.service.template.timeout"] = []string{tpl.Timeout.AsDuration().String()}
+	}
+	utils.SetStr(attrs, "gcp.cloudrun.service.template.service-account", tpl.ServiceAccount)
+	addRevisionScalingAttrs(attrs, tpl.Scaling)
+}
+
+func addRevisionScalingAttrs(attrs map[string][]string, sc *runpb.RevisionScaling) {
+	if sc == nil {
+		return
+	}
+	utils.SetInt64IfPositive(attrs, "gcp.cloudrun.service.template.scaling.min-instance-count", int64(sc.MinInstanceCount))
+	utils.SetInt64IfPositive(attrs, "gcp.cloudrun.service.template.scaling.max-instance-count", int64(sc.MaxInstanceCount))
 }
 
 func parseServiceName(full string) (location, name string) {

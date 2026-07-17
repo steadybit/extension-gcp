@@ -140,19 +140,12 @@ func (a *migDeleteInstancesAttack) Describe() action_kit_api.ActionDescription {
 }
 
 func (a *migDeleteInstancesAttack) Prepare(ctx context.Context, state *MigDeleteInstancesState, request action_kit_api.PrepareActionRequestBody) (*action_kit_api.PrepareResult, error) {
-	state.ProjectID = mustHave(request.Target.Attributes, "gcp.project.id")
-	state.Scope = mustHave(request.Target.Attributes, "gcp.mig.scope")
-	state.Location = mustHave(request.Target.Attributes, "gcp.mig.location")
-	state.MigName = mustHave(request.Target.Attributes, "gcp.mig.name")
-	if state.ProjectID == "" || state.Scope == "" || state.Location == "" || state.MigName == "" {
-		return nil, extension_kit.ToError("Target is missing one of: gcp.project.id, gcp.mig.scope, gcp.mig.location, gcp.mig.name", nil)
+	if err := hydrateStateFromTarget(state, request.Target.Attributes); err != nil {
+		return nil, err
 	}
-	pct := extutil.ToInt(request.Config["percentage"])
-	if pct < 1 || pct > 100 {
-		return nil, extension_kit.ToError("percentage must be between 1 and 100.", nil)
-	}
-	if pct > 50 && !extutil.ToBool(request.Config["confirmHighImpact"]) {
-		return nil, extension_kit.ToError("Percentages above 50% require the 'Allow percentages above 50%' flag — half the MIG will be deleted at once.", nil)
+	pct, err := validatePercentage(request.Config)
+	if err != nil {
+		return nil, err
 	}
 	state.Percentage = pct
 
@@ -164,78 +157,106 @@ func (a *migDeleteInstancesAttack) Prepare(ctx context.Context, state *MigDelete
 		return nil, extension_kit.ToError(fmt.Sprintf("MIG %s/%s has no RUNNING instances to delete", state.Location, state.MigName), nil)
 	}
 	sort.Strings(allInstances)
-	sampleSize := int(math.Ceil(float64(len(allInstances)) * float64(pct) / 100.0))
-	if sampleSize < 1 {
-		sampleSize = 1
-	}
-	if sampleSize > len(allInstances) {
-		sampleSize = len(allInstances)
-	}
-	perm := a.rng(len(allInstances))
-	state.Instances = make([]string, 0, sampleSize)
-	for i := 0; i < sampleSize; i++ {
-		state.Instances = append(state.Instances, allInstances[perm[i]])
-	}
+	state.Instances = sampleInstances(allInstances, pct, a.rng)
 	sort.Strings(state.Instances)
 	return &action_kit_api.PrepareResult{
 		Messages: extutil.Ptr([]action_kit_api.Message{{
 			Level:   extutil.Ptr(action_kit_api.Info),
-			Message: fmt.Sprintf("Selected %d of %d RUNNING instance(s) (%d%%) in MIG %s/%s for deletion", sampleSize, len(allInstances), pct, state.Location, state.MigName),
+			Message: fmt.Sprintf("Selected %d of %d RUNNING instance(s) (%d%%) in MIG %s/%s for deletion", len(state.Instances), len(allInstances), pct, state.Location, state.MigName),
 		}}),
 	}, nil
 }
 
+func hydrateStateFromTarget(state *MigDeleteInstancesState, attrs map[string][]string) error {
+	state.ProjectID = mustHave(attrs, "gcp.project.id")
+	state.Scope = mustHave(attrs, "gcp.mig.scope")
+	state.Location = mustHave(attrs, "gcp.mig.location")
+	state.MigName = mustHave(attrs, "gcp.mig.name")
+	if state.ProjectID == "" || state.Scope == "" || state.Location == "" || state.MigName == "" {
+		return extension_kit.ToError("Target is missing one of: gcp.project.id, gcp.mig.scope, gcp.mig.location, gcp.mig.name", nil)
+	}
+	return nil
+}
+
+func validatePercentage(cfg map[string]interface{}) (int, error) {
+	pct := extutil.ToInt(cfg["percentage"])
+	if pct < 1 || pct > 100 {
+		return 0, extension_kit.ToError("percentage must be between 1 and 100.", nil)
+	}
+	if pct > 50 && !extutil.ToBool(cfg["confirmHighImpact"]) {
+		return 0, extension_kit.ToError("Percentages above 50% require the 'Allow percentages above 50%' flag — half the MIG will be deleted at once.", nil)
+	}
+	return pct, nil
+}
+
+func sampleInstances(all []string, pct int, rng func(n int) []int) []string {
+	sampleSize := int(math.Ceil(float64(len(all)) * float64(pct) / 100.0))
+	if sampleSize < 1 {
+		sampleSize = 1
+	}
+	if sampleSize > len(all) {
+		sampleSize = len(all)
+	}
+	perm := rng(len(all))
+	result := make([]string, 0, sampleSize)
+	for i := 0; i < sampleSize; i++ {
+		result = append(result, all[perm[i]])
+	}
+	return result
+}
+
 func (a *migDeleteInstancesAttack) listRunningInstances(ctx context.Context, state *MigDeleteInstancesState) ([]string, error) {
-	result := make([]string, 0)
 	switch state.Scope {
 	case "zonal":
-		client, closer, err := a.zonalClientProvider(ctx, state.ProjectID)
-		if err != nil {
-			return nil, err
-		}
-		defer closer()
-		it := client.ListManagedInstances(ctx, &computepb.ListManagedInstancesInstanceGroupManagersRequest{
-			Project:              state.ProjectID,
-			Zone:                 state.Location,
-			InstanceGroupManager: state.MigName,
-		})
-		for {
-			mi, err := it.Next()
-			if err == iterator.Done {
-				break
-			}
-			if err != nil {
-				return nil, err
-			}
-			if mi.GetInstanceStatus() == "RUNNING" && mi.GetInstance() != "" {
-				result = append(result, mi.GetInstance())
-			}
-		}
+		return a.listZonalRunningInstances(ctx, state)
 	case "regional":
-		client, closer, err := a.regionalClientProvider(ctx, state.ProjectID)
-		if err != nil {
-			return nil, err
-		}
-		defer closer()
-		it := client.ListManagedInstances(ctx, &computepb.ListManagedInstancesRegionInstanceGroupManagersRequest{
-			Project:              state.ProjectID,
-			Region:               state.Location,
-			InstanceGroupManager: state.MigName,
-		})
-		for {
-			mi, err := it.Next()
-			if err == iterator.Done {
-				break
-			}
-			if err != nil {
-				return nil, err
-			}
-			if mi.GetInstanceStatus() == "RUNNING" && mi.GetInstance() != "" {
-				result = append(result, mi.GetInstance())
-			}
-		}
+		return a.listRegionalRunningInstances(ctx, state)
 	default:
 		return nil, fmt.Errorf("unsupported MIG scope %q", state.Scope)
+	}
+}
+
+func (a *migDeleteInstancesAttack) listZonalRunningInstances(ctx context.Context, state *MigDeleteInstancesState) ([]string, error) {
+	client, closer, err := a.zonalClientProvider(ctx, state.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+	defer closer()
+	it := client.ListManagedInstances(ctx, &computepb.ListManagedInstancesInstanceGroupManagersRequest{
+		Project:              state.ProjectID,
+		Zone:                 state.Location,
+		InstanceGroupManager: state.MigName,
+	})
+	return collectRunningInstances(it)
+}
+
+func (a *migDeleteInstancesAttack) listRegionalRunningInstances(ctx context.Context, state *MigDeleteInstancesState) ([]string, error) {
+	client, closer, err := a.regionalClientProvider(ctx, state.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+	defer closer()
+	it := client.ListManagedInstances(ctx, &computepb.ListManagedInstancesRegionInstanceGroupManagersRequest{
+		Project:              state.ProjectID,
+		Region:               state.Location,
+		InstanceGroupManager: state.MigName,
+	})
+	return collectRunningInstances(it)
+}
+
+func collectRunningInstances(it *compute.ManagedInstanceIterator) ([]string, error) {
+	result := make([]string, 0)
+	for {
+		mi, err := it.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		if mi.GetInstanceStatus() == "RUNNING" && mi.GetInstance() != "" {
+			result = append(result, mi.GetInstance())
+		}
 	}
 	return result, nil
 }

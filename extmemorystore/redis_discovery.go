@@ -7,7 +7,6 @@ package extmemorystore
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -127,48 +126,32 @@ func toRedisTarget(inst *redispb.Instance, projectID string) discovery_kit_api.T
 	attributes := make(map[string][]string)
 	attributes[attrProjectID] = []string{projectID}
 	attributes["gcp.memorystore.instance.id"] = []string{instanceID}
-	if region != "" {
-		attributes[attrRegion] = []string{region}
-	}
+	utils.SetStr(attributes, attrRegion, region)
 	if inst.Tier != redispb.Instance_TIER_UNSPECIFIED {
 		attributes[attrTier] = []string{inst.Tier.String()}
 	}
-	if inst.RedisVersion != "" {
-		attributes[attrRedisVersion] = []string{inst.RedisVersion}
-	}
-	if inst.LocationId != "" {
-		attributes["gcp.memorystore.location-id"] = []string{inst.LocationId}
-	}
-	if inst.AlternativeLocationId != "" {
-		attributes["gcp.memorystore.alternative-location-id"] = []string{inst.AlternativeLocationId}
-	}
-	if inst.MemorySizeGb > 0 {
-		attributes["gcp.memorystore.memory-size-gb"] = []string{strconv.Itoa(int(inst.MemorySizeGb))}
-	}
+	utils.SetStr(attributes, attrRedisVersion, inst.RedisVersion)
+	utils.SetStr(attributes, "gcp.memorystore.location-id", inst.LocationId)
+	utils.SetStr(attributes, "gcp.memorystore.alternative-location-id", inst.AlternativeLocationId)
+	utils.SetInt64IfPositive(attributes, "gcp.memorystore.memory-size-gb", int64(inst.MemorySizeGb))
 	if inst.State != redispb.Instance_STATE_UNSPECIFIED {
 		attributes["gcp.memorystore.state"] = []string{inst.State.String()}
 	}
 	if inst.ConnectMode != redispb.Instance_CONNECT_MODE_UNSPECIFIED {
 		attributes["gcp.memorystore.connect-mode"] = []string{inst.ConnectMode.String()}
 	}
-	attributes["gcp.memorystore.auth-enabled"] = []string{strconv.FormatBool(inst.AuthEnabled)}
+	utils.SetBool(attributes, "gcp.memorystore.auth-enabled", inst.AuthEnabled)
 	if inst.TransitEncryptionMode != redispb.Instance_TRANSIT_ENCRYPTION_MODE_UNSPECIFIED {
 		attributes["gcp.memorystore.transit-encryption-mode"] = []string{inst.TransitEncryptionMode.String()}
 	}
 	if inst.ReadReplicasMode != redispb.Instance_READ_REPLICAS_MODE_UNSPECIFIED {
 		attributes["gcp.memorystore.read-replicas-mode"] = []string{inst.ReadReplicasMode.String()}
 	}
-	if inst.ReplicaCount > 0 {
-		attributes["gcp.memorystore.replica-count"] = []string{strconv.Itoa(int(inst.ReplicaCount))}
-	}
-	if inst.PersistenceConfig != nil && inst.PersistenceConfig.PersistenceMode != redispb.PersistenceConfig_PERSISTENCE_MODE_UNSPECIFIED {
-		attributes["gcp.memorystore.persistence-mode"] = []string{inst.PersistenceConfig.PersistenceMode.String()}
-	}
-	if inst.AuthorizedNetwork != "" {
-		attributes["gcp.memorystore.authorized-network"] = []string{inst.AuthorizedNetwork}
-	}
+	utils.SetInt64IfPositive(attributes, "gcp.memorystore.replica-count", int64(inst.ReplicaCount))
+	addPersistenceAttrs(attributes, inst.PersistenceConfig)
+	utils.SetStr(attributes, "gcp.memorystore.authorized-network", inst.AuthorizedNetwork)
 	for k, v := range inst.Labels {
-		attributes[fmt.Sprintf("gcp.memorystore.label.%s", strings.ToLower(k))] = []string{v}
+		utils.SetStr(attributes, fmt.Sprintf("gcp.memorystore.label.%s", strings.ToLower(k)), v)
 	}
 
 	return discovery_kit_api.Target{
@@ -176,5 +159,14 @@ func toRedisTarget(inst *redispb.Instance, projectID string) discovery_kit_api.T
 		TargetType: TargetIDRedisInstance,
 		Label:      instanceID,
 		Attributes: attributes,
+	}
+}
+
+func addPersistenceAttrs(attrs map[string][]string, p *redispb.PersistenceConfig) {
+	if p == nil {
+		return
+	}
+	if p.PersistenceMode != redispb.PersistenceConfig_PERSISTENCE_MODE_UNSPECIFIED {
+		attrs["gcp.memorystore.persistence-mode"] = []string{p.PersistenceMode.String()}
 	}
 }
