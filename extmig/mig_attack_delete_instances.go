@@ -94,10 +94,7 @@ func (a *migDeleteInstancesAttack) Describe() action_kit_api.ActionDescription {
 	return action_kit_api.ActionDescription{
 		Id:    MigDeleteInstancesActionId,
 		Label: "Delete MIG instances",
-		Description: "Destructively deletes a percentage of RUNNING instances from a Managed Instance Group. The MIG creates new replacements per " +
-			"its scaling/heal policies — typical recovery is minutes, but a MIG without autoscaling can stay undersized indefinitely. " +
-			"Validates that workloads on the MIG tolerate the loss of N% of nodes. " +
-			"This attack is not reversible: the deleted instances are gone. Percentages above 50% require explicit confirmation.",
+		Description: "Deletes a percentage of RUNNING instances from a Managed Instance Group. Not reversible — MIG scaling recreates replacements.",
 		Version: extbuild.GetSemverVersionStringOrUnknown(),
 		Icon:    extutil.Ptr(targetIcon),
 		TargetSelection: extutil.Ptr(action_kit_api.TargetSelection{
@@ -110,7 +107,7 @@ func (a *migDeleteInstancesAttack) Describe() action_kit_api.ActionDescription {
 				},
 			}),
 		}),
-		Technology:  extutil.Ptr("Google Cloud"),
+		Technology:  extutil.Ptr("GCP"),
 		Category:    extutil.Ptr("Compute Engine"),
 		TimeControl: action_kit_api.TimeControlInstantaneous,
 		Kind:        action_kit_api.Attack,

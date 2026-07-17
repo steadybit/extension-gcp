@@ -78,11 +78,7 @@ func (a *nodePoolTerminateInstancesAttack) Describe() action_kit_api.ActionDescr
 	return action_kit_api.ActionDescription{
 		Id:    NodePoolTerminateInstancesActionId,
 		Label: "Terminate GKE node pool instances",
-		Description: "Destructively deletes a percentage of instances from a GKE node pool via the underlying Managed Instance Group(s). " +
-			"The MIG creates new replacements driven by its scaling/heal policies — typical recovery is minutes, but a node pool with " +
-			"cluster-autoscaler disabled or surge=0 can stay undersized indefinitely. Validates pod rescheduling, PDB enforcement, " +
-			"cluster-autoscaler scale-up, and stateful workload zonal failover. " +
-			"This attack is not reversible: the deleted instances are gone. Percentages above 50% require explicit confirmation.",
+		Description: "Deletes a percentage of instances from a GKE node pool via the underlying MIG. Not reversible — MIG scaling recreates replacements.",
 		Version: extbuild.GetSemverVersionStringOrUnknown(),
 		Icon:    extutil.Ptr(targetIcon),
 		TargetSelection: extutil.Ptr(action_kit_api.TargetSelection{
@@ -95,7 +91,7 @@ func (a *nodePoolTerminateInstancesAttack) Describe() action_kit_api.ActionDescr
 				},
 			}),
 		}),
-		Technology:  extutil.Ptr("Google Cloud"),
+		Technology:  extutil.Ptr("GCP"),
 		Category:    extutil.Ptr("GKE"),
 		TimeControl: action_kit_api.TimeControlInstantaneous,
 		Kind:        action_kit_api.Attack,

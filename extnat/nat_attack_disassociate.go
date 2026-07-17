@@ -68,8 +68,7 @@ func (a *cloudNatDisassociateAttack) Describe() action_kit_api.ActionDescription
 	return action_kit_api.ActionDescription{
 		Id:    CloudNatDisassociateActionId,
 		Label: "Disassociate Cloud NAT from its subnetworks",
-		Description: "Removes all subnetworks from the Cloud NAT's configuration so VMs in those subnets lose their NAT egress to the internet. " +
-			"Subnetworks are restored on stop. Other NATs sharing the same router are preserved untouched.",
+		Description: "Removes all subnetworks from a Cloud NAT so VMs in those subnets lose internet egress. Restored on stop.",
 		Version: extbuild.GetSemverVersionStringOrUnknown(),
 		Icon:    extutil.Ptr(targetIcon),
 		TargetSelection: extutil.Ptr(action_kit_api.TargetSelection{
@@ -82,7 +81,7 @@ func (a *cloudNatDisassociateAttack) Describe() action_kit_api.ActionDescription
 				},
 			}),
 		}),
-		Technology:  extutil.Ptr("Google Cloud"),
+		Technology:  extutil.Ptr("GCP"),
 		Category:    extutil.Ptr("Cloud NAT"),
 		TimeControl: action_kit_api.TimeControlExternal,
 		Kind:        action_kit_api.Attack,

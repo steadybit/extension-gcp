@@ -56,10 +56,7 @@ func (a *redisFailoverAttack) Describe() action_kit_api.ActionDescription {
 	return action_kit_api.ActionDescription{
 		Id:    RedisFailoverActionId,
 		Label: "Trigger Memorystore for Redis failover",
-		Description: "Triggers a failover from the primary node to a replica for a STANDARD_HA tier Memorystore for Redis instance. " +
-			"Validates that connection-pool retry / reconnect logic survives the brief read/write interruption. " +
-			"This is not reversible — it exercises the same code path as a real primary-node outage. " +
-			"FORCE_DATA_LOSS may drop in-flight writes that have not yet been replicated.",
+		Description: "Fails over a STANDARD_HA Memorystore Redis instance's primary to its replica. Not reversible.",
 		Version: extbuild.GetSemverVersionStringOrUnknown(),
 		Icon:    extutil.Ptr(targetIcon),
 		TargetSelection: extutil.Ptr(action_kit_api.TargetSelection{
@@ -72,7 +69,7 @@ func (a *redisFailoverAttack) Describe() action_kit_api.ActionDescription {
 				},
 			}),
 		}),
-		Technology:  extutil.Ptr("Google Cloud"),
+		Technology:  extutil.Ptr("GCP"),
 		Category:    extutil.Ptr("Memorystore"),
 		TimeControl: action_kit_api.TimeControlInstantaneous,
 		Kind:        action_kit_api.Attack,
