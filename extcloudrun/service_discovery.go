@@ -55,9 +55,9 @@ func (d *serviceDiscovery) DescribeTarget() discovery_kit_api.TargetDescription 
 		Table: discovery_kit_api.Table{
 			Columns: []discovery_kit_api.Column{
 				{Attribute: "steadybit.label"},
-				{Attribute: "gcp.cloudrun.service.location"},
-				{Attribute: "gcp.cloudrun.service.ingress"},
-				{Attribute: "gcp.project.id"},
+				{Attribute: attrLocation},
+				{Attribute: attrIngress},
+				{Attribute: attrProjectID},
 			},
 			OrderBy: []discovery_kit_api.OrderBy{{Attribute: "steadybit.label", Direction: "ASC"}},
 		},
@@ -67,8 +67,8 @@ func (d *serviceDiscovery) DescribeTarget() discovery_kit_api.TargetDescription 
 func (d *serviceDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescription {
 	return []discovery_kit_api.AttributeDescription{
 		{Attribute: "gcp.cloudrun.service.name", Label: discovery_kit_api.PluralLabel{One: "Cloud Run service name", Other: "Cloud Run service names"}},
-		{Attribute: "gcp.cloudrun.service.location", Label: discovery_kit_api.PluralLabel{One: "Cloud Run service location", Other: "Cloud Run service locations"}},
-		{Attribute: "gcp.cloudrun.service.ingress", Label: discovery_kit_api.PluralLabel{One: "Cloud Run service ingress", Other: "Cloud Run service ingress"}},
+		{Attribute: attrLocation, Label: discovery_kit_api.PluralLabel{One: "Cloud Run service location", Other: "Cloud Run service locations"}},
+		{Attribute: attrIngress, Label: discovery_kit_api.PluralLabel{One: "Cloud Run service ingress", Other: "Cloud Run service ingress"}},
 		{Attribute: "gcp.cloudrun.service.launch-stage", Label: discovery_kit_api.PluralLabel{One: "Cloud Run service launch stage", Other: "Cloud Run service launch stages"}},
 		{Attribute: "gcp.cloudrun.service.invoker-iam-disabled", Label: discovery_kit_api.PluralLabel{One: "Cloud Run service invoker IAM disabled", Other: "Cloud Run service invoker IAM disabled"}},
 		{Attribute: "gcp.cloudrun.service.iap-enabled", Label: discovery_kit_api.PluralLabel{One: "Cloud Run service IAP enabled", Other: "Cloud Run service IAP enabled"}},
@@ -80,7 +80,7 @@ func (d *serviceDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDes
 		{Attribute: "gcp.cloudrun.service.template.scaling.min-instance-count", Label: discovery_kit_api.PluralLabel{One: "Cloud Run revision min instances", Other: "Cloud Run revision min instances"}},
 		{Attribute: "gcp.cloudrun.service.template.scaling.max-instance-count", Label: discovery_kit_api.PluralLabel{One: "Cloud Run revision max instances", Other: "Cloud Run revision max instances"}},
 		{Attribute: "gcp.cloudrun.service.urls", Label: discovery_kit_api.PluralLabel{One: "Cloud Run service URL", Other: "Cloud Run service URLs"}},
-		{Attribute: "gcp.project.id", Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
+		{Attribute: attrProjectID, Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
 	}
 }
 
@@ -118,13 +118,13 @@ func toServiceTarget(s *runpb.Service, projectID string) discovery_kit_api.Targe
 	location, name := parseServiceName(s.Name)
 
 	attributes := make(map[string][]string)
-	attributes["gcp.project.id"] = []string{projectID}
+	attributes[attrProjectID] = []string{projectID}
 	attributes["gcp.cloudrun.service.name"] = []string{name}
 	if location != "" {
-		attributes["gcp.cloudrun.service.location"] = []string{location}
+		attributes[attrLocation] = []string{location}
 	}
 	if s.Ingress != runpb.IngressTraffic_INGRESS_TRAFFIC_UNSPECIFIED {
-		attributes["gcp.cloudrun.service.ingress"] = []string{s.Ingress.String()}
+		attributes[attrIngress] = []string{s.Ingress.String()}
 	}
 	if s.LaunchStage != 0 {
 		attributes["gcp.cloudrun.service.launch-stage"] = []string{s.LaunchStage.String()}

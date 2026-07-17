@@ -28,6 +28,12 @@ import (
 const (
 	TargetIDDisk = "com.steadybit.extension_gcp.persistent-disk"
 	targetIcon   = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIj48cGF0aCBkPSJNMTIgM2M0Ljk3IDAgOSAxLjM0IDkgM3YxMmMwIDEuNjYtNC4wMyAzLTkgM3MtOS0xLjM0LTktM1Y2YzAtMS42NiA0LjAzLTMgOS0zem0wIDJjLTMuOSAwLTcgLjg5LTcgMnMzLjEgMiA3IDIgNy0uODkgNy0yLTMuMS0yLTctMnoiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjwvc3ZnPg=="
+
+	// Attribute names extracted per Sonar go:S1192.
+	attrType      = "gcp.persistent-disk.type"
+	attrSizeGB    = "gcp.persistent-disk.size-gb"
+	attrZone      = "gcp.persistent-disk.zone"
+	attrProjectID = "gcp.project.id"
 )
 
 type diskDiscovery struct{}
@@ -61,10 +67,10 @@ func (d *diskDiscovery) DescribeTarget() discovery_kit_api.TargetDescription {
 		Table: discovery_kit_api.Table{
 			Columns: []discovery_kit_api.Column{
 				{Attribute: "steadybit.label"},
-				{Attribute: "gcp.persistent-disk.type"},
-				{Attribute: "gcp.persistent-disk.size-gb"},
-				{Attribute: "gcp.persistent-disk.zone"},
-				{Attribute: "gcp.project.id"},
+				{Attribute: attrType},
+				{Attribute: attrSizeGB},
+				{Attribute: attrZone},
+				{Attribute: attrProjectID},
 			},
 			OrderBy: []discovery_kit_api.OrderBy{{Attribute: "steadybit.label", Direction: "ASC"}},
 		},
@@ -74,9 +80,9 @@ func (d *diskDiscovery) DescribeTarget() discovery_kit_api.TargetDescription {
 func (d *diskDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescription {
 	return []discovery_kit_api.AttributeDescription{
 		{Attribute: "gcp.persistent-disk.name", Label: discovery_kit_api.PluralLabel{One: "Disk name", Other: "Disk names"}},
-		{Attribute: "gcp.persistent-disk.type", Label: discovery_kit_api.PluralLabel{One: "Disk type", Other: "Disk types"}},
-		{Attribute: "gcp.persistent-disk.size-gb", Label: discovery_kit_api.PluralLabel{One: "Disk size (GiB)", Other: "Disk sizes (GiB)"}},
-		{Attribute: "gcp.persistent-disk.zone", Label: discovery_kit_api.PluralLabel{One: "Disk zone", Other: "Disk zones"}},
+		{Attribute: attrType, Label: discovery_kit_api.PluralLabel{One: "Disk type", Other: "Disk types"}},
+		{Attribute: attrSizeGB, Label: discovery_kit_api.PluralLabel{One: "Disk size (GiB)", Other: "Disk sizes (GiB)"}},
+		{Attribute: attrZone, Label: discovery_kit_api.PluralLabel{One: "Disk zone", Other: "Disk zones"}},
 		{Attribute: "gcp.persistent-disk.region", Label: discovery_kit_api.PluralLabel{One: "Disk region", Other: "Disk regions"}},
 		{Attribute: "gcp.persistent-disk.status", Label: discovery_kit_api.PluralLabel{One: "Disk status", Other: "Disk statuses"}},
 		{Attribute: "gcp.persistent-disk.users", Label: discovery_kit_api.PluralLabel{One: "Disk attached VM", Other: "Disk attached VMs"}},
@@ -87,7 +93,7 @@ func (d *diskDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescri
 		{Attribute: "gcp.persistent-disk.provisioned-iops", Label: discovery_kit_api.PluralLabel{One: "Disk provisioned IOPS", Other: "Disk provisioned IOPS"}},
 		{Attribute: "gcp.persistent-disk.provisioned-throughput", Label: discovery_kit_api.PluralLabel{One: "Disk provisioned throughput", Other: "Disk provisioned throughputs"}},
 		{Attribute: "gcp.persistent-disk.architecture", Label: discovery_kit_api.PluralLabel{One: "Disk architecture", Other: "Disk architectures"}},
-		{Attribute: "gcp.project.id", Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
+		{Attribute: attrProjectID, Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
 	}
 }
 
@@ -137,10 +143,10 @@ func classifyScope(key string) (zone, region string) {
 
 func toDiskTarget(disk *computepb.Disk, zone, region, projectID string) discovery_kit_api.Target {
 	attributes := make(map[string][]string)
-	attributes["gcp.project.id"] = []string{projectID}
+	attributes[attrProjectID] = []string{projectID}
 	attributes["gcp.persistent-disk.name"] = []string{disk.GetName()}
 	if zone != "" {
-		attributes["gcp.persistent-disk.zone"] = []string{zone}
+		attributes[attrZone] = []string{zone}
 	}
 	if region != "" {
 		attributes["gcp.persistent-disk.region"] = []string{region}
@@ -148,13 +154,13 @@ func toDiskTarget(disk *computepb.Disk, zone, region, projectID string) discover
 	if t := disk.GetType(); t != "" {
 		// type is a URL; surface the last path component for readability.
 		if i := strings.LastIndex(t, "/"); i >= 0 {
-			attributes["gcp.persistent-disk.type"] = []string{t[i+1:]}
+			attributes[attrType] = []string{t[i+1:]}
 		} else {
-			attributes["gcp.persistent-disk.type"] = []string{t}
+			attributes[attrType] = []string{t}
 		}
 	}
 	if v := disk.GetSizeGb(); v > 0 {
-		attributes["gcp.persistent-disk.size-gb"] = []string{strconv.Itoa(int(v))}
+		attributes[attrSizeGB] = []string{strconv.Itoa(int(v))}
 	}
 	if v := disk.GetStatus(); v != "" {
 		attributes["gcp.persistent-disk.status"] = []string{v}

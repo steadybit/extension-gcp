@@ -55,10 +55,10 @@ func (d *instanceDiscovery) DescribeTarget() discovery_kit_api.TargetDescription
 		Table: discovery_kit_api.Table{
 			Columns: []discovery_kit_api.Column{
 				{Attribute: "steadybit.label"},
-				{Attribute: "gcp.spanner.instance.config"},
-				{Attribute: "gcp.spanner.instance.edition"},
-				{Attribute: "gcp.spanner.instance.processing-units"},
-				{Attribute: "gcp.project.id"},
+				{Attribute: attrConfig},
+				{Attribute: attrEdition},
+				{Attribute: attrProcessingUnits},
+				{Attribute: attrProjectID},
 			},
 			OrderBy: []discovery_kit_api.OrderBy{{Attribute: "steadybit.label", Direction: "ASC"}},
 		},
@@ -69,15 +69,15 @@ func (d *instanceDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDe
 	return []discovery_kit_api.AttributeDescription{
 		{Attribute: "gcp.spanner.instance.name", Label: discovery_kit_api.PluralLabel{One: "Spanner instance name", Other: "Spanner instance names"}},
 		{Attribute: "gcp.spanner.instance.display-name", Label: discovery_kit_api.PluralLabel{One: "Spanner instance display name", Other: "Spanner instance display names"}},
-		{Attribute: "gcp.spanner.instance.config", Label: discovery_kit_api.PluralLabel{One: "Spanner instance config", Other: "Spanner instance configs"}},
-		{Attribute: "gcp.spanner.instance.edition", Label: discovery_kit_api.PluralLabel{One: "Spanner instance edition", Other: "Spanner instance editions"}},
+		{Attribute: attrConfig, Label: discovery_kit_api.PluralLabel{One: "Spanner instance config", Other: "Spanner instance configs"}},
+		{Attribute: attrEdition, Label: discovery_kit_api.PluralLabel{One: "Spanner instance edition", Other: "Spanner instance editions"}},
 		{Attribute: "gcp.spanner.instance.type", Label: discovery_kit_api.PluralLabel{One: "Spanner instance type", Other: "Spanner instance types"}},
 		{Attribute: "gcp.spanner.instance.state", Label: discovery_kit_api.PluralLabel{One: "Spanner instance state", Other: "Spanner instance states"}},
 		{Attribute: "gcp.spanner.instance.node-count", Label: discovery_kit_api.PluralLabel{One: "Spanner instance node count", Other: "Spanner instance node counts"}},
-		{Attribute: "gcp.spanner.instance.processing-units", Label: discovery_kit_api.PluralLabel{One: "Spanner instance processing units", Other: "Spanner instance processing units"}},
+		{Attribute: attrProcessingUnits, Label: discovery_kit_api.PluralLabel{One: "Spanner instance processing units", Other: "Spanner instance processing units"}},
 		{Attribute: "gcp.spanner.instance.autoscaling.configured", Label: discovery_kit_api.PluralLabel{One: "Spanner instance autoscaling configured", Other: "Spanner instance autoscaling configured"}},
 		{Attribute: "gcp.spanner.instance.default-backup-schedule-type", Label: discovery_kit_api.PluralLabel{One: "Spanner default backup schedule", Other: "Spanner default backup schedules"}},
-		{Attribute: "gcp.project.id", Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
+		{Attribute: attrProjectID, Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
 	}
 }
 
@@ -122,16 +122,16 @@ func toInstanceTarget(inst *instancepb.Instance, projectID string) discovery_kit
 	}
 
 	attributes := make(map[string][]string)
-	attributes["gcp.project.id"] = []string{projectID}
+	attributes[attrProjectID] = []string{projectID}
 	attributes["gcp.spanner.instance.name"] = []string{name}
 	if inst.DisplayName != "" {
 		attributes["gcp.spanner.instance.display-name"] = []string{inst.DisplayName}
 	}
 	if configName != "" {
-		attributes["gcp.spanner.instance.config"] = []string{configName}
+		attributes[attrConfig] = []string{configName}
 	}
 	if inst.Edition != instancepb.Instance_EDITION_UNSPECIFIED {
-		attributes["gcp.spanner.instance.edition"] = []string{inst.Edition.String()}
+		attributes[attrEdition] = []string{inst.Edition.String()}
 	}
 	if inst.InstanceType != instancepb.Instance_INSTANCE_TYPE_UNSPECIFIED {
 		attributes["gcp.spanner.instance.type"] = []string{inst.InstanceType.String()}
@@ -143,7 +143,7 @@ func toInstanceTarget(inst *instancepb.Instance, projectID string) discovery_kit
 		attributes["gcp.spanner.instance.node-count"] = []string{strconv.Itoa(int(inst.NodeCount))}
 	}
 	if inst.ProcessingUnits > 0 {
-		attributes["gcp.spanner.instance.processing-units"] = []string{strconv.Itoa(int(inst.ProcessingUnits))}
+		attributes[attrProcessingUnits] = []string{strconv.Itoa(int(inst.ProcessingUnits))}
 	}
 	attributes["gcp.spanner.instance.autoscaling.configured"] = []string{strconv.FormatBool(inst.AutoscalingConfig != nil)}
 	if inst.DefaultBackupScheduleType != instancepb.Instance_DEFAULT_BACKUP_SCHEDULE_TYPE_UNSPECIFIED {

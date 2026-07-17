@@ -55,10 +55,10 @@ func (d *migDiscovery) DescribeTarget() discovery_kit_api.TargetDescription {
 		Table: discovery_kit_api.Table{
 			Columns: []discovery_kit_api.Column{
 				{Attribute: "steadybit.label"},
-				{Attribute: "gcp.mig.scope"},
-				{Attribute: "gcp.mig.target-size"},
-				{Attribute: "gcp.mig.location"},
-				{Attribute: "gcp.project.id"},
+				{Attribute: attrScope},
+				{Attribute: attrTargetSize},
+				{Attribute: attrLocation},
+				{Attribute: attrProjectID},
 			},
 			OrderBy: []discovery_kit_api.OrderBy{{Attribute: "steadybit.label", Direction: "ASC"}},
 		},
@@ -68,9 +68,9 @@ func (d *migDiscovery) DescribeTarget() discovery_kit_api.TargetDescription {
 func (d *migDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescription {
 	return []discovery_kit_api.AttributeDescription{
 		{Attribute: "gcp.mig.name", Label: discovery_kit_api.PluralLabel{One: "MIG name", Other: "MIG names"}},
-		{Attribute: "gcp.mig.scope", Label: discovery_kit_api.PluralLabel{One: "MIG scope", Other: "MIG scopes"}},
-		{Attribute: "gcp.mig.location", Label: discovery_kit_api.PluralLabel{One: "MIG location", Other: "MIG locations"}},
-		{Attribute: "gcp.mig.target-size", Label: discovery_kit_api.PluralLabel{One: "MIG target size", Other: "MIG target sizes"}},
+		{Attribute: attrScope, Label: discovery_kit_api.PluralLabel{One: "MIG scope", Other: "MIG scopes"}},
+		{Attribute: attrLocation, Label: discovery_kit_api.PluralLabel{One: "MIG location", Other: "MIG locations"}},
+		{Attribute: attrTargetSize, Label: discovery_kit_api.PluralLabel{One: "MIG target size", Other: "MIG target sizes"}},
 		{Attribute: "gcp.mig.base-instance-name", Label: discovery_kit_api.PluralLabel{One: "MIG base instance name", Other: "MIG base instance names"}},
 		{Attribute: "gcp.mig.instance-template", Label: discovery_kit_api.PluralLabel{One: "MIG instance template", Other: "MIG instance templates"}},
 		{Attribute: "gcp.mig.distribution-policy.target-shape", Label: discovery_kit_api.PluralLabel{One: "MIG distribution shape", Other: "MIG distribution shapes"}},
@@ -80,7 +80,7 @@ func (d *migDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescrip
 		{Attribute: "gcp.mig.update-policy.replacement-method", Label: discovery_kit_api.PluralLabel{One: "MIG update replacement method", Other: "MIG update replacement methods"}},
 		{Attribute: "gcp.mig.update-policy.minimal-action", Label: discovery_kit_api.PluralLabel{One: "MIG update minimal action", Other: "MIG update minimal actions"}},
 		{Attribute: "gcp.mig.stateful-policy.configured", Label: discovery_kit_api.PluralLabel{One: "MIG stateful policy configured", Other: "MIG stateful policy configured"}},
-		{Attribute: "gcp.project.id", Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
+		{Attribute: attrProjectID, Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
 	}
 }
 
@@ -134,11 +134,11 @@ func parseScope(key string) (scope string, location string) {
 
 func toMigTarget(mig *computepb.InstanceGroupManager, scope, location, projectID string) discovery_kit_api.Target {
 	attributes := make(map[string][]string)
-	attributes["gcp.project.id"] = []string{projectID}
+	attributes[attrProjectID] = []string{projectID}
 	attributes["gcp.mig.name"] = []string{mig.GetName()}
-	attributes["gcp.mig.scope"] = []string{scope}
-	attributes["gcp.mig.location"] = []string{location}
-	attributes["gcp.mig.target-size"] = []string{strconv.Itoa(int(mig.GetTargetSize()))}
+	attributes[attrScope] = []string{scope}
+	attributes[attrLocation] = []string{location}
+	attributes[attrTargetSize] = []string{strconv.Itoa(int(mig.GetTargetSize()))}
 	if v := mig.GetBaseInstanceName(); v != "" {
 		attributes["gcp.mig.base-instance-name"] = []string{v}
 	}

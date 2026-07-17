@@ -56,10 +56,10 @@ func (d *natDiscovery) DescribeTarget() discovery_kit_api.TargetDescription {
 		Table: discovery_kit_api.Table{
 			Columns: []discovery_kit_api.Column{
 				{Attribute: "steadybit.label"},
-				{Attribute: "gcp.cloud-nat.region"},
-				{Attribute: "gcp.cloud-nat.source-subnetwork-ip-ranges"},
-				{Attribute: "gcp.cloud-nat.subnetwork-count"},
-				{Attribute: "gcp.project.id"},
+				{Attribute: attrRegion},
+				{Attribute: attrSourceSubnetworkIpRanges},
+				{Attribute: attrSubnetworkCount},
+				{Attribute: attrProjectID},
 			},
 			OrderBy: []discovery_kit_api.OrderBy{{Attribute: "steadybit.label", Direction: "ASC"}},
 		},
@@ -71,17 +71,17 @@ func (d *natDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescrip
 		{Attribute: "gcp.cloud-nat.name", Label: discovery_kit_api.PluralLabel{One: "Cloud NAT name", Other: "Cloud NAT names"}},
 		{Attribute: "gcp.cloud-nat.router", Label: discovery_kit_api.PluralLabel{One: "Cloud NAT router", Other: "Cloud NAT routers"}},
 		{Attribute: "gcp.cloud-nat.network", Label: discovery_kit_api.PluralLabel{One: "Cloud NAT network", Other: "Cloud NAT networks"}},
-		{Attribute: "gcp.cloud-nat.region", Label: discovery_kit_api.PluralLabel{One: "Cloud NAT region", Other: "Cloud NAT regions"}},
-		{Attribute: "gcp.cloud-nat.source-subnetwork-ip-ranges", Label: discovery_kit_api.PluralLabel{One: "Cloud NAT source subnetwork IP ranges mode", Other: "Cloud NAT source subnetwork IP ranges modes"}},
+		{Attribute: attrRegion, Label: discovery_kit_api.PluralLabel{One: "Cloud NAT region", Other: "Cloud NAT regions"}},
+		{Attribute: attrSourceSubnetworkIpRanges, Label: discovery_kit_api.PluralLabel{One: "Cloud NAT source subnetwork IP ranges mode", Other: "Cloud NAT source subnetwork IP ranges modes"}},
 		{Attribute: "gcp.cloud-nat.nat-ip-allocate-option", Label: discovery_kit_api.PluralLabel{One: "Cloud NAT IP allocation option", Other: "Cloud NAT IP allocation options"}},
 		{Attribute: "gcp.cloud-nat.nat-ips", Label: discovery_kit_api.PluralLabel{One: "Cloud NAT IP", Other: "Cloud NAT IPs"}},
 		{Attribute: "gcp.cloud-nat.endpoint-types", Label: discovery_kit_api.PluralLabel{One: "Cloud NAT endpoint type", Other: "Cloud NAT endpoint types"}},
 		{Attribute: "gcp.cloud-nat.subnetworks", Label: discovery_kit_api.PluralLabel{One: "Cloud NAT subnetwork", Other: "Cloud NAT subnetworks"}},
-		{Attribute: "gcp.cloud-nat.subnetwork-count", Label: discovery_kit_api.PluralLabel{One: "Cloud NAT subnetwork count", Other: "Cloud NAT subnetwork counts"}},
+		{Attribute: attrSubnetworkCount, Label: discovery_kit_api.PluralLabel{One: "Cloud NAT subnetwork count", Other: "Cloud NAT subnetwork counts"}},
 		{Attribute: "gcp.cloud-nat.min-ports-per-vm", Label: discovery_kit_api.PluralLabel{One: "Cloud NAT min ports per VM", Other: "Cloud NAT min ports per VM"}},
 		{Attribute: "gcp.cloud-nat.log-config.enable", Label: discovery_kit_api.PluralLabel{One: "Cloud NAT logging", Other: "Cloud NAT logging"}},
 		{Attribute: "gcp.cloud-nat.enable-dynamic-port-allocation", Label: discovery_kit_api.PluralLabel{One: "Cloud NAT dynamic port allocation", Other: "Cloud NAT dynamic port allocation"}},
-		{Attribute: "gcp.project.id", Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
+		{Attribute: attrProjectID, Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
 	}
 }
 
@@ -123,15 +123,15 @@ func getAllNats(ctx context.Context, client *compute.RoutersClient, projectID st
 
 func toNatTarget(router *computepb.Router, nat *computepb.RouterNat, region, projectID string) discovery_kit_api.Target {
 	attributes := make(map[string][]string)
-	attributes["gcp.project.id"] = []string{projectID}
+	attributes[attrProjectID] = []string{projectID}
 	attributes["gcp.cloud-nat.name"] = []string{nat.GetName()}
 	attributes["gcp.cloud-nat.router"] = []string{router.GetName()}
-	attributes["gcp.cloud-nat.region"] = []string{region}
+	attributes[attrRegion] = []string{region}
 	if v := router.GetNetwork(); v != "" {
 		attributes["gcp.cloud-nat.network"] = []string{v}
 	}
 	if v := nat.GetSourceSubnetworkIpRangesToNat(); v != "" {
-		attributes["gcp.cloud-nat.source-subnetwork-ip-ranges"] = []string{v}
+		attributes[attrSourceSubnetworkIpRanges] = []string{v}
 	}
 	if v := nat.GetNatIpAllocateOption(); v != "" {
 		attributes["gcp.cloud-nat.nat-ip-allocate-option"] = []string{v}
@@ -157,7 +157,7 @@ func toNatTarget(router *computepb.Router, nat *computepb.RouterNat, region, pro
 	if len(subnetNames) > 0 {
 		attributes["gcp.cloud-nat.subnetworks"] = subnetNames
 	}
-	attributes["gcp.cloud-nat.subnetwork-count"] = []string{strconv.Itoa(len(subnets))}
+	attributes[attrSubnetworkCount] = []string{strconv.Itoa(len(subnets))}
 	if v := nat.GetMinPortsPerVm(); v != 0 {
 		attributes["gcp.cloud-nat.min-ports-per-vm"] = []string{strconv.Itoa(int(v))}
 	}

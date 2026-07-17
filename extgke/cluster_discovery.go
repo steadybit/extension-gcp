@@ -47,23 +47,23 @@ var gkeEnrichmentTargetTypes = []string{
 // gkeEnrichmentAttributes are stable, reliability-relevant config attributes copied onto matching
 // Kubernetes targets. No labels (high cardinality), no volatile status.
 var gkeEnrichmentAttributes = []discovery_kit_api.Attribute{
-	{Matcher: discovery_kit_api.Equals, Name: "gcp.project.id"},
-	{Matcher: discovery_kit_api.Equals, Name: "gcp.gke.cluster.name"},
-	{Matcher: discovery_kit_api.Equals, Name: "gcp.gke.cluster.location"},
-	{Matcher: discovery_kit_api.Equals, Name: "gcp.gke.cluster.location-type"},
-	{Matcher: discovery_kit_api.Equals, Name: "gcp.gke.cluster.kubernetes-version"},
-	{Matcher: discovery_kit_api.Equals, Name: "gcp.gke.cluster.release-channel"},
-	{Matcher: discovery_kit_api.Equals, Name: "gcp.gke.cluster.private-cluster"},
-	{Matcher: discovery_kit_api.Equals, Name: "gcp.gke.cluster.master-authorized-networks-enabled"},
-	{Matcher: discovery_kit_api.Equals, Name: "gcp.gke.cluster.master-authorized-networks-cidrs"},
-	{Matcher: discovery_kit_api.Equals, Name: "gcp.gke.cluster.api-server-open-to-internet"},
-	{Matcher: discovery_kit_api.Equals, Name: "gcp.gke.cluster.network"},
-	{Matcher: discovery_kit_api.Equals, Name: "gcp.gke.cluster.subnetwork"},
-	{Matcher: discovery_kit_api.Equals, Name: "gcp.gke.cluster.workload-identity-enabled"},
-	{Matcher: discovery_kit_api.Equals, Name: "gcp.gke.cluster.shielded-nodes-enabled"},
-	{Matcher: discovery_kit_api.Equals, Name: "gcp.gke.cluster.binary-authorization-evaluation-mode"},
-	{Matcher: discovery_kit_api.Equals, Name: "gcp.gke.cluster.logging-service"},
-	{Matcher: discovery_kit_api.Equals, Name: "gcp.gke.cluster.monitoring-service"},
+	{Matcher: discovery_kit_api.Equals, Name: attrProjectID},
+	{Matcher: discovery_kit_api.Equals, Name: attrClusterName},
+	{Matcher: discovery_kit_api.Equals, Name: attrClusterLocation},
+	{Matcher: discovery_kit_api.Equals, Name: attrClusterLocationType},
+	{Matcher: discovery_kit_api.Equals, Name: attrClusterKubernetesVersion},
+	{Matcher: discovery_kit_api.Equals, Name: attrClusterReleaseChannel},
+	{Matcher: discovery_kit_api.Equals, Name: attrClusterPrivateCluster},
+	{Matcher: discovery_kit_api.Equals, Name: attrClusterMasterAuthorizedNetsEnabled},
+	{Matcher: discovery_kit_api.Equals, Name: attrClusterMasterAuthorizedNetsCidrs},
+	{Matcher: discovery_kit_api.Equals, Name: attrClusterApiServerOpenToInternet},
+	{Matcher: discovery_kit_api.Equals, Name: attrClusterNetwork},
+	{Matcher: discovery_kit_api.Equals, Name: attrClusterSubnetwork},
+	{Matcher: discovery_kit_api.Equals, Name: attrClusterWorkloadIdentityEnabled},
+	{Matcher: discovery_kit_api.Equals, Name: attrClusterShieldedNodesEnabled},
+	{Matcher: discovery_kit_api.Equals, Name: attrClusterBinaryAuthEvalMode},
+	{Matcher: discovery_kit_api.Equals, Name: attrClusterLoggingService},
+	{Matcher: discovery_kit_api.Equals, Name: attrClusterMonitoringService},
 }
 
 func NewClusterDiscovery() discovery_kit_sdk.TargetDiscovery {
@@ -92,9 +92,9 @@ func (d *clusterDiscovery) DescribeTarget() discovery_kit_api.TargetDescription 
 		Table: discovery_kit_api.Table{
 			Columns: []discovery_kit_api.Column{
 				{Attribute: "steadybit.label"},
-				{Attribute: "gcp.gke.cluster.kubernetes-version"},
-				{Attribute: "gcp.gke.cluster.location"},
-				{Attribute: "gcp.project.id"},
+				{Attribute: attrClusterKubernetesVersion},
+				{Attribute: attrClusterLocation},
+				{Attribute: attrProjectID},
 			},
 			OrderBy: []discovery_kit_api.OrderBy{{Attribute: "steadybit.label", Direction: "ASC"}},
 		},
@@ -103,26 +103,26 @@ func (d *clusterDiscovery) DescribeTarget() discovery_kit_api.TargetDescription 
 
 func (d *clusterDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescription {
 	return []discovery_kit_api.AttributeDescription{
-		{Attribute: "gcp.gke.cluster.name", Label: discovery_kit_api.PluralLabel{One: "GKE cluster name", Other: "GKE cluster names"}},
-		{Attribute: "gcp.gke.cluster.location", Label: discovery_kit_api.PluralLabel{One: "GKE cluster location", Other: "GKE cluster locations"}},
-		{Attribute: "gcp.gke.cluster.location-type", Label: discovery_kit_api.PluralLabel{One: "GKE cluster location type", Other: "GKE cluster location types"}},
-		{Attribute: "gcp.gke.cluster.kubernetes-version", Label: discovery_kit_api.PluralLabel{One: "GKE Kubernetes version", Other: "GKE Kubernetes versions"}},
-		{Attribute: "gcp.gke.cluster.release-channel", Label: discovery_kit_api.PluralLabel{One: "GKE release channel", Other: "GKE release channels"}},
+		{Attribute: attrClusterName, Label: discovery_kit_api.PluralLabel{One: "GKE cluster name", Other: "GKE cluster names"}},
+		{Attribute: attrClusterLocation, Label: discovery_kit_api.PluralLabel{One: "GKE cluster location", Other: "GKE cluster locations"}},
+		{Attribute: attrClusterLocationType, Label: discovery_kit_api.PluralLabel{One: "GKE cluster location type", Other: "GKE cluster location types"}},
+		{Attribute: attrClusterKubernetesVersion, Label: discovery_kit_api.PluralLabel{One: "GKE Kubernetes version", Other: "GKE Kubernetes versions"}},
+		{Attribute: attrClusterReleaseChannel, Label: discovery_kit_api.PluralLabel{One: "GKE release channel", Other: "GKE release channels"}},
 		{Attribute: "gcp.gke.cluster.status", Label: discovery_kit_api.PluralLabel{One: "GKE cluster status", Other: "GKE cluster statuses"}},
-		{Attribute: "gcp.gke.cluster.private-cluster", Label: discovery_kit_api.PluralLabel{One: "GKE private cluster", Other: "GKE private clusters"}},
-		{Attribute: "gcp.gke.cluster.master-authorized-networks-enabled", Label: discovery_kit_api.PluralLabel{One: "GKE master-authorized-networks", Other: "GKE master-authorized-networks"}},
-		{Attribute: "gcp.gke.cluster.master-authorized-networks-cidrs", Label: discovery_kit_api.PluralLabel{One: "GKE master-authorized network CIDR", Other: "GKE master-authorized network CIDRs"}},
-		{Attribute: "gcp.gke.cluster.api-server-open-to-internet", Label: discovery_kit_api.PluralLabel{One: "GKE API server open to internet", Other: "GKE API server open to internet"}},
-		{Attribute: "gcp.gke.cluster.network", Label: discovery_kit_api.PluralLabel{One: "GKE cluster network", Other: "GKE cluster networks"}},
-		{Attribute: "gcp.gke.cluster.subnetwork", Label: discovery_kit_api.PluralLabel{One: "GKE cluster subnetwork", Other: "GKE cluster subnetworks"}},
-		{Attribute: "gcp.gke.cluster.workload-identity-enabled", Label: discovery_kit_api.PluralLabel{One: "GKE Workload Identity", Other: "GKE Workload Identity"}},
-		{Attribute: "gcp.gke.cluster.shielded-nodes-enabled", Label: discovery_kit_api.PluralLabel{One: "GKE Shielded Nodes", Other: "GKE Shielded Nodes"}},
-		{Attribute: "gcp.gke.cluster.binary-authorization-evaluation-mode", Label: discovery_kit_api.PluralLabel{One: "GKE Binary Authorization mode", Other: "GKE Binary Authorization modes"}},
-		{Attribute: "gcp.gke.cluster.logging-service", Label: discovery_kit_api.PluralLabel{One: "GKE logging service", Other: "GKE logging services"}},
-		{Attribute: "gcp.gke.cluster.monitoring-service", Label: discovery_kit_api.PluralLabel{One: "GKE monitoring service", Other: "GKE monitoring services"}},
+		{Attribute: attrClusterPrivateCluster, Label: discovery_kit_api.PluralLabel{One: "GKE private cluster", Other: "GKE private clusters"}},
+		{Attribute: attrClusterMasterAuthorizedNetsEnabled, Label: discovery_kit_api.PluralLabel{One: "GKE master-authorized-networks", Other: "GKE master-authorized-networks"}},
+		{Attribute: attrClusterMasterAuthorizedNetsCidrs, Label: discovery_kit_api.PluralLabel{One: "GKE master-authorized network CIDR", Other: "GKE master-authorized network CIDRs"}},
+		{Attribute: attrClusterApiServerOpenToInternet, Label: discovery_kit_api.PluralLabel{One: "GKE API server open to internet", Other: "GKE API server open to internet"}},
+		{Attribute: attrClusterNetwork, Label: discovery_kit_api.PluralLabel{One: "GKE cluster network", Other: "GKE cluster networks"}},
+		{Attribute: attrClusterSubnetwork, Label: discovery_kit_api.PluralLabel{One: "GKE cluster subnetwork", Other: "GKE cluster subnetworks"}},
+		{Attribute: attrClusterWorkloadIdentityEnabled, Label: discovery_kit_api.PluralLabel{One: "GKE Workload Identity", Other: "GKE Workload Identity"}},
+		{Attribute: attrClusterShieldedNodesEnabled, Label: discovery_kit_api.PluralLabel{One: "GKE Shielded Nodes", Other: "GKE Shielded Nodes"}},
+		{Attribute: attrClusterBinaryAuthEvalMode, Label: discovery_kit_api.PluralLabel{One: "GKE Binary Authorization mode", Other: "GKE Binary Authorization modes"}},
+		{Attribute: attrClusterLoggingService, Label: discovery_kit_api.PluralLabel{One: "GKE logging service", Other: "GKE logging services"}},
+		{Attribute: attrClusterMonitoringService, Label: discovery_kit_api.PluralLabel{One: "GKE monitoring service", Other: "GKE monitoring services"}},
 		{Attribute: "gcp.gke.cluster.node-locations", Label: discovery_kit_api.PluralLabel{One: "GKE node location", Other: "GKE node locations"}},
-		{Attribute: "gcp.project.id", Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
-		{Attribute: "k8s.cluster-name", Label: discovery_kit_api.PluralLabel{One: "Kubernetes cluster name", Other: "Kubernetes cluster names"}},
+		{Attribute: attrProjectID, Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
+		{Attribute: attrK8sClusterName, Label: discovery_kit_api.PluralLabel{One: "Kubernetes cluster name", Other: "Kubernetes cluster names"}},
 	}
 }
 
@@ -159,35 +159,35 @@ type clusterManagerApi interface {
 
 func toClusterTarget(c *containerpb.Cluster, projectID string) discovery_kit_api.Target {
 	attributes := make(map[string][]string)
-	attributes["gcp.project.id"] = []string{projectID}
-	attributes["gcp.gke.cluster.name"] = []string{c.Name}
-	attributes["gcp.gke.cluster.location"] = []string{c.Location}
-	attributes["gcp.gke.cluster.location-type"] = []string{classifyLocation(c.Location)}
+	attributes[attrProjectID] = []string{projectID}
+	attributes[attrClusterName] = []string{c.Name}
+	attributes[attrClusterLocation] = []string{c.Location}
+	attributes[attrClusterLocationType] = []string{classifyLocation(c.Location)}
 
 	// k8s.cluster-name = GKE cluster name (1:1 within a project; the extension-kubernetes discovery uses
 	// the kubeconfig context, which for GKE is the cluster name unless explicitly overridden).
-	attributes["k8s.cluster-name"] = []string{c.Name}
+	attributes[attrK8sClusterName] = []string{c.Name}
 
 	if c.CurrentMasterVersion != "" {
-		attributes["gcp.gke.cluster.kubernetes-version"] = []string{c.CurrentMasterVersion}
+		attributes[attrClusterKubernetesVersion] = []string{c.CurrentMasterVersion}
 	}
 	if c.Status != containerpb.Cluster_STATUS_UNSPECIFIED {
 		attributes["gcp.gke.cluster.status"] = []string{c.Status.String()}
 	}
 	if c.ReleaseChannel != nil && c.ReleaseChannel.Channel != containerpb.ReleaseChannel_UNSPECIFIED {
-		attributes["gcp.gke.cluster.release-channel"] = []string{c.ReleaseChannel.Channel.String()}
+		attributes[attrClusterReleaseChannel] = []string{c.ReleaseChannel.Channel.String()}
 	}
 	if c.LoggingService != "" {
-		attributes["gcp.gke.cluster.logging-service"] = []string{c.LoggingService}
+		attributes[attrClusterLoggingService] = []string{c.LoggingService}
 	}
 	if c.MonitoringService != "" {
-		attributes["gcp.gke.cluster.monitoring-service"] = []string{c.MonitoringService}
+		attributes[attrClusterMonitoringService] = []string{c.MonitoringService}
 	}
 	if c.Network != "" {
-		attributes["gcp.gke.cluster.network"] = []string{c.Network}
+		attributes[attrClusterNetwork] = []string{c.Network}
 	}
 	if c.Subnetwork != "" {
-		attributes["gcp.gke.cluster.subnetwork"] = []string{c.Subnetwork}
+		attributes[attrClusterSubnetwork] = []string{c.Subnetwork}
 	}
 	if len(c.Locations) > 0 {
 		locs := append([]string(nil), c.Locations...)
@@ -200,7 +200,7 @@ func toClusterTarget(c *containerpb.Cluster, projectID string) discovery_kit_api
 	// and drives api-server-open-to-internet below.
 	privateNodes := c.PrivateClusterConfig != nil && c.PrivateClusterConfig.EnablePrivateNodes
 	privateEndpoint := c.PrivateClusterConfig != nil && c.PrivateClusterConfig.EnablePrivateEndpoint
-	attributes["gcp.gke.cluster.private-cluster"] = []string{strconv.FormatBool(privateNodes)}
+	attributes[attrClusterPrivateCluster] = []string{strconv.FormatBool(privateNodes)}
 
 	manEnabled := false
 	var manCidrs []string
@@ -212,23 +212,23 @@ func toClusterTarget(c *containerpb.Cluster, projectID string) discovery_kit_api
 			}
 		}
 	}
-	attributes["gcp.gke.cluster.master-authorized-networks-enabled"] = []string{strconv.FormatBool(manEnabled)}
+	attributes[attrClusterMasterAuthorizedNetsEnabled] = []string{strconv.FormatBool(manEnabled)}
 	if len(manCidrs) > 0 {
 		sort.Strings(manCidrs)
-		attributes["gcp.gke.cluster.master-authorized-networks-cidrs"] = manCidrs
+		attributes[attrClusterMasterAuthorizedNetsCidrs] = manCidrs
 	}
 	// True iff the API server is reachable from the public internet without IP restriction.
 	// Private endpoint => not internet-reachable. Public endpoint AND no authorized-networks restriction => open.
-	attributes["gcp.gke.cluster.api-server-open-to-internet"] = []string{strconv.FormatBool(!privateEndpoint && !manEnabled)}
+	attributes[attrClusterApiServerOpenToInternet] = []string{strconv.FormatBool(!privateEndpoint && !manEnabled)}
 
 	wiEnabled := c.WorkloadIdentityConfig != nil && c.WorkloadIdentityConfig.WorkloadPool != ""
-	attributes["gcp.gke.cluster.workload-identity-enabled"] = []string{strconv.FormatBool(wiEnabled)}
+	attributes[attrClusterWorkloadIdentityEnabled] = []string{strconv.FormatBool(wiEnabled)}
 
 	shielded := c.ShieldedNodes != nil && c.ShieldedNodes.Enabled
-	attributes["gcp.gke.cluster.shielded-nodes-enabled"] = []string{strconv.FormatBool(shielded)}
+	attributes[attrClusterShieldedNodesEnabled] = []string{strconv.FormatBool(shielded)}
 
 	if c.BinaryAuthorization != nil && c.BinaryAuthorization.EvaluationMode != containerpb.BinaryAuthorization_EVALUATION_MODE_UNSPECIFIED {
-		attributes["gcp.gke.cluster.binary-authorization-evaluation-mode"] = []string{c.BinaryAuthorization.EvaluationMode.String()}
+		attributes[attrClusterBinaryAuthEvalMode] = []string{c.BinaryAuthorization.EvaluationMode.String()}
 	}
 
 	for k, v := range c.ResourceLabels {
@@ -269,13 +269,13 @@ func gkeClusterToK8sEnrichmentRule(destTargetType string) discovery_kit_api.Targ
 		Src: discovery_kit_api.SourceOrDestination{
 			Type: TargetIDCluster,
 			Selector: map[string]string{
-				"k8s.cluster-name": "${dest.k8s.cluster-name}",
+				attrK8sClusterName: "${dest.k8s.cluster-name}",
 			},
 		},
 		Dest: discovery_kit_api.SourceOrDestination{
 			Type: destTargetType,
 			Selector: map[string]string{
-				"k8s.cluster-name": "${src.k8s.cluster-name}",
+				attrK8sClusterName: "${src.k8s.cluster-name}",
 			},
 		},
 		Attributes: gkeEnrichmentAttributes,

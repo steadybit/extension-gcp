@@ -55,9 +55,9 @@ func (d *topicDiscovery) DescribeTarget() discovery_kit_api.TargetDescription {
 		Table: discovery_kit_api.Table{
 			Columns: []discovery_kit_api.Column{
 				{Attribute: "steadybit.label"},
-				{Attribute: "gcp.pubsub.topic.message-retention-duration"},
-				{Attribute: "gcp.pubsub.topic.kms-key-name"},
-				{Attribute: "gcp.project.id"},
+				{Attribute: attrTopicMessageRetentionDuration},
+				{Attribute: attrTopicKmsKeyName},
+				{Attribute: attrProjectID},
 			},
 			OrderBy: []discovery_kit_api.OrderBy{{Attribute: "steadybit.label", Direction: "ASC"}},
 		},
@@ -67,15 +67,15 @@ func (d *topicDiscovery) DescribeTarget() discovery_kit_api.TargetDescription {
 func (d *topicDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescription {
 	return []discovery_kit_api.AttributeDescription{
 		{Attribute: "gcp.pubsub.topic.name", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic name", Other: "Pub/Sub topic names"}},
-		{Attribute: "gcp.pubsub.topic.message-retention-duration", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic message retention", Other: "Pub/Sub topic message retentions"}},
-		{Attribute: "gcp.pubsub.topic.kms-key-name", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic KMS key", Other: "Pub/Sub topic KMS keys"}},
+		{Attribute: attrTopicMessageRetentionDuration, Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic message retention", Other: "Pub/Sub topic message retentions"}},
+		{Attribute: attrTopicKmsKeyName, Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic KMS key", Other: "Pub/Sub topic KMS keys"}},
 		{Attribute: "gcp.pubsub.topic.message-storage-policy.allowed-persistence-regions", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic allowed region", Other: "Pub/Sub topic allowed regions"}},
 		{Attribute: "gcp.pubsub.topic.message-storage-policy.enforce-in-transit", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic enforce in-transit", Other: "Pub/Sub topic enforce in-transit"}},
 		{Attribute: "gcp.pubsub.topic.schema-settings.schema", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic schema", Other: "Pub/Sub topic schemas"}},
 		{Attribute: "gcp.pubsub.topic.schema-settings.encoding", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic schema encoding", Other: "Pub/Sub topic schema encodings"}},
 		{Attribute: "gcp.pubsub.topic.state", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic state", Other: "Pub/Sub topic states"}},
 		{Attribute: "gcp.pubsub.topic.satisfies-pzs", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic PZS compliance", Other: "Pub/Sub topic PZS compliance"}},
-		{Attribute: "gcp.project.id", Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
+		{Attribute: attrProjectID, Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
 	}
 }
 
@@ -115,13 +115,13 @@ func toTopicTarget(t *pubsubpb.Topic, projectID string) discovery_kit_api.Target
 	}
 
 	attributes := make(map[string][]string)
-	attributes["gcp.project.id"] = []string{projectID}
+	attributes[attrProjectID] = []string{projectID}
 	attributes["gcp.pubsub.topic.name"] = []string{name}
 	if t.MessageRetentionDuration != nil {
-		attributes["gcp.pubsub.topic.message-retention-duration"] = []string{t.MessageRetentionDuration.AsDuration().String()}
+		attributes[attrTopicMessageRetentionDuration] = []string{t.MessageRetentionDuration.AsDuration().String()}
 	}
 	if t.KmsKeyName != "" {
-		attributes["gcp.pubsub.topic.kms-key-name"] = []string{t.KmsKeyName}
+		attributes[attrTopicKmsKeyName] = []string{t.KmsKeyName}
 	}
 	if t.MessageStoragePolicy != nil {
 		if len(t.MessageStoragePolicy.AllowedPersistenceRegions) > 0 {
