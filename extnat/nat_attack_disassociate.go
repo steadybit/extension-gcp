@@ -102,14 +102,42 @@ func (a *cloudNatDisassociateAttack) Describe() action_kit_api.ActionDescription
 }
 
 func (a *cloudNatDisassociateAttack) Prepare(ctx context.Context, state *CloudNatDisassociateState, request action_kit_api.PrepareActionRequestBody) (*action_kit_api.PrepareResult, error) {
+	if err := populatePrepareTarget(state, request); err != nil {
+		return nil, err
+	}
+	router, err := fetchRouter(ctx, a.clientProvider, state)
+	if err != nil {
+		return nil, err
+	}
+	found, snapshots := snapshotNatSubnetworks(router, state.NatName)
+	if !found {
+		return nil, extension_kit.ToError(fmt.Sprintf("Cloud NAT %s/%s not found on router — cannot disassociate", state.RouterName, state.NatName), nil)
+	}
+	if len(snapshots) == 0 {
+		return nil, extension_kit.ToError(fmt.Sprintf("Cloud NAT %s/%s has no subnetworks to disassociate", state.RouterName, state.NatName), nil)
+	}
+	state.OriginalSubnetworks = snapshots
+	return &action_kit_api.PrepareResult{
+		Messages: extutil.Ptr([]action_kit_api.Message{{
+			Level:   extutil.Ptr(action_kit_api.Info),
+			Message: fmt.Sprintf("Will disassociate %d subnetwork(s) from Cloud NAT %s/%s", len(state.OriginalSubnetworks), state.RouterName, state.NatName),
+		}}),
+	}, nil
+}
+
+func populatePrepareTarget(state *CloudNatDisassociateState, request action_kit_api.PrepareActionRequestBody) error {
 	state.ProjectID = mustHave(request.Target.Attributes, "gcp.project.id")
 	state.Region = mustHave(request.Target.Attributes, "gcp.cloud-nat.region")
 	state.RouterName = mustHave(request.Target.Attributes, "gcp.cloud-nat.router")
 	state.NatName = mustHave(request.Target.Attributes, "gcp.cloud-nat.name")
 	if state.ProjectID == "" || state.Region == "" || state.RouterName == "" || state.NatName == "" {
-		return nil, extension_kit.ToError("Target is missing one of: gcp.project.id, gcp.cloud-nat.region, gcp.cloud-nat.router, gcp.cloud-nat.name", nil)
+		return extension_kit.ToError("Target is missing one of: gcp.project.id, gcp.cloud-nat.region, gcp.cloud-nat.router, gcp.cloud-nat.name", nil)
 	}
-	client, closer, err := a.clientProvider(ctx, state.ProjectID)
+	return nil
+}
+
+func fetchRouter(ctx context.Context, provider func(ctx context.Context, projectID string) (*compute.RoutersClient, func(), error), state *CloudNatDisassociateState) (*computepb.Router, error) {
+	client, closer, err := provider(ctx, state.ProjectID)
 	if err != nil {
 		return nil, extension_kit.ToError(fmt.Sprintf("Failed to create Routers client for project %s", state.ProjectID), err)
 	}
@@ -118,12 +146,18 @@ func (a *cloudNatDisassociateAttack) Prepare(ctx context.Context, state *CloudNa
 	if err != nil {
 		return nil, extension_kit.ToError(fmt.Sprintf("Failed to get router %s/%s", state.Region, state.RouterName), err)
 	}
-	natFound := false
+	return router, nil
+}
+
+// snapshotNatSubnetworks locates the named NAT on the router and returns a
+// copy of its subnetworks list. `found` reports whether the NAT existed at all
+// so the caller can distinguish "NAT gone" from "NAT present but empty".
+func snapshotNatSubnetworks(router *computepb.Router, natName string) (found bool, snapshots []natSubnetSnapshot) {
 	for _, nat := range router.GetNats() {
-		if nat.GetName() != state.NatName {
+		if nat.GetName() != natName {
 			continue
 		}
-		natFound = true
+		found = true
 		for _, s := range nat.GetSubnetworks() {
 			if s == nil {
 				continue
@@ -134,22 +168,11 @@ func (a *cloudNatDisassociateAttack) Prepare(ctx context.Context, state *CloudNa
 			}
 			snap.SecondaryIPRangeNames = append(snap.SecondaryIPRangeNames, s.GetSecondaryIpRangeNames()...)
 			snap.SourceIPRangesToNat = append(snap.SourceIPRangesToNat, s.GetSourceIpRangesToNat()...)
-			state.OriginalSubnetworks = append(state.OriginalSubnetworks, snap)
+			snapshots = append(snapshots, snap)
 		}
-		break
+		return found, snapshots
 	}
-	if !natFound {
-		return nil, extension_kit.ToError(fmt.Sprintf("Cloud NAT %s/%s not found on router — cannot disassociate", state.RouterName, state.NatName), nil)
-	}
-	if len(state.OriginalSubnetworks) == 0 {
-		return nil, extension_kit.ToError(fmt.Sprintf("Cloud NAT %s/%s has no subnetworks to disassociate", state.RouterName, state.NatName), nil)
-	}
-	return &action_kit_api.PrepareResult{
-		Messages: extutil.Ptr([]action_kit_api.Message{{
-			Level:   extutil.Ptr(action_kit_api.Info),
-			Message: fmt.Sprintf("Will disassociate %d subnetwork(s) from Cloud NAT %s/%s", len(state.OriginalSubnetworks), state.RouterName, state.NatName),
-		}}),
-	}, nil
+	return false, nil
 }
 
 func (a *cloudNatDisassociateAttack) Start(ctx context.Context, state *CloudNatDisassociateState) (*action_kit_api.StartResult, error) {
