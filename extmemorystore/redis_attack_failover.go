@@ -94,13 +94,18 @@ func (a *redisFailoverAttack) Describe() action_kit_api.ActionDescription {
 	}
 }
 
-// dataProtectionFromString maps the parameter value to the SDK enum. Defaults to LIMITED_DATA_LOSS.
-func dataProtectionFromString(s string) redispb.FailoverInstanceRequest_DataProtectionMode {
+// dataProtectionFromString maps the parameter value to the SDK enum. Both
+// legal values are matched explicitly and the caller must pre-validate — an
+// unknown value returns (UNSPECIFIED, false) so we can error out instead of
+// silently downgrading a FORCE_DATA_LOSS request to LIMITED_DATA_LOSS.
+func dataProtectionFromString(s string) (redispb.FailoverInstanceRequest_DataProtectionMode, bool) {
 	switch s {
 	case "FORCE_DATA_LOSS":
-		return redispb.FailoverInstanceRequest_FORCE_DATA_LOSS
+		return redispb.FailoverInstanceRequest_FORCE_DATA_LOSS, true
+	case "LIMITED_DATA_LOSS":
+		return redispb.FailoverInstanceRequest_LIMITED_DATA_LOSS, true
 	default:
-		return redispb.FailoverInstanceRequest_LIMITED_DATA_LOSS
+		return redispb.FailoverInstanceRequest_DATA_PROTECTION_MODE_UNSPECIFIED, false
 	}
 }
 
@@ -116,6 +121,13 @@ func (a *redisFailoverAttack) Prepare(_ context.Context, state *RedisFailoverSta
 	}
 	state.InstanceName = fmt.Sprintf("projects/%s/locations/%s/instances/%s", state.ProjectID, region, state.InstanceID)
 	state.DataProtectionMode = extutil.ToString(request.Config["dataProtectionMode"])
+	// Validate the enum at Prepare so the user sees the error before we start.
+	// Silently downgrading to LIMITED_DATA_LOSS (the previous default-branch
+	// behaviour) would let a stale UI or typo hide a request for the destructive
+	// FORCE_DATA_LOSS mode.
+	if _, ok := dataProtectionFromString(state.DataProtectionMode); !ok {
+		return nil, extension_kit.ToError(fmt.Sprintf("Unknown dataProtectionMode %q; expected FORCE_DATA_LOSS or LIMITED_DATA_LOSS", state.DataProtectionMode), nil)
+	}
 	return nil, nil
 }
 
@@ -125,7 +137,11 @@ func (a *redisFailoverAttack) Start(ctx context.Context, state *RedisFailoverSta
 		return nil, extension_kit.ToError(fmt.Sprintf("Failed to initialize CloudRedis client for project %s", state.ProjectID), err)
 	}
 	defer closer()
-	mode := dataProtectionFromString(state.DataProtectionMode)
+	mode, ok := dataProtectionFromString(state.DataProtectionMode)
+	if !ok {
+		// Prepare validated this — belt & suspenders for a rehydrated / mutated state.
+		return nil, extension_kit.ToError(fmt.Sprintf("Unknown dataProtectionMode %q at Start; expected FORCE_DATA_LOSS or LIMITED_DATA_LOSS", state.DataProtectionMode), nil)
+	}
 	// FailoverInstance returns a long-running operation; we don't wait — chaos = fire-and-forget.
 	_, err = client.FailoverInstance(ctx, &redispb.FailoverInstanceRequest{
 		Name:               state.InstanceName,

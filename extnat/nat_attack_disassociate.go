@@ -118,11 +118,16 @@ func (a *cloudNatDisassociateAttack) Prepare(ctx context.Context, state *CloudNa
 	if err != nil {
 		return nil, extension_kit.ToError(fmt.Sprintf("Failed to get router %s/%s", state.Region, state.RouterName), err)
 	}
+	natFound := false
 	for _, nat := range router.GetNats() {
 		if nat.GetName() != state.NatName {
 			continue
 		}
+		natFound = true
 		for _, s := range nat.GetSubnetworks() {
+			if s == nil {
+				continue
+			}
 			snap := natSubnetSnapshot{}
 			if s.Name != nil {
 				snap.Name = *s.Name
@@ -132,6 +137,9 @@ func (a *cloudNatDisassociateAttack) Prepare(ctx context.Context, state *CloudNa
 			state.OriginalSubnetworks = append(state.OriginalSubnetworks, snap)
 		}
 		break
+	}
+	if !natFound {
+		return nil, extension_kit.ToError(fmt.Sprintf("Cloud NAT %s/%s not found on router — cannot disassociate", state.RouterName, state.NatName), nil)
 	}
 	if len(state.OriginalSubnetworks) == 0 {
 		return nil, extension_kit.ToError(fmt.Sprintf("Cloud NAT %s/%s has no subnetworks to disassociate", state.RouterName, state.NatName), nil)
@@ -182,12 +190,21 @@ func setNatSubnetworks(ctx context.Context, provider func(ctx context.Context, p
 	if err != nil {
 		return fmt.Errorf("get router: %w", err)
 	}
+	natFound := false
 	for _, nat := range router.GetNats() {
 		if nat.GetName() != state.NatName {
 			continue
 		}
 		nat.Subnetworks = toSubnetworkProtos(target)
+		natFound = true
 		break
+	}
+	if !natFound {
+		// The NAT was present at Prepare but is gone now (renamed / deleted).
+		// Refuse to PATCH the router unchanged — the caller reports "success"
+		// otherwise and any previously-disassociated subnetworks would stay
+		// disassociated indefinitely without an error signal to the user.
+		return fmt.Errorf("cloud NAT %q not found on router %q — refusing to PATCH unchanged", state.NatName, state.RouterName)
 	}
 	_, err = client.Patch(ctx, &computepb.PatchRouterRequest{
 		Project:        state.ProjectID,

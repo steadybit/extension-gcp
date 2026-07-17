@@ -133,9 +133,10 @@ func toServiceTarget(s *runpb.Service, projectID string) discovery_kit_api.Targe
 	attributes["gcp.cloudrun.service.iap-enabled"] = []string{strconv.FormatBool(s.IapEnabled)}
 
 	if s.Scaling != nil {
-		if s.Scaling.MinInstanceCount > 0 {
-			attributes["gcp.cloudrun.service.scaling.min-instance-count"] = []string{strconv.Itoa(int(s.Scaling.MinInstanceCount))}
-		}
+		// Always emit min-instance-count — 0 is a real, targetable value (scale-to-zero),
+		// not "unset". Omitting it made scale-to-zero services indistinguishable from
+		// services with no scaling config.
+		attributes["gcp.cloudrun.service.scaling.min-instance-count"] = []string{strconv.Itoa(int(s.Scaling.MinInstanceCount))}
 		if s.Scaling.ScalingMode != runpb.ServiceScaling_SCALING_MODE_UNSPECIFIED {
 			attributes["gcp.cloudrun.service.scaling.scaling-mode"] = []string{s.Scaling.ScalingMode.String()}
 		}
@@ -152,9 +153,8 @@ func toServiceTarget(s *runpb.Service, projectID string) discovery_kit_api.Targe
 			attributes["gcp.cloudrun.service.template.service-account"] = []string{tpl.ServiceAccount}
 		}
 		if tpl.Scaling != nil {
-			if tpl.Scaling.MinInstanceCount > 0 {
-				attributes["gcp.cloudrun.service.template.scaling.min-instance-count"] = []string{strconv.Itoa(int(tpl.Scaling.MinInstanceCount))}
-			}
+			// Same rationale as above: 0 is a real value for min-instance-count.
+			attributes["gcp.cloudrun.service.template.scaling.min-instance-count"] = []string{strconv.Itoa(int(tpl.Scaling.MinInstanceCount))}
 			if tpl.Scaling.MaxInstanceCount > 0 {
 				attributes["gcp.cloudrun.service.template.scaling.max-instance-count"] = []string{strconv.Itoa(int(tpl.Scaling.MaxInstanceCount))}
 			}

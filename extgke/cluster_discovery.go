@@ -203,12 +203,17 @@ func toClusterTarget(c *containerpb.Cluster, projectID string) discovery_kit_api
 	attributes[attrClusterPrivateCluster] = []string{strconv.FormatBool(privateNodes)}
 
 	manEnabled := false
+	manRestricted := false // Enabled AND at least one non-0.0.0.0/0 CIDR.
 	var manCidrs []string
 	if c.MasterAuthorizedNetworksConfig != nil {
 		manEnabled = c.MasterAuthorizedNetworksConfig.Enabled
 		for _, b := range c.MasterAuthorizedNetworksConfig.CidrBlocks {
-			if b != nil && b.CidrBlock != "" {
-				manCidrs = append(manCidrs, b.CidrBlock)
+			if b == nil || b.CidrBlock == "" {
+				continue
+			}
+			manCidrs = append(manCidrs, b.CidrBlock)
+			if b.CidrBlock != "0.0.0.0/0" && b.CidrBlock != "::/0" {
+				manRestricted = true
 			}
 		}
 	}
@@ -218,8 +223,11 @@ func toClusterTarget(c *containerpb.Cluster, projectID string) discovery_kit_api
 		attributes[attrClusterMasterAuthorizedNetsCidrs] = manCidrs
 	}
 	// True iff the API server is reachable from the public internet without IP restriction.
-	// Private endpoint => not internet-reachable. Public endpoint AND no authorized-networks restriction => open.
-	attributes[attrClusterApiServerOpenToInternet] = []string{strconv.FormatBool(!privateEndpoint && !manEnabled)}
+	// Private endpoint => not internet-reachable. Otherwise, the network is
+	// "restricted" only if authorized-networks is enabled AND every allowed CIDR
+	// is narrower than 0.0.0.0/0 (::/0). A MAN-enabled cluster whose only rule
+	// is 0.0.0.0/0 is globally reachable and must report "open".
+	attributes[attrClusterApiServerOpenToInternet] = []string{strconv.FormatBool(!privateEndpoint && !manRestricted)}
 
 	wiEnabled := c.WorkloadIdentityConfig != nil && c.WorkloadIdentityConfig.WorkloadPool != ""
 	attributes[attrClusterWorkloadIdentityEnabled] = []string{strconv.FormatBool(wiEnabled)}
@@ -263,6 +271,15 @@ func (d *clusterDiscovery) DescribeEnrichmentRules() []discovery_kit_api.TargetE
 }
 
 func gkeClusterToK8sEnrichmentRule(destTargetType string) discovery_kit_api.TargetEnrichmentRule {
+	// KNOWN LIMITATION: this join keys on k8s.cluster-name only. When
+	// STEADYBIT_EXTENSION_PROJECTS_ADVANCED / _PROJECT_IDS is configured with
+	// multiple projects that each contain a cluster with the same name
+	// (e.g. two 'prod' clusters), enrichment on Kubernetes targets pulls
+	// attributes from whichever GKE cluster the enrichment engine sampled —
+	// so a query like `gcp.gke.cluster.name="prod"` can accidentally
+	// resolve to the wrong project's prod. The clean fix requires extension-
+	// kubernetes to also surface gcp.project.id on its targets so we can add
+	// it to both selectors here; tracked as a separate follow-up.
 	return discovery_kit_api.TargetEnrichmentRule{
 		Id:      fmt.Sprintf("com.steadybit.extension_gcp.gke.cluster-to-%s", destTargetType),
 		Version: extbuild.GetSemverVersionStringOrUnknown(),

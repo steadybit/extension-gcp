@@ -72,7 +72,15 @@ spec:
             {{- end }}
             {{- if .Values.gcp.projectIDs }}
             - name: STEADYBIT_EXTENSION_PROJECT_IDS
+              # Accept both `projectIDs: "a,b"` (CSV) and `projectIDs: [a, b]` (list).
+              # Without this dispatch, a YAML list — the natural shape given the plural
+              # name — Sprintf-formats to the literal string "[a b]", which envconfig
+              # then treats as a single bogus project ID.
+              {{- if kindIs "slice" .Values.gcp.projectIDs }}
+              value: {{ join "," .Values.gcp.projectIDs | quote }}
+              {{- else }}
               value: {{ .Values.gcp.projectIDs | quote }}
+              {{- end }}
             {{- end }}
             {{- if .Values.gcp.projectsAdvanced }}
             - name: STEADYBIT_EXTENSION_PROJECTS_ADVANCED

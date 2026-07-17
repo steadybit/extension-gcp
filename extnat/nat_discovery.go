@@ -157,7 +157,10 @@ func toNatTarget(router *computepb.Router, nat *computepb.RouterNat, region, pro
 	if len(subnetNames) > 0 {
 		attributes["gcp.cloud-nat.subnetworks"] = subnetNames
 	}
-	attributes[attrSubnetworkCount] = []string{strconv.Itoa(len(subnets))}
+	// Count the same set we surfaced (filtered non-nil, non-empty names) so
+	// `subnetworks` and `subnetwork-count` don't disagree on how many things
+	// are attached.
+	attributes[attrSubnetworkCount] = []string{strconv.Itoa(len(subnetNames))}
 	if v := nat.GetMinPortsPerVm(); v != 0 {
 		attributes["gcp.cloud-nat.min-ports-per-vm"] = []string{strconv.Itoa(int(v))}
 	}
