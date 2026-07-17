@@ -51,9 +51,7 @@ func (a *cloudSqlFailoverAttack) Describe() action_kit_api.ActionDescription {
 	return action_kit_api.ActionDescription{
 		Id:    InstanceFailoverActionId,
 		Label: "Trigger Cloud SQL failover",
-		Description: "Triggers a failover from the primary instance to its REGIONAL standby. Only works on Cloud SQL instances with availability-type=REGIONAL (HA). " +
-			"Validates that your application correctly handles the brief connection interruption and follows the secondary's new primary role. " +
-			"This is not reversible — it exercises the same code path as a real zonal outage; Cloud SQL rebuilds a new HA standby after the failover.",
+		Description: "Fails over a REGIONAL Cloud SQL HA instance to its standby. Not reversible.",
 		Version: extbuild.GetSemverVersionStringOrUnknown(),
 		Icon:    extutil.Ptr(targetIcon),
 		TargetSelection: extutil.Ptr(action_kit_api.TargetSelection{
@@ -66,7 +64,7 @@ func (a *cloudSqlFailoverAttack) Describe() action_kit_api.ActionDescription {
 				},
 			}),
 		}),
-		Technology:  extutil.Ptr("Google Cloud"),
+		Technology:  extutil.Ptr("GCP"),
 		Category:    extutil.Ptr("Cloud SQL"),
 		TimeControl: action_kit_api.TimeControlInstantaneous,
 		Kind:        action_kit_api.Attack,
