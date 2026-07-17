@@ -136,7 +136,8 @@ func (a *nodePoolTerminateInstancesAttack) Prepare(ctx context.Context, state *N
 	if pct < 1 || pct > 100 {
 		return nil, extension_kit.ToError("percentage must be between 1 and 100.", nil)
 	}
-	if pct > 50 && !extutil.ToBool(request.Config["confirmHighImpact"]) {
+	confirmHigh := extutil.ToBool(request.Config["confirmHighImpact"])
+	if pct > 50 && !confirmHigh {
 		return nil, extension_kit.ToError("Percentages above 50% require the 'Allow percentages above 50%' flag — half the node pool will be deleted at once.", nil)
 	}
 	state.Percentage = pct
@@ -208,12 +209,23 @@ func (a *nodePoolTerminateInstancesAttack) Prepare(ctx context.Context, state *N
 
 	// Sort for determinism, then random-sample N%.
 	sort.Slice(allInstances, func(i, j int) bool { return allInstances[i].url < allInstances[j].url })
-	sampleSize := int(math.Ceil(float64(len(allInstances)) * float64(pct) / 100.0))
+	// Use math.Floor (not math.Ceil) so the sample never exceeds the requested
+	// percentage — math.Ceil silently amplifies the effective impact past the
+	// 50 % gate on small node pools.
+	sampleSize := int(math.Floor(float64(len(allInstances)) * float64(pct) / 100.0))
 	if sampleSize < 1 {
 		sampleSize = 1
 	}
 	if sampleSize > len(allInstances) {
 		sampleSize = len(allInstances)
+	}
+	// Small-pool guard: the >=1 clamp can still push the effective ratio above
+	// 50 % (e.g. pct=50 on 1 node → 100 %). Refuse unless confirmHighImpact was
+	// explicitly set.
+	if sampleSize*2 > len(allInstances) && !confirmHigh {
+		return nil, extension_kit.ToError(fmt.Sprintf(
+			"Effective impact %d of %d node(s) exceeds 50%% (small node pool rounds up to a full node). Set 'Allow percentages above 50%%' to acknowledge.",
+			sampleSize, len(allInstances)), nil)
 	}
 	perm := a.rng(len(allInstances))
 	state.InstancesByMig = make(map[string][]string)

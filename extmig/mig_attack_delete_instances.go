@@ -151,7 +151,8 @@ func (a *migDeleteInstancesAttack) Prepare(ctx context.Context, state *MigDelete
 	if pct < 1 || pct > 100 {
 		return nil, extension_kit.ToError("percentage must be between 1 and 100.", nil)
 	}
-	if pct > 50 && !extutil.ToBool(request.Config["confirmHighImpact"]) {
+	confirmHigh := extutil.ToBool(request.Config["confirmHighImpact"])
+	if pct > 50 && !confirmHigh {
 		return nil, extension_kit.ToError("Percentages above 50% require the 'Allow percentages above 50%' flag — half the MIG will be deleted at once.", nil)
 	}
 	state.Percentage = pct
@@ -164,12 +165,25 @@ func (a *migDeleteInstancesAttack) Prepare(ctx context.Context, state *MigDelete
 		return nil, extension_kit.ToError(fmt.Sprintf("MIG %s/%s has no RUNNING instances to delete", state.Location, state.MigName), nil)
 	}
 	sort.Strings(allInstances)
-	sampleSize := int(math.Ceil(float64(len(allInstances)) * float64(pct) / 100.0))
+	// Use math.Floor (not math.Ceil) so the sample never exceeds the requested
+	// percentage. math.Ceil on e.g. 3 * 50 / 100 = 1.5 rounds up to 2 = 67 %,
+	// which silently bypasses the confirmHighImpact gate at >50 %. Floor with a
+	// >=1 clamp keeps the "always kill at least one" property.
+	sampleSize := int(math.Floor(float64(len(allInstances)) * float64(pct) / 100.0))
 	if sampleSize < 1 {
 		sampleSize = 1
 	}
 	if sampleSize > len(allInstances) {
 		sampleSize = len(allInstances)
+	}
+	// Second guard: on very small MIGs the >=1 clamp can push the effective
+	// ratio above 50 % (e.g. pct=50 on 1 instance → 100 %). Refuse when this
+	// happens unless confirmHighImpact was explicitly set — otherwise the
+	// safety gate is silently bypassed by MIG size, not by user request.
+	if sampleSize*2 > len(allInstances) && !confirmHigh {
+		return nil, extension_kit.ToError(fmt.Sprintf(
+			"Effective impact %d of %d instance(s) exceeds 50%% (small MIG rounds up to a full instance). Set 'Allow percentages above 50%%' to acknowledge.",
+			sampleSize, len(allInstances)), nil)
 	}
 	perm := a.rng(len(allInstances))
 	state.Instances = make([]string, 0, sampleSize)
