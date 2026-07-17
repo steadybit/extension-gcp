@@ -11,6 +11,35 @@ entries:
         - name: Steadybit reliability hub
           url: https://hub.steadybit.com
     apiVersion: v2
+    appVersion: v1.0.30
+    created: "2026-07-17T08:50:25.679064093Z"
+    dependencies:
+    - name: extensionlib
+      repository: https://steadybit.github.io/helm-charts
+      version: ^1.5.2
+    description: Steadybit gcp extension Helm chart for Kubernetes.
+    digest: 1a26a8a75493724bee2b29d38c8b4904834b337e7aac1f98d29653c716e92f8e
+    home: https://www.steadybit.com/
+    icon: https://steadybit-website-assets.s3.amazonaws.com/logo-symbol-transparent.png
+    maintainers:
+    - email: daniel.reuter@steadybit.com
+      name: reuda
+    name: steadybit-extension-gcp
+    sources:
+    - https://github.com/steadybit/extension-gcp
+    urls:
+    - https://github.com/steadybit/extension-gcp/releases/download/steadybit-extension-gcp-1.2.0/steadybit-extension-gcp-1.2.0.tgz
+    version: 1.2.0
+  - annotations:
+      artifacthub.io/images: |
+        - name: logo
+          image: https://steadybit-website-assets.s3.amazonaws.com/logo-symbol-transparent.png
+      artifacthub.io/links: |-
+        - name: Steadybit website
+          url: https://www.steadybit.com
+        - name: Steadybit reliability hub
+          url: https://hub.steadybit.com
+    apiVersion: v2
     appVersion: v1.0.29
     created: "2026-06-23T13:57:03.589583254Z"
     dependencies:
@@ -1538,4 +1567,4 @@ entries:
     urls:
     - https://github.com/steadybit/extension-gcp/releases/download/steadybit-extension-gcp-1.0.1/steadybit-extension-gcp-1.0.1.tgz
     version: 1.0.1
-generated: "2026-06-23T13:57:03.589779172Z"
+generated: "2026-07-17T08:50:25.679294483Z"
