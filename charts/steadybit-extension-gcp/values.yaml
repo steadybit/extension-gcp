@@ -155,6 +155,42 @@ discovery:
     excludes:
       # discovery.attributes.excludes.vm -- List of attributes to exclude from VM discovery.
       vm: []
+      # discovery.attributes.excludes.gkeCluster -- Attributes to exclude from GKE cluster discovery.
+      gkeCluster: []
+      # discovery.attributes.excludes.gkeNodePool -- Attributes to exclude from GKE node pool discovery.
+      gkeNodePool: []
+      # discovery.attributes.excludes.mig -- Attributes to exclude from Managed Instance Group discovery.
+      mig: []
+      # discovery.attributes.excludes.cloudNat -- Attributes to exclude from Cloud NAT discovery.
+      cloudNat: []
+      # discovery.attributes.excludes.persistentDisk -- Attributes to exclude from Persistent Disk discovery.
+      persistentDisk: []
+      # discovery.attributes.excludes.cloudSql -- Attributes to exclude from Cloud SQL discovery.
+      cloudSql: []
+      # discovery.attributes.excludes.spanner -- Attributes to exclude from Spanner instance discovery.
+      spanner: []
+      # discovery.attributes.excludes.pubSubTopic -- Attributes to exclude from Pub/Sub topic discovery.
+      pubSubTopic: []
+      # discovery.attributes.excludes.pubSubSubscription -- Attributes to exclude from Pub/Sub subscription discovery.
+      pubSubSubscription: []
+      # discovery.attributes.excludes.memorystoreRedis -- Attributes to exclude from Memorystore Redis discovery.
+      memorystoreRedis: []
+      # discovery.attributes.excludes.cloudRun -- Attributes to exclude from Cloud Run service discovery.
+      cloudRun: []
+  # discovery.enable -- Opt-in toggles for the newer discoveries. Each one is disabled by default to keep the
+  # smallest IAM/cost footprint for users upgrading from a previous version.
+  enable:
+    gkeCluster: false
+    gkeNodePool: false
+    mig: false
+    cloudNat: false
+    persistentDisk: false
+    cloudSql: false
+    spanner: false
+    pubSubTopic: false
+    pubSubSubscription: false
+    memorystoreRedis: false
+    cloudRun: false
 
 # testing -- Overrides intended for e2e tests only. Setting computeEndpoint causes the extension
 # to skip GCP authentication and must not be used in production deployments.

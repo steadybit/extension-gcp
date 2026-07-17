@@ -31,6 +31,32 @@ type Specification struct {
 	ComputeEndpoint               string   `json:"computeEndpoint" required:"false" split_words:"true"`
 	DiscoveryAttributesExcludesVM []string `json:"discoveryAttributesExcludesVM" required:"false" split_words:"true"`
 	EnrichVMDataForTargetTypes    []string `json:"EnrichVMDataForTargetTypes" split_words:"true" default:"com.steadybit.extension_jvm.jvm-instance,com.steadybit.extension_kubernetes.argo-rollout,com.steadybit.extension_kubernetes.kubernetes-deployment,com.steadybit.extension_kubernetes.kubernetes-pod,com.steadybit.extension_kubernetes.kubernetes-daemonset,com.steadybit.extension_kubernetes.kubernetes-statefulset,com.steadybit.extension_http.client-location,com.steadybit.extension_jmeter.location,com.steadybit.extension_k6.location,com.steadybit.extension_gatling.location"`
+
+	// Modules added in feat/expand-gcp-targets-and-attacks. All default to disabled (opt-in) to keep the
+	// smallest IAM/cost footprint for users upgrading from a previous version.
+	DiscoveryEnableGkeCluster         bool `json:"discoveryEnableGkeCluster" split_words:"true" required:"false" default:"false"`
+	DiscoveryEnableGkeNodePool        bool `json:"discoveryEnableGkeNodePool" split_words:"true" required:"false" default:"false"`
+	DiscoveryEnableMig                bool `json:"discoveryEnableMig" split_words:"true" required:"false" default:"false"`
+	DiscoveryEnableCloudNat           bool `json:"discoveryEnableCloudNat" split_words:"true" required:"false" default:"false"`
+	DiscoveryEnablePersistentDisk     bool `json:"discoveryEnablePersistentDisk" split_words:"true" required:"false" default:"false"`
+	DiscoveryEnableCloudSql           bool `json:"discoveryEnableCloudSql" split_words:"true" required:"false" default:"false"`
+	DiscoveryEnableSpanner            bool `json:"discoveryEnableSpanner" split_words:"true" required:"false" default:"false"`
+	DiscoveryEnablePubSubTopic        bool `json:"discoveryEnablePubSubTopic" split_words:"true" required:"false" default:"false"`
+	DiscoveryEnablePubSubSubscription bool `json:"discoveryEnablePubSubSubscription" split_words:"true" required:"false" default:"false"`
+	DiscoveryEnableMemorystoreRedis   bool `json:"discoveryEnableMemorystoreRedis" split_words:"true" required:"false" default:"false"`
+	DiscoveryEnableCloudRun           bool `json:"discoveryEnableCloudRun" split_words:"true" required:"false" default:"false"`
+
+	DiscoveryAttributesExcludesGkeCluster         []string `json:"discoveryAttributesExcludesGkeCluster" required:"false" split_words:"true"`
+	DiscoveryAttributesExcludesGkeNodePool        []string `json:"discoveryAttributesExcludesGkeNodePool" required:"false" split_words:"true"`
+	DiscoveryAttributesExcludesMig                []string `json:"discoveryAttributesExcludesMig" required:"false" split_words:"true"`
+	DiscoveryAttributesExcludesCloudNat           []string `json:"discoveryAttributesExcludesCloudNat" required:"false" split_words:"true"`
+	DiscoveryAttributesExcludesPersistentDisk     []string `json:"discoveryAttributesExcludesPersistentDisk" required:"false" split_words:"true"`
+	DiscoveryAttributesExcludesCloudSql           []string `json:"discoveryAttributesExcludesCloudSql" required:"false" split_words:"true"`
+	DiscoveryAttributesExcludesSpanner            []string `json:"discoveryAttributesExcludesSpanner" required:"false" split_words:"true"`
+	DiscoveryAttributesExcludesPubSubTopic        []string `json:"discoveryAttributesExcludesPubSubTopic" required:"false" split_words:"true"`
+	DiscoveryAttributesExcludesPubSubSubscription []string `json:"discoveryAttributesExcludesPubSubSubscription" required:"false" split_words:"true"`
+	DiscoveryAttributesExcludesMemorystoreRedis   []string `json:"discoveryAttributesExcludesMemorystoreRedis" required:"false" split_words:"true"`
+	DiscoveryAttributesExcludesCloudRun           []string `json:"discoveryAttributesExcludesCloudRun" required:"false" split_words:"true"`
 }
 
 type ProjectAdvanced struct {
