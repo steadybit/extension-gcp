@@ -111,7 +111,7 @@ func (a *redisFailoverAttack) Prepare(_ context.Context, state *RedisFailoverSta
 	if state.ProjectID == "" || state.InstanceID == "" || region == "" {
 		return nil, extension_kit.ToError("Target is missing one of: gcp.project.id, gcp.memorystore.instance.id, gcp.memorystore.region", nil)
 	}
-	if tier := request.Target.Attributes["gcp.memorystore.tier"]; len(tier) == 0 || tier[0] != "STANDARD_HA" {
+	if tier := request.Target.Attributes[attrTier]; len(tier) == 0 || tier[0] != "STANDARD_HA" {
 		return nil, extension_kit.ToError(fmt.Sprintf("Memorystore instance %s is not STANDARD_HA; failover requires a high-availability instance", state.InstanceID), nil)
 	}
 	state.InstanceName = fmt.Sprintf("projects/%s/locations/%s/instances/%s", state.ProjectID, region, state.InstanceID)

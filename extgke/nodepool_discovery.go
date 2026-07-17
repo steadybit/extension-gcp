@@ -55,10 +55,10 @@ func (d *nodePoolDiscovery) DescribeTarget() discovery_kit_api.TargetDescription
 		Table: discovery_kit_api.Table{
 			Columns: []discovery_kit_api.Column{
 				{Attribute: "steadybit.label"},
-				{Attribute: "gcp.gke.cluster.name"},
-				{Attribute: "gcp.gke.nodepool.kubernetes-version"},
-				{Attribute: "gcp.gke.nodepool.machine-type"},
-				{Attribute: "gcp.gke.nodepool.autoscaling.enabled"},
+				{Attribute: attrClusterName},
+				{Attribute: attrNodePoolKubernetesVersion},
+				{Attribute: attrNodePoolMachineType},
+				{Attribute: attrNodePoolAutoscalingEnabled},
 			},
 			OrderBy: []discovery_kit_api.OrderBy{{Attribute: "steadybit.label", Direction: "ASC"}},
 		},
@@ -67,18 +67,18 @@ func (d *nodePoolDiscovery) DescribeTarget() discovery_kit_api.TargetDescription
 
 func (d *nodePoolDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescription {
 	return []discovery_kit_api.AttributeDescription{
-		{Attribute: "gcp.gke.cluster.name", Label: discovery_kit_api.PluralLabel{One: "GKE cluster name", Other: "GKE cluster names"}},
+		{Attribute: attrClusterName, Label: discovery_kit_api.PluralLabel{One: "GKE cluster name", Other: "GKE cluster names"}},
 		{Attribute: "gcp.gke.cluster.location", Label: discovery_kit_api.PluralLabel{One: "GKE cluster location", Other: "GKE cluster locations"}},
 		{Attribute: "gcp.gke.nodepool.name", Label: discovery_kit_api.PluralLabel{One: "GKE node pool name", Other: "GKE node pool names"}},
-		{Attribute: "gcp.gke.nodepool.kubernetes-version", Label: discovery_kit_api.PluralLabel{One: "GKE node pool Kubernetes version", Other: "GKE node pool Kubernetes versions"}},
+		{Attribute: attrNodePoolKubernetesVersion, Label: discovery_kit_api.PluralLabel{One: "GKE node pool Kubernetes version", Other: "GKE node pool Kubernetes versions"}},
 		{Attribute: "gcp.gke.nodepool.status", Label: discovery_kit_api.PluralLabel{One: "GKE node pool status", Other: "GKE node pool statuses"}},
-		{Attribute: "gcp.gke.nodepool.machine-type", Label: discovery_kit_api.PluralLabel{One: "GKE node pool machine type", Other: "GKE node pool machine types"}},
+		{Attribute: attrNodePoolMachineType, Label: discovery_kit_api.PluralLabel{One: "GKE node pool machine type", Other: "GKE node pool machine types"}},
 		{Attribute: "gcp.gke.nodepool.disk-type", Label: discovery_kit_api.PluralLabel{One: "GKE node pool disk type", Other: "GKE node pool disk types"}},
 		{Attribute: "gcp.gke.nodepool.disk-size-gb", Label: discovery_kit_api.PluralLabel{One: "GKE node pool disk size (GiB)", Other: "GKE node pool disk sizes (GiB)"}},
 		{Attribute: "gcp.gke.nodepool.image-type", Label: discovery_kit_api.PluralLabel{One: "GKE node pool image type", Other: "GKE node pool image types"}},
 		{Attribute: "gcp.gke.nodepool.preemptible", Label: discovery_kit_api.PluralLabel{One: "GKE node pool preemptible", Other: "GKE node pool preemptible"}},
 		{Attribute: "gcp.gke.nodepool.spot", Label: discovery_kit_api.PluralLabel{One: "GKE node pool spot", Other: "GKE node pool spot"}},
-		{Attribute: "gcp.gke.nodepool.autoscaling.enabled", Label: discovery_kit_api.PluralLabel{One: "GKE node pool autoscaling", Other: "GKE node pool autoscaling"}},
+		{Attribute: attrNodePoolAutoscalingEnabled, Label: discovery_kit_api.PluralLabel{One: "GKE node pool autoscaling", Other: "GKE node pool autoscaling"}},
 		{Attribute: "gcp.gke.nodepool.autoscaling.min-node-count", Label: discovery_kit_api.PluralLabel{One: "GKE node pool min node count", Other: "GKE node pool min node counts"}},
 		{Attribute: "gcp.gke.nodepool.autoscaling.max-node-count", Label: discovery_kit_api.PluralLabel{One: "GKE node pool max node count", Other: "GKE node pool max node counts"}},
 		{Attribute: "gcp.gke.nodepool.locations", Label: discovery_kit_api.PluralLabel{One: "GKE node pool location", Other: "GKE node pool locations"}},
@@ -130,20 +130,20 @@ func getAllNodePools(ctx context.Context, client clusterManagerApi, projectID st
 func toNodePoolTarget(np *containerpb.NodePool, cluster *containerpb.Cluster, projectID string) discovery_kit_api.Target {
 	attributes := make(map[string][]string)
 	attributes["gcp.project.id"] = []string{projectID}
-	attributes["gcp.gke.cluster.name"] = []string{cluster.Name}
+	attributes[attrClusterName] = []string{cluster.Name}
 	attributes["gcp.gke.cluster.location"] = []string{cluster.Location}
 	attributes["k8s.cluster-name"] = []string{cluster.Name}
 	attributes["gcp.gke.nodepool.name"] = []string{np.Name}
 
 	if np.Version != "" {
-		attributes["gcp.gke.nodepool.kubernetes-version"] = []string{np.Version}
+		attributes[attrNodePoolKubernetesVersion] = []string{np.Version}
 	}
 	if np.Status != containerpb.NodePool_STATUS_UNSPECIFIED {
 		attributes["gcp.gke.nodepool.status"] = []string{np.Status.String()}
 	}
 	if np.Config != nil {
 		if np.Config.MachineType != "" {
-			attributes["gcp.gke.nodepool.machine-type"] = []string{np.Config.MachineType}
+			attributes[attrNodePoolMachineType] = []string{np.Config.MachineType}
 		}
 		if np.Config.DiskType != "" {
 			attributes["gcp.gke.nodepool.disk-type"] = []string{np.Config.DiskType}
@@ -158,7 +158,7 @@ func toNodePoolTarget(np *containerpb.NodePool, cluster *containerpb.Cluster, pr
 		attributes["gcp.gke.nodepool.spot"] = []string{strconv.FormatBool(np.Config.Spot)}
 	}
 	asEnabled := np.Autoscaling != nil && np.Autoscaling.Enabled
-	attributes["gcp.gke.nodepool.autoscaling.enabled"] = []string{strconv.FormatBool(asEnabled)}
+	attributes[attrNodePoolAutoscalingEnabled] = []string{strconv.FormatBool(asEnabled)}
 	if asEnabled {
 		attributes["gcp.gke.nodepool.autoscaling.min-node-count"] = []string{strconv.Itoa(int(np.Autoscaling.MinNodeCount))}
 		attributes["gcp.gke.nodepool.autoscaling.max-node-count"] = []string{strconv.Itoa(int(np.Autoscaling.MaxNodeCount))}

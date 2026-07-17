@@ -55,10 +55,10 @@ func (d *redisDiscovery) DescribeTarget() discovery_kit_api.TargetDescription {
 		Table: discovery_kit_api.Table{
 			Columns: []discovery_kit_api.Column{
 				{Attribute: "steadybit.label"},
-				{Attribute: "gcp.memorystore.tier"},
-				{Attribute: "gcp.memorystore.redis-version"},
-				{Attribute: "gcp.memorystore.region"},
-				{Attribute: "gcp.project.id"},
+				{Attribute: attrTier},
+				{Attribute: attrRedisVersion},
+				{Attribute: attrRegion},
+				{Attribute: attrProjectID},
 			},
 			OrderBy: []discovery_kit_api.OrderBy{{Attribute: "steadybit.label", Direction: "ASC"}},
 		},
@@ -68,9 +68,9 @@ func (d *redisDiscovery) DescribeTarget() discovery_kit_api.TargetDescription {
 func (d *redisDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescription {
 	return []discovery_kit_api.AttributeDescription{
 		{Attribute: "gcp.memorystore.instance.id", Label: discovery_kit_api.PluralLabel{One: "Memorystore instance ID", Other: "Memorystore instance IDs"}},
-		{Attribute: "gcp.memorystore.tier", Label: discovery_kit_api.PluralLabel{One: "Memorystore tier", Other: "Memorystore tiers"}},
-		{Attribute: "gcp.memorystore.redis-version", Label: discovery_kit_api.PluralLabel{One: "Memorystore Redis version", Other: "Memorystore Redis versions"}},
-		{Attribute: "gcp.memorystore.region", Label: discovery_kit_api.PluralLabel{One: "Memorystore region", Other: "Memorystore regions"}},
+		{Attribute: attrTier, Label: discovery_kit_api.PluralLabel{One: "Memorystore tier", Other: "Memorystore tiers"}},
+		{Attribute: attrRedisVersion, Label: discovery_kit_api.PluralLabel{One: "Memorystore Redis version", Other: "Memorystore Redis versions"}},
+		{Attribute: attrRegion, Label: discovery_kit_api.PluralLabel{One: "Memorystore region", Other: "Memorystore regions"}},
 		{Attribute: "gcp.memorystore.location-id", Label: discovery_kit_api.PluralLabel{One: "Memorystore location", Other: "Memorystore locations"}},
 		{Attribute: "gcp.memorystore.alternative-location-id", Label: discovery_kit_api.PluralLabel{One: "Memorystore alternative location", Other: "Memorystore alternative locations"}},
 		{Attribute: "gcp.memorystore.memory-size-gb", Label: discovery_kit_api.PluralLabel{One: "Memorystore memory size (GiB)", Other: "Memorystore memory sizes (GiB)"}},
@@ -82,7 +82,7 @@ func (d *redisDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescr
 		{Attribute: "gcp.memorystore.replica-count", Label: discovery_kit_api.PluralLabel{One: "Memorystore replica count", Other: "Memorystore replica counts"}},
 		{Attribute: "gcp.memorystore.persistence-mode", Label: discovery_kit_api.PluralLabel{One: "Memorystore persistence mode", Other: "Memorystore persistence modes"}},
 		{Attribute: "gcp.memorystore.authorized-network", Label: discovery_kit_api.PluralLabel{One: "Memorystore authorized network", Other: "Memorystore authorized networks"}},
-		{Attribute: "gcp.project.id", Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
+		{Attribute: attrProjectID, Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
 	}
 }
 
@@ -125,16 +125,16 @@ func toRedisTarget(inst *redispb.Instance, projectID string) discovery_kit_api.T
 	}
 
 	attributes := make(map[string][]string)
-	attributes["gcp.project.id"] = []string{projectID}
+	attributes[attrProjectID] = []string{projectID}
 	attributes["gcp.memorystore.instance.id"] = []string{instanceID}
 	if region != "" {
-		attributes["gcp.memorystore.region"] = []string{region}
+		attributes[attrRegion] = []string{region}
 	}
 	if inst.Tier != redispb.Instance_TIER_UNSPECIFIED {
-		attributes["gcp.memorystore.tier"] = []string{inst.Tier.String()}
+		attributes[attrTier] = []string{inst.Tier.String()}
 	}
 	if inst.RedisVersion != "" {
-		attributes["gcp.memorystore.redis-version"] = []string{inst.RedisVersion}
+		attributes[attrRedisVersion] = []string{inst.RedisVersion}
 	}
 	if inst.LocationId != "" {
 		attributes["gcp.memorystore.location-id"] = []string{inst.LocationId}

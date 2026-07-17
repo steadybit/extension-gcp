@@ -126,7 +126,7 @@ func (a *nodePoolTerminateInstancesAttack) Describe() action_kit_api.ActionDescr
 
 func (a *nodePoolTerminateInstancesAttack) Prepare(ctx context.Context, state *NodePoolTerminateInstancesState, request action_kit_api.PrepareActionRequestBody) (*action_kit_api.PrepareResult, error) {
 	state.ProjectID = mustHave(request.Target.Attributes, "gcp.project.id")
-	state.ClusterName = mustHave(request.Target.Attributes, "gcp.gke.cluster.name")
+	state.ClusterName = mustHave(request.Target.Attributes, attrClusterName)
 	state.NodePoolName = mustHave(request.Target.Attributes, "gcp.gke.nodepool.name")
 	state.Location = mustHave(request.Target.Attributes, "gcp.gke.cluster.location")
 	if state.ProjectID == "" || state.ClusterName == "" || state.NodePoolName == "" || state.Location == "" {

@@ -55,10 +55,10 @@ func (d *subscriptionDiscovery) DescribeTarget() discovery_kit_api.TargetDescrip
 		Table: discovery_kit_api.Table{
 			Columns: []discovery_kit_api.Column{
 				{Attribute: "steadybit.label"},
-				{Attribute: "gcp.pubsub.subscription.topic"},
-				{Attribute: "gcp.pubsub.subscription.delivery-type"},
-				{Attribute: "gcp.pubsub.subscription.ack-deadline-seconds"},
-				{Attribute: "gcp.project.id"},
+				{Attribute: attrSubscriptionTopic},
+				{Attribute: attrSubscriptionDeliveryType},
+				{Attribute: attrSubscriptionAckDeadlineSeconds},
+				{Attribute: attrProjectID},
 			},
 			OrderBy: []discovery_kit_api.OrderBy{{Attribute: "steadybit.label", Direction: "ASC"}},
 		},
@@ -68,9 +68,9 @@ func (d *subscriptionDiscovery) DescribeTarget() discovery_kit_api.TargetDescrip
 func (d *subscriptionDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescription {
 	return []discovery_kit_api.AttributeDescription{
 		{Attribute: "gcp.pubsub.subscription.name", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub subscription name", Other: "Pub/Sub subscription names"}},
-		{Attribute: "gcp.pubsub.subscription.topic", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub subscription topic", Other: "Pub/Sub subscription topics"}},
-		{Attribute: "gcp.pubsub.subscription.delivery-type", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub subscription delivery type", Other: "Pub/Sub subscription delivery types"}},
-		{Attribute: "gcp.pubsub.subscription.ack-deadline-seconds", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub subscription ack deadline", Other: "Pub/Sub subscription ack deadlines"}},
+		{Attribute: attrSubscriptionTopic, Label: discovery_kit_api.PluralLabel{One: "Pub/Sub subscription topic", Other: "Pub/Sub subscription topics"}},
+		{Attribute: attrSubscriptionDeliveryType, Label: discovery_kit_api.PluralLabel{One: "Pub/Sub subscription delivery type", Other: "Pub/Sub subscription delivery types"}},
+		{Attribute: attrSubscriptionAckDeadlineSeconds, Label: discovery_kit_api.PluralLabel{One: "Pub/Sub subscription ack deadline", Other: "Pub/Sub subscription ack deadlines"}},
 		{Attribute: "gcp.pubsub.subscription.message-retention-duration", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub subscription message retention", Other: "Pub/Sub subscription message retentions"}},
 		{Attribute: "gcp.pubsub.subscription.retain-acked-messages", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub subscription retain acked", Other: "Pub/Sub subscription retain acked"}},
 		{Attribute: "gcp.pubsub.subscription.enable-message-ordering", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub subscription message ordering", Other: "Pub/Sub subscription message ordering"}},
@@ -84,7 +84,7 @@ func (d *subscriptionDiscovery) DescribeAttributes() []discovery_kit_api.Attribu
 		{Attribute: "gcp.pubsub.subscription.retry-policy.minimum-backoff", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub subscription retry min backoff", Other: "Pub/Sub subscription retry min backoffs"}},
 		{Attribute: "gcp.pubsub.subscription.retry-policy.maximum-backoff", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub subscription retry max backoff", Other: "Pub/Sub subscription retry max backoffs"}},
 		{Attribute: "gcp.pubsub.subscription.expiration-policy.ttl", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub subscription expiration TTL", Other: "Pub/Sub subscription expiration TTLs"}},
-		{Attribute: "gcp.project.id", Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
+		{Attribute: attrProjectID, Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
 	}
 }
 
@@ -124,14 +124,14 @@ func toSubscriptionTarget(s *pubsubpb.Subscription, projectID string) discovery_
 	}
 
 	attributes := make(map[string][]string)
-	attributes["gcp.project.id"] = []string{projectID}
+	attributes[attrProjectID] = []string{projectID}
 	attributes["gcp.pubsub.subscription.name"] = []string{name}
 	if s.Topic != "" {
-		attributes["gcp.pubsub.subscription.topic"] = []string{s.Topic}
+		attributes[attrSubscriptionTopic] = []string{s.Topic}
 	}
-	attributes["gcp.pubsub.subscription.delivery-type"] = []string{deliveryType(s)}
+	attributes[attrSubscriptionDeliveryType] = []string{deliveryType(s)}
 	if s.AckDeadlineSeconds > 0 {
-		attributes["gcp.pubsub.subscription.ack-deadline-seconds"] = []string{strconv.Itoa(int(s.AckDeadlineSeconds))}
+		attributes[attrSubscriptionAckDeadlineSeconds] = []string{strconv.Itoa(int(s.AckDeadlineSeconds))}
 	}
 	if s.MessageRetentionDuration != nil {
 		attributes["gcp.pubsub.subscription.message-retention-duration"] = []string{s.MessageRetentionDuration.AsDuration().String()}

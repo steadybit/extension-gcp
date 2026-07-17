@@ -53,10 +53,10 @@ func (d *instanceDiscovery) DescribeTarget() discovery_kit_api.TargetDescription
 		Table: discovery_kit_api.Table{
 			Columns: []discovery_kit_api.Column{
 				{Attribute: "steadybit.label"},
-				{Attribute: "gcp.cloudsql.database-version"},
-				{Attribute: "gcp.cloudsql.tier"},
-				{Attribute: "gcp.cloudsql.availability-type"},
-				{Attribute: "gcp.cloudsql.region"},
+				{Attribute: attrDatabaseVersion},
+				{Attribute: attrTier},
+				{Attribute: attrAvailabilityType},
+				{Attribute: attrRegion},
 			},
 			OrderBy: []discovery_kit_api.OrderBy{{Attribute: "steadybit.label", Direction: "ASC"}},
 		},
@@ -66,10 +66,10 @@ func (d *instanceDiscovery) DescribeTarget() discovery_kit_api.TargetDescription
 func (d *instanceDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescription {
 	return []discovery_kit_api.AttributeDescription{
 		{Attribute: "gcp.cloudsql.instance.name", Label: discovery_kit_api.PluralLabel{One: "Cloud SQL instance name", Other: "Cloud SQL instance names"}},
-		{Attribute: "gcp.cloudsql.database-version", Label: discovery_kit_api.PluralLabel{One: "Cloud SQL database version", Other: "Cloud SQL database versions"}},
-		{Attribute: "gcp.cloudsql.tier", Label: discovery_kit_api.PluralLabel{One: "Cloud SQL tier", Other: "Cloud SQL tiers"}},
-		{Attribute: "gcp.cloudsql.availability-type", Label: discovery_kit_api.PluralLabel{One: "Cloud SQL availability type", Other: "Cloud SQL availability types"}},
-		{Attribute: "gcp.cloudsql.region", Label: discovery_kit_api.PluralLabel{One: "Cloud SQL region", Other: "Cloud SQL regions"}},
+		{Attribute: attrDatabaseVersion, Label: discovery_kit_api.PluralLabel{One: "Cloud SQL database version", Other: "Cloud SQL database versions"}},
+		{Attribute: attrTier, Label: discovery_kit_api.PluralLabel{One: "Cloud SQL tier", Other: "Cloud SQL tiers"}},
+		{Attribute: attrAvailabilityType, Label: discovery_kit_api.PluralLabel{One: "Cloud SQL availability type", Other: "Cloud SQL availability types"}},
+		{Attribute: attrRegion, Label: discovery_kit_api.PluralLabel{One: "Cloud SQL region", Other: "Cloud SQL regions"}},
 		{Attribute: "gcp.cloudsql.gce-zone", Label: discovery_kit_api.PluralLabel{One: "Cloud SQL GCE zone", Other: "Cloud SQL GCE zones"}},
 		{Attribute: "gcp.cloudsql.secondary-gce-zone", Label: discovery_kit_api.PluralLabel{One: "Cloud SQL secondary zone", Other: "Cloud SQL secondary zones"}},
 		{Attribute: "gcp.cloudsql.state", Label: discovery_kit_api.PluralLabel{One: "Cloud SQL state", Other: "Cloud SQL states"}},
@@ -117,10 +117,10 @@ func toInstanceTarget(inst *sqladmin.DatabaseInstance, projectID string) discove
 	attributes["gcp.project.id"] = []string{projectID}
 	attributes["gcp.cloudsql.instance.name"] = []string{inst.Name}
 	if inst.DatabaseVersion != "" {
-		attributes["gcp.cloudsql.database-version"] = []string{inst.DatabaseVersion}
+		attributes[attrDatabaseVersion] = []string{inst.DatabaseVersion}
 	}
 	if inst.Region != "" {
-		attributes["gcp.cloudsql.region"] = []string{inst.Region}
+		attributes[attrRegion] = []string{inst.Region}
 	}
 	if inst.GceZone != "" {
 		attributes["gcp.cloudsql.gce-zone"] = []string{inst.GceZone}
@@ -136,10 +136,10 @@ func toInstanceTarget(inst *sqladmin.DatabaseInstance, projectID string) discove
 	}
 	if inst.Settings != nil {
 		if inst.Settings.Tier != "" {
-			attributes["gcp.cloudsql.tier"] = []string{inst.Settings.Tier}
+			attributes[attrTier] = []string{inst.Settings.Tier}
 		}
 		if inst.Settings.AvailabilityType != "" {
-			attributes["gcp.cloudsql.availability-type"] = []string{inst.Settings.AvailabilityType}
+			attributes[attrAvailabilityType] = []string{inst.Settings.AvailabilityType}
 		}
 		if inst.Settings.BackupConfiguration != nil {
 			attributes["gcp.cloudsql.backup-enabled"] = []string{strconv.FormatBool(inst.Settings.BackupConfiguration.Enabled)}
