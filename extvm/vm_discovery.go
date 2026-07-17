@@ -67,10 +67,10 @@ func (d *vmDiscovery) DescribeTarget() discovery_kit_api.TargetDescription {
 		Table: discovery_kit_api.Table{
 			Columns: []discovery_kit_api.Column{
 				{Attribute: "steadybit.label"},
-				{Attribute: "gcp.zone"},
-				{Attribute: "gcp.project.id"},
-				{Attribute: "gcp-vm.status"},
-				{Attribute: "gcp-kubernetes-engine.cluster.name"},
+				{Attribute: attrZone},
+				{Attribute: attrProjectID},
+				{Attribute: attrVmStatus},
+				{Attribute: attrClusterName},
 			},
 			OrderBy: []discovery_kit_api.OrderBy{
 				{
@@ -92,14 +92,14 @@ func (d *vmDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescript
 			},
 		},
 		{
-			Attribute: "gcp-vm.id",
+			Attribute: attrVmID,
 			Label: discovery_kit_api.PluralLabel{
 				One:   "VM ID",
 				Other: "VM IDs",
 			},
 		},
 		{
-			Attribute: "gcp-vm.hostname",
+			Attribute: attrVmHostname,
 			Label: discovery_kit_api.PluralLabel{
 				One:   "Host name",
 				Other: "Host names",
@@ -134,7 +134,7 @@ func (d *vmDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescript
 			},
 		},
 		{
-			Attribute: "gcp-vm.status",
+			Attribute: attrVmStatus,
 			Label: discovery_kit_api.PluralLabel{
 				One:   "Status",
 				Other: "Statuses",
@@ -170,7 +170,7 @@ func (d *vmDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescript
 		},
 
 		{
-			Attribute: "gcp.zone",
+			Attribute: attrZone,
 			Label: discovery_kit_api.PluralLabel{
 				One:   "Zone",
 				Other: "Zones",
@@ -178,14 +178,14 @@ func (d *vmDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescript
 		},
 
 		{
-			Attribute: "gcp.project.id",
+			Attribute: attrProjectID,
 			Label: discovery_kit_api.PluralLabel{
 				One:   "Project ID",
 				Other: "Project IDs",
 			},
 		},
 		{
-			Attribute: "gcp-kubernetes-engine.cluster.name",
+			Attribute: attrClusterName,
 			Label: discovery_kit_api.PluralLabel{
 				One:   "Cluster Name",
 				Other: "Cluster Names",
@@ -262,18 +262,18 @@ func instanceToTarget(instance *computepb.Instance, projectID string, targets []
 
 	attributes["gcp-vm.name"] = []string{getStringValue(instance.Name)}
 	id := fmt.Sprintf("%d", *instance.Id)
-	attributes["gcp-vm.id"] = []string{id}
-	attributes["gcp-vm.hostname"] = []string{getHostname(instance)}
+	attributes[attrVmID] = []string{id}
+	attributes[attrVmHostname] = []string{getHostname(instance)}
 	attributes["gcp-vm.description"] = []string{getStringValue(instance.Description)}
 	attributes["gcp-vm.cpu-platform"] = []string{getStringValue(instance.CpuPlatform)}
 	attributes["gcp-vm.machine-type"] = []string{getStringValue(instance.MachineType)}
 	attributes["gcp-vm.source-machine-image"] = []string{getStringValue(instance.SourceMachineImage)}
-	attributes["gcp-vm.status"] = []string{getStringValue(instance.Status)}
+	attributes[attrVmStatus] = []string{getStringValue(instance.Status)}
 	attributes["gcp-vm.status-message"] = []string{getStringValue(instance.StatusMessage)}
 	attributes["gcp.zone-url"] = []string{getStringValue(instance.Zone)}
-	attributes["gcp.zone"] = []string{getZone(instance)}
-	attributes["gcp.project.id"] = []string{projectID}
-	attributes["gcp-kubernetes-engine.cluster.name"] = []string{getMetadata(instance.Metadata, "cluster-name")}
+	attributes[attrZone] = []string{getZone(instance)}
+	attributes[attrProjectID] = []string{projectID}
+	attributes[attrClusterName] = []string{getMetadata(instance.Metadata, "cluster-name")}
 	attributes["gcp-kubernetes-engine.cluster.location"] = []string{getMetadata(instance.Metadata, "cluster-location")}
 
 	for k, v := range instance.Labels {
@@ -356,35 +356,35 @@ func getToHostEnrichmentRule(targetName string, targetType string) discovery_kit
 		Src: discovery_kit_api.SourceOrDestination{
 			Type: TargetIDVM,
 			Selector: map[string]string{
-				"gcp-vm.hostname": "${dest.host.hostname}",
+				attrVmHostname: "${dest.host.hostname}",
 			},
 		},
 		Dest: discovery_kit_api.SourceOrDestination{
 			Type: targetType,
 			Selector: map[string]string{
-				"host.hostname": "${src.gcp-vm.hostname}",
+				"host.hostname": enrichSrcHostname,
 			},
 		},
 		Attributes: []discovery_kit_api.Attribute{
 			{
 				Matcher: discovery_kit_api.StartsWith,
-				Name:    "gcp-vm.label.",
+				Name:    attrPrefixVmLabel,
 			},
 			{
 				Matcher: discovery_kit_api.StartsWith,
-				Name:    "gcp-vm.",
+				Name:    attrPrefixVm,
 			},
 			{
 				Matcher: discovery_kit_api.StartsWith,
-				Name:    "gcp-kubernetes-engine.",
+				Name:    attrPrefixGKE,
 			},
 			{
 				Matcher: discovery_kit_api.Equals,
-				Name:    "gcp.zone",
+				Name:    attrZone,
 			},
 			{
 				Matcher: discovery_kit_api.Equals,
-				Name:    "gcp.project.id",
+				Name:    attrProjectID,
 			},
 		},
 	}
@@ -397,35 +397,35 @@ func getToHostWindowsEnrichmentRule() discovery_kit_api.TargetEnrichmentRule {
 		Src: discovery_kit_api.SourceOrDestination{
 			Type: TargetIDVM,
 			Selector: map[string]string{
-				"gcp-vm.id": "${dest.gcp-vm.id}",
+				attrVmID: "${dest.gcp-vm.id}",
 			},
 		},
 		Dest: discovery_kit_api.SourceOrDestination{
 			Type: "com.steadybit.extension_host_windows.host",
 			Selector: map[string]string{
-				"gcp-vm.id": "${src.gcp-vm.id}",
+				attrVmID: "${src.gcp-vm.id}",
 			},
 		},
 		Attributes: []discovery_kit_api.Attribute{
 			{
 				Matcher: discovery_kit_api.StartsWith,
-				Name:    "gcp-vm.label.",
+				Name:    attrPrefixVmLabel,
 			},
 			{
 				Matcher: discovery_kit_api.StartsWith,
-				Name:    "gcp-vm.",
+				Name:    attrPrefixVm,
 			},
 			{
 				Matcher: discovery_kit_api.StartsWith,
-				Name:    "gcp-kubernetes-engine.",
+				Name:    attrPrefixGKE,
 			},
 			{
 				Matcher: discovery_kit_api.Equals,
-				Name:    "gcp.zone",
+				Name:    attrZone,
 			},
 			{
 				Matcher: discovery_kit_api.Equals,
-				Name:    "gcp.project.id",
+				Name:    attrProjectID,
 			},
 		},
 	}
@@ -439,35 +439,35 @@ func getToContainerEnrichmentRule() discovery_kit_api.TargetEnrichmentRule {
 		Src: discovery_kit_api.SourceOrDestination{
 			Type: TargetIDVM,
 			Selector: map[string]string{
-				"gcp-vm.hostname": "${dest.container.host}",
+				attrVmHostname: "${dest.container.host}",
 			},
 		},
 		Dest: discovery_kit_api.SourceOrDestination{
 			Type: "com.steadybit.extension_container.container",
 			Selector: map[string]string{
-				"container.host": "${src.gcp-vm.hostname}",
+				"container.host": enrichSrcHostname,
 			},
 		},
 		Attributes: []discovery_kit_api.Attribute{
 			{
 				Matcher: discovery_kit_api.StartsWith,
-				Name:    "gcp-vm.label.",
+				Name:    attrPrefixVmLabel,
 			},
 			{
 				Matcher: discovery_kit_api.StartsWith,
-				Name:    "gcp-vm.",
+				Name:    attrPrefixVm,
 			},
 			{
 				Matcher: discovery_kit_api.StartsWith,
-				Name:    "gcp-kubernetes-engine.",
+				Name:    attrPrefixGKE,
 			},
 			{
 				Matcher: discovery_kit_api.Equals,
-				Name:    "gcp.zone",
+				Name:    attrZone,
 			},
 			{
 				Matcher: discovery_kit_api.Equals,
-				Name:    "gcp.project.id",
+				Name:    attrProjectID,
 			},
 		},
 	}
@@ -481,23 +481,23 @@ func getVMToXEnrichmentRule(destTargetType string) discovery_kit_api.TargetEnric
 		Src: discovery_kit_api.SourceOrDestination{
 			Type: TargetIDVM,
 			Selector: map[string]string{
-				"gcp-vm.hostname": "${dest.host.hostname}",
+				attrVmHostname: "${dest.host.hostname}",
 			},
 		},
 		Dest: discovery_kit_api.SourceOrDestination{
 			Type: destTargetType,
 			Selector: map[string]string{
-				"host.hostname": "${src.gcp-vm.hostname}",
+				"host.hostname": enrichSrcHostname,
 			},
 		},
 		Attributes: []discovery_kit_api.Attribute{
 			{
 				Matcher: discovery_kit_api.Equals,
-				Name:    "gcp.zone",
+				Name:    attrZone,
 			},
 			{
 				Matcher: discovery_kit_api.Equals,
-				Name:    "gcp.project.id",
+				Name:    attrProjectID,
 			},
 		},
 	}
