@@ -16,13 +16,13 @@ require (
 	github.com/steadybit/extension-kit v1.11.0
 	github.com/stretchr/testify v1.11.1
 	google.golang.org/api v0.288.0
-	google.golang.org/protobuf v1.36.11 // indirect
+	google.golang.org/protobuf v1.36.11
 )
 
 require google.golang.org/grpc v1.82.0 // indirect
 
 require (
-	cloud.google.com/go/container v1.51.0
+	cloud.google.com/go/container v1.53.0
 	cloud.google.com/go/pubsub/v2 v2.6.0
 	cloud.google.com/go/redis v1.23.0
 	cloud.google.com/go/run v1.21.0
