@@ -23,7 +23,7 @@ require google.golang.org/grpc v1.82.0 // indirect
 
 require (
 	cloud.google.com/go/container v1.53.0
-	cloud.google.com/go/pubsub/v2 v2.6.0
+	cloud.google.com/go/pubsub/v2 v2.6.1
 	cloud.google.com/go/redis v1.24.0
 	cloud.google.com/go/run v1.21.0
 	cloud.google.com/go/spanner v1.93.0
