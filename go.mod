@@ -26,7 +26,6 @@ require (
 	cloud.google.com/go/run v1.22.0
 	cloud.google.com/go/spanner v1.93.0
 	github.com/KimMachineGun/automemlimit v0.7.5
-	google.golang.org/grpc v1.82.0
 )
 
 require (
@@ -110,6 +109,7 @@ require (
 	google.golang.org/genproto v0.0.0-20260724162435-b2f20204f0df // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260724162435-b2f20204f0df // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260724162435-b2f20204f0df // indirect
+	google.golang.org/grpc v1.82.1 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
