@@ -157,14 +157,36 @@ information about extension registration and how to verify.
 
 ## IAM Permissions
 
-### Discovery
+### Enable the GCP APIs
 
-To discover vm instances, the extension needs the following IAM permissions:
+Each module the extension discovers or attacks against calls a specific GCP API. Enable them once per project *before* granting IAM roles — otherwise IAM alone won't help and calls fail with `SERVICE_DISABLED`. Enable only the ones you actually enable in `discovery.enable.*`:
 
+```bash
+PROJECT_ID=your-project
+
+# Always required (VM discovery + state action)
+gcloud services enable compute.googleapis.com --project="$PROJECT_ID"
+
+# Per opt-in module — enable only what you turn on
+gcloud services enable container.googleapis.com     --project="$PROJECT_ID"  # GKE cluster + node pool
+gcloud services enable sqladmin.googleapis.com      --project="$PROJECT_ID"  # Cloud SQL
+gcloud services enable spanner.googleapis.com       --project="$PROJECT_ID"  # Spanner
+gcloud services enable pubsub.googleapis.com        --project="$PROJECT_ID"  # Pub/Sub topic + subscription
+gcloud services enable redis.googleapis.com         --project="$PROJECT_ID"  # Memorystore Redis
+gcloud services enable run.googleapis.com           --project="$PROJECT_ID"  # Cloud Run
+# MIG, Cloud NAT, Persistent Disk are all under compute.googleapis.com — no extra enablement needed.
+```
+
+Enabling an API only propagates within a few minutes; discovery may keep returning `SERVICE_DISABLED` briefly after the flag flips on.
+
+### Fine-grained permissions
+
+If you build a custom role, these are the exact permissions the extension calls:
+
+**Discovery (always required for VM)**
 - `compute.instances.list`
 
-For the opt-in discoveries, the extension additionally needs:
-
+**Discovery (opt-in modules — grant only what you enable)**
 - GKE cluster / node pool: `container.clusters.list`, `container.clusters.get`, `container.nodePools.list`
 - MIG: `compute.instanceGroupManagers.list`, `compute.regionInstanceGroupManagers.list`
 - Cloud NAT: `compute.routers.list`
@@ -175,44 +197,48 @@ For the opt-in discoveries, the extension additionally needs:
 - Memorystore Redis: `redis.instances.list`
 - Cloud Run: `run.services.list`
 
-### Attack
+**Attacks (always required for VM state)**
+- `compute.instances.reset`, `compute.instances.stop`, `compute.instances.suspend`, `compute.instances.delete`, `compute.instances.start`
 
-To attack vm instances, the extension needs the following IAM permissions:
-
-- `compute.instances.reset`
-- `compute.instances.stop`
-- `compute.instances.suspend`
-- `compute.instances.delete`
-- `compute.instances.start`
-
-For the opt-in attacks, the extension additionally needs:
-
-- GKE node pool terminate-instances: `compute.instances.delete` on the underlying MIG (`compute.instanceGroupManagers.delete*Instances`), `compute.instanceGroupManagers.listManagedInstances`
+**Attacks (opt-in modules)**
+- GKE node pool terminate-instances: `compute.instanceGroupManagers.listManagedInstances`, `compute.instanceGroupManagers.deleteInstances`
 - MIG delete-instances: `compute.instanceGroupManagers.deleteInstances` (and `compute.regionInstanceGroupManagers.deleteInstances` for regional MIGs)
 - Cloud NAT disassociate: `compute.routers.get`, `compute.routers.patch`
 - Cloud SQL failover: `cloudsql.instances.failover`
 - Memorystore Redis failover: `redis.instances.failover`
 
+### Suggested pre-defined roles
+
+Composing a custom role is fiddly. Most operators just bind Google's pre-defined roles — each one below covers both the discovery reads and the corresponding attack's mutations for that module.
+
+| Module | Pre-defined role | Notes |
+|---|---|---|
+| VM (state action) + MIG (delete-instances) + GKE node pool (terminate-instances) | `roles/compute.instanceAdmin.v1` | Covers `compute.instances.*` + `compute.instanceGroupManagers.deleteInstances`. |
+| Any Compute discovery (routers, MIGs, disks) | `roles/compute.viewer` | Combine with `instanceAdmin.v1` above; viewer is broader for reads. |
+| Cloud NAT disassociate | `roles/compute.networkAdmin` | Grants `compute.routers.patch`. |
+| GKE cluster + node pool | `roles/container.developer` | Discovery reads. Terminate-instances uses `compute.instanceAdmin.v1` above (nodes are Compute-side). |
+| Cloud SQL discovery + failover | `roles/cloudsql.admin` | Downgrade to `roles/cloudsql.viewer` if you don't need the failover attack. |
+| Memorystore Redis discovery + failover | `roles/redis.admin` | Downgrade to `roles/redis.viewer` if you don't need the failover attack. |
+| Pub/Sub discovery | `roles/pubsub.viewer` | No attacks in this extension. |
+| Cloud Run discovery | `roles/run.viewer` | No attacks in this extension. |
+| Spanner discovery | `roles/spanner.viewer` | No attacks in this extension. |
+
+If you use `STEADYBIT_EXTENSION_PROJECTS_ADVANCED` (per-project service-account impersonation), also grant `roles/iam.serviceAccountTokenCreator` on each target service account to the base identity the extension runs as.
+
 ### Create Role and ServiceAccount
 
-1. Create a service role "steadybit-extension-gcp" with the following permissions:
+1. Enable the GCP APIs listed above for every project you configure in `gcp.projectID` / `gcp.projectIDs` / `gcp.projectsAdvanced`.
+2. Create a service account `steadybit-extension-gcp@<project>.iam.gserviceaccount.com`.
+3. Bind the pre-defined roles from the table above (or a custom role built from the fine-grained permissions) to that service account on every target project.
+4. Create an access key for the service account and download the JSON key to `key.json`.
+5. Create a Kubernetes secret with the key file:
 
-- `compute.instances.list`
-- `compute.instances.reset`
-- `compute.instances.stop`
-- `compute.instances.suspend`
-- `compute.instances.delete`
-- `compute.instances.start`
+   ```bash
+   kubectl create secret generic extension-gcp -n steadybit-agent \
+       --from-file=credentialsKeyfileJson=./key.json
+   ```
 
-2. Create a service account using the role "steadybit-extension-gcp".
-3. Create an access key for that service account and download the JSON key to key.json
-4. Create a kubernetes secret with the key.json file:
-```bash
-kubectl create secret generic extension-gcp -n steadybit-agent \
-    --from-file=credentialsKeyfileJson=./key.json
-```
-
-5. Apply the helm chart while refenrencing the created secret
+6. Install the Helm chart referencing the secret; opt each module in via `discovery.enable.*` in the values file.
 
 
 ## Version and Revision
