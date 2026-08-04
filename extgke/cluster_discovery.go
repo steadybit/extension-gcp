@@ -121,7 +121,6 @@ func (d *clusterDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDes
 		{Attribute: attrClusterLoggingService, Label: discovery_kit_api.PluralLabel{One: "GKE logging service", Other: "GKE logging services"}},
 		{Attribute: attrClusterMonitoringService, Label: discovery_kit_api.PluralLabel{One: "GKE monitoring service", Other: "GKE monitoring services"}},
 		{Attribute: "gcp.gke.cluster.node-locations", Label: discovery_kit_api.PluralLabel{One: "GKE node location", Other: "GKE node locations"}},
-		{Attribute: attrProjectID, Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
 		{Attribute: attrK8sClusterName, Label: discovery_kit_api.PluralLabel{One: "Kubernetes cluster name", Other: "Kubernetes cluster names"}},
 	}
 }

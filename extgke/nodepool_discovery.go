@@ -67,8 +67,6 @@ func (d *nodePoolDiscovery) DescribeTarget() discovery_kit_api.TargetDescription
 
 func (d *nodePoolDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescription {
 	return []discovery_kit_api.AttributeDescription{
-		{Attribute: attrClusterName, Label: discovery_kit_api.PluralLabel{One: "GKE cluster name", Other: "GKE cluster names"}},
-		{Attribute: "gcp.gke.cluster.location", Label: discovery_kit_api.PluralLabel{One: "GKE cluster location", Other: "GKE cluster locations"}},
 		{Attribute: "gcp.gke.nodepool.name", Label: discovery_kit_api.PluralLabel{One: "GKE node pool name", Other: "GKE node pool names"}},
 		{Attribute: attrNodePoolKubernetesVersion, Label: discovery_kit_api.PluralLabel{One: "GKE node pool Kubernetes version", Other: "GKE node pool Kubernetes versions"}},
 		{Attribute: "gcp.gke.nodepool.status", Label: discovery_kit_api.PluralLabel{One: "GKE node pool status", Other: "GKE node pool statuses"}},
@@ -88,8 +86,6 @@ func (d *nodePoolDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDe
 		{Attribute: "gcp.gke.nodepool.upgrade-settings.max-surge", Label: discovery_kit_api.PluralLabel{One: "GKE node pool max surge", Other: "GKE node pool max surges"}},
 		{Attribute: "gcp.gke.nodepool.upgrade-settings.max-unavailable", Label: discovery_kit_api.PluralLabel{One: "GKE node pool max unavailable", Other: "GKE node pool max unavailable"}},
 		{Attribute: "gcp.gke.nodepool.instance-group-urls", Label: discovery_kit_api.PluralLabel{One: "GKE node pool MIG URL", Other: "GKE node pool MIG URLs"}},
-		{Attribute: "gcp.project.id", Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
-		{Attribute: "k8s.cluster-name", Label: discovery_kit_api.PluralLabel{One: "Kubernetes cluster name", Other: "Kubernetes cluster names"}},
 	}
 }
 

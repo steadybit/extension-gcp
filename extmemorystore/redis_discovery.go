@@ -82,7 +82,6 @@ func (d *redisDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescr
 		{Attribute: "gcp.memorystore.replica-count", Label: discovery_kit_api.PluralLabel{One: "Memorystore replica count", Other: "Memorystore replica counts"}},
 		{Attribute: "gcp.memorystore.persistence-mode", Label: discovery_kit_api.PluralLabel{One: "Memorystore persistence mode", Other: "Memorystore persistence modes"}},
 		{Attribute: "gcp.memorystore.authorized-network", Label: discovery_kit_api.PluralLabel{One: "Memorystore authorized network", Other: "Memorystore authorized networks"}},
-		{Attribute: attrProjectID, Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
 	}
 }
 

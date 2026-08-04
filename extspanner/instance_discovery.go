@@ -77,7 +77,6 @@ func (d *instanceDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDe
 		{Attribute: attrProcessingUnits, Label: discovery_kit_api.PluralLabel{One: "Spanner instance processing units", Other: "Spanner instance processing units"}},
 		{Attribute: "gcp.spanner.instance.autoscaling.configured", Label: discovery_kit_api.PluralLabel{One: "Spanner instance autoscaling configured", Other: "Spanner instance autoscaling configured"}},
 		{Attribute: "gcp.spanner.instance.default-backup-schedule-type", Label: discovery_kit_api.PluralLabel{One: "Spanner default backup schedule", Other: "Spanner default backup schedules"}},
-		{Attribute: attrProjectID, Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
 	}
 }
 

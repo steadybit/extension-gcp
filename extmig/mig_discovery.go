@@ -80,7 +80,6 @@ func (d *migDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescrip
 		{Attribute: "gcp.mig.update-policy.replacement-method", Label: discovery_kit_api.PluralLabel{One: "MIG update replacement method", Other: "MIG update replacement methods"}},
 		{Attribute: "gcp.mig.update-policy.minimal-action", Label: discovery_kit_api.PluralLabel{One: "MIG update minimal action", Other: "MIG update minimal actions"}},
 		{Attribute: "gcp.mig.stateful-policy.configured", Label: discovery_kit_api.PluralLabel{One: "MIG stateful policy configured", Other: "MIG stateful policy configured"}},
-		{Attribute: attrProjectID, Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
 	}
 }
 

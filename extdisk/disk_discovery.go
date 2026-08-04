@@ -93,7 +93,6 @@ func (d *diskDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescri
 		{Attribute: "gcp.persistent-disk.provisioned-iops", Label: discovery_kit_api.PluralLabel{One: "Disk provisioned IOPS", Other: "Disk provisioned IOPS"}},
 		{Attribute: "gcp.persistent-disk.provisioned-throughput", Label: discovery_kit_api.PluralLabel{One: "Disk provisioned throughput", Other: "Disk provisioned throughputs"}},
 		{Attribute: "gcp.persistent-disk.architecture", Label: discovery_kit_api.PluralLabel{One: "Disk architecture", Other: "Disk architectures"}},
-		{Attribute: attrProjectID, Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
 	}
 }
 
