@@ -40,7 +40,7 @@ func TestToTopicTarget_Populated(t *testing.T) {
 	assert.Equal(t, []string{"orders"}, target.Attributes["gcp.pubsub.topic.name"])
 	assert.Equal(t, []string{"24h0m0s"}, target.Attributes[attrTopicMessageRetentionDuration])
 	assert.Equal(t, []string{"projects/proj-a/locations/global/keyRings/kr/cryptoKeys/k"}, target.Attributes[attrTopicKmsKeyName])
-	assert.Equal(t, []string{"europe-west1", "us-central1"}, target.Attributes["gcp.pubsub.topic.message-storage-policy.allowed-persistence-regions"])
+	assert.Equal(t, []string{"europe-west1", "us-central1"}, target.Attributes["gcp.pubsub.topic.message-storage-policy.persistence-regions"])
 	assert.Equal(t, []string{"true"}, target.Attributes["gcp.pubsub.topic.message-storage-policy.enforce-in-transit"])
 	assert.Equal(t, []string{"projects/proj-a/schemas/order"}, target.Attributes["gcp.pubsub.topic.schema-settings.schema"])
 	assert.Equal(t, []string{"JSON"}, target.Attributes["gcp.pubsub.topic.schema-settings.encoding"])

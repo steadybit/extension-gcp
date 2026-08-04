@@ -69,7 +69,7 @@ func (d *topicDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescr
 		{Attribute: "gcp.pubsub.topic.name", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic name", Other: "Pub/Sub topic names"}},
 		{Attribute: attrTopicMessageRetentionDuration, Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic message retention", Other: "Pub/Sub topic message retentions"}},
 		{Attribute: attrTopicKmsKeyName, Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic KMS key", Other: "Pub/Sub topic KMS keys"}},
-		{Attribute: "gcp.pubsub.topic.message-storage-policy.allowed-persistence-regions", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic allowed region", Other: "Pub/Sub topic allowed regions"}},
+		{Attribute: "gcp.pubsub.topic.message-storage-policy.persistence-regions", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic allowed region", Other: "Pub/Sub topic allowed regions"}},
 		{Attribute: "gcp.pubsub.topic.message-storage-policy.enforce-in-transit", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic enforce in-transit", Other: "Pub/Sub topic enforce in-transit"}},
 		{Attribute: "gcp.pubsub.topic.schema-settings.schema", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic schema", Other: "Pub/Sub topic schemas"}},
 		{Attribute: "gcp.pubsub.topic.schema-settings.encoding", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic schema encoding", Other: "Pub/Sub topic schema encodings"}},
@@ -126,7 +126,7 @@ func toTopicTarget(t *pubsubpb.Topic, projectID string) discovery_kit_api.Target
 	if t.MessageStoragePolicy != nil {
 		if len(t.MessageStoragePolicy.AllowedPersistenceRegions) > 0 {
 			regions := append([]string(nil), t.MessageStoragePolicy.AllowedPersistenceRegions...)
-			attributes["gcp.pubsub.topic.message-storage-policy.allowed-persistence-regions"] = regions
+			attributes["gcp.pubsub.topic.message-storage-policy.persistence-regions"] = regions
 		}
 		attributes["gcp.pubsub.topic.message-storage-policy.enforce-in-transit"] = []string{strconv.FormatBool(t.MessageStoragePolicy.EnforceInTransit)}
 	}
