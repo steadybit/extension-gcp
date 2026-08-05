@@ -43,7 +43,7 @@ type NodePoolTerminateInstancesState struct {
 
 type migInstancesApi interface {
 	ListManagedInstances(ctx context.Context, req *computepb.ListManagedInstancesInstanceGroupManagersRequest, opts ...gax.CallOption) *compute.ManagedInstanceIterator
-	DeleteInstances(ctx context.Context, req *computepb.DeleteInstancesInstanceGroupManagerRequest, opts ...gax.CallOption) (*compute.Operation, error)
+	RecreateInstances(ctx context.Context, req *computepb.RecreateInstancesInstanceGroupManagerRequest, opts ...gax.CallOption) (*compute.Operation, error)
 }
 
 type nodePoolTerminateInstancesAttack struct {
@@ -77,8 +77,8 @@ func (a *nodePoolTerminateInstancesAttack) NewEmptyState() NodePoolTerminateInst
 func (a *nodePoolTerminateInstancesAttack) Describe() action_kit_api.ActionDescription {
 	return action_kit_api.ActionDescription{
 		Id:    NodePoolTerminateInstancesActionId,
-		Label: "Terminate GKE node pool instances",
-		Description: "Deletes a percentage of instances from a GKE node pool via the underlying MIG. Not reversible — MIG scaling recreates replacements.",
+		Label: "Recreate GKE node pool instances",
+		Description: "Recreates a percentage of node instances in a GKE node pool via the underlying MIG's RecreateInstances API. The node pool's size is preserved (unlike deleteInstances, which shrinks the MIG). Pods reschedule onto surviving or freshly-recreated nodes. Not reversible.",
 		Version: extbuild.GetSemverVersionStringOrUnknown(),
 		Icon:    extutil.Ptr(targetIcon),
 		TargetSelection: extutil.Ptr(action_kit_api.TargetSelection{
@@ -240,7 +240,7 @@ func (a *nodePoolTerminateInstancesAttack) Prepare(ctx context.Context, state *N
 
 func (a *nodePoolTerminateInstancesAttack) Start(ctx context.Context, state *NodePoolTerminateInstancesState) (*action_kit_api.StartResult, error) {
 	if len(state.InstancesByMig) == 0 {
-		return nil, extension_kit.ToError("No instances selected for termination.", nil)
+		return nil, extension_kit.ToError("No instances selected for recreation.", nil)
 	}
 	client, closer, err := a.migClientProvider(ctx, state.ProjectID)
 	if err != nil {
@@ -250,23 +250,23 @@ func (a *nodePoolTerminateInstancesAttack) Start(ctx context.Context, state *Nod
 	total := 0
 	for key, urls := range state.InstancesByMig {
 		zone, name, _ := strings.Cut(key, "/")
-		_, err := client.DeleteInstances(ctx, &computepb.DeleteInstancesInstanceGroupManagerRequest{
+		_, err := client.RecreateInstances(ctx, &computepb.RecreateInstancesInstanceGroupManagerRequest{
 			Project:              state.ProjectID,
 			Zone:                 zone,
 			InstanceGroupManager: name,
-			InstanceGroupManagersDeleteInstancesRequestResource: &computepb.InstanceGroupManagersDeleteInstancesRequest{
+			InstanceGroupManagersRecreateInstancesRequestResource: &computepb.InstanceGroupManagersRecreateInstancesRequest{
 				Instances: urls,
 			},
 		})
 		if err != nil {
-			return nil, extension_kit.ToError(fmt.Sprintf("Failed to delete instances from MIG %s/%s", zone, name), err)
+			return nil, extension_kit.ToError(fmt.Sprintf("Failed to recreate instances in MIG %s/%s", zone, name), err)
 		}
 		total += len(urls)
 	}
 	return &action_kit_api.StartResult{
 		Messages: extutil.Ptr([]action_kit_api.Message{{
 			Level:   extutil.Ptr(action_kit_api.Info),
-			Message: fmt.Sprintf("Deletion requested for %d instance(s) in GKE node pool %s/%s. GKE will replace them via the underlying MIG.", total, state.ClusterName, state.NodePoolName),
+			Message: fmt.Sprintf("Recreation requested for %d instance(s) in GKE node pool %s/%s. The node pool's size is preserved.", total, state.ClusterName, state.NodePoolName),
 		}}),
 	}, nil
 }
