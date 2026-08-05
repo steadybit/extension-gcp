@@ -75,7 +75,6 @@ func (d *topicDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescr
 		{Attribute: "gcp.pubsub.topic.schema-settings.encoding", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic schema encoding", Other: "Pub/Sub topic schema encodings"}},
 		{Attribute: "gcp.pubsub.topic.state", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic state", Other: "Pub/Sub topic states"}},
 		{Attribute: "gcp.pubsub.topic.satisfies-pzs", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub topic PZS compliance", Other: "Pub/Sub topic PZS compliance"}},
-		{Attribute: attrProjectID, Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
 	}
 }
 

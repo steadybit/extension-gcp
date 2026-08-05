@@ -83,7 +83,6 @@ func (d *instanceDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDe
 		{Attribute: "gcp.cloudsql.disk-type", Label: discovery_kit_api.PluralLabel{One: "Cloud SQL disk type", Other: "Cloud SQL disk types"}},
 		{Attribute: "gcp.cloudsql.disk-size-gb", Label: discovery_kit_api.PluralLabel{One: "Cloud SQL disk size (GiB)", Other: "Cloud SQL disk sizes (GiB)"}},
 		{Attribute: "gcp.cloudsql.maintenance-window.day", Label: discovery_kit_api.PluralLabel{One: "Cloud SQL maintenance day", Other: "Cloud SQL maintenance days"}},
-		{Attribute: "gcp.project.id", Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
 	}
 }
 

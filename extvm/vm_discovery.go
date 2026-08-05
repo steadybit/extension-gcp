@@ -180,8 +180,8 @@ func (d *vmDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescript
 		{
 			Attribute: attrProjectID,
 			Label: discovery_kit_api.PluralLabel{
-				One:   "Project ID",
-				Other: "Project IDs",
+				One:   "GCP project ID",
+				Other: "GCP project IDs",
 			},
 		},
 		{

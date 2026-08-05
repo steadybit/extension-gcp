@@ -84,7 +84,6 @@ func (d *subscriptionDiscovery) DescribeAttributes() []discovery_kit_api.Attribu
 		{Attribute: "gcp.pubsub.subscription.retry-policy.minimum-backoff", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub subscription retry min backoff", Other: "Pub/Sub subscription retry min backoffs"}},
 		{Attribute: "gcp.pubsub.subscription.retry-policy.maximum-backoff", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub subscription retry max backoff", Other: "Pub/Sub subscription retry max backoffs"}},
 		{Attribute: "gcp.pubsub.subscription.expiration-policy.ttl", Label: discovery_kit_api.PluralLabel{One: "Pub/Sub subscription expiration TTL", Other: "Pub/Sub subscription expiration TTLs"}},
-		{Attribute: attrProjectID, Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
 	}
 }
 

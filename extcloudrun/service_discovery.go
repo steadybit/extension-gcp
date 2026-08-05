@@ -80,7 +80,6 @@ func (d *serviceDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDes
 		{Attribute: "gcp.cloudrun.service.template.scaling.min-instance-count", Label: discovery_kit_api.PluralLabel{One: "Cloud Run revision min instances", Other: "Cloud Run revision min instances"}},
 		{Attribute: "gcp.cloudrun.service.template.scaling.max-instance-count", Label: discovery_kit_api.PluralLabel{One: "Cloud Run revision max instances", Other: "Cloud Run revision max instances"}},
 		{Attribute: "gcp.cloudrun.service.urls", Label: discovery_kit_api.PluralLabel{One: "Cloud Run service URL", Other: "Cloud Run service URLs"}},
-		{Attribute: attrProjectID, Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
 	}
 }
 

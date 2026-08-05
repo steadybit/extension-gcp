@@ -81,7 +81,6 @@ func (d *natDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescrip
 		{Attribute: "gcp.cloud-nat.min-ports-per-vm", Label: discovery_kit_api.PluralLabel{One: "Cloud NAT min ports per VM", Other: "Cloud NAT min ports per VM"}},
 		{Attribute: "gcp.cloud-nat.log-config.enable", Label: discovery_kit_api.PluralLabel{One: "Cloud NAT logging", Other: "Cloud NAT logging"}},
 		{Attribute: "gcp.cloud-nat.enable-dynamic-port-allocation", Label: discovery_kit_api.PluralLabel{One: "Cloud NAT dynamic port allocation", Other: "Cloud NAT dynamic port allocation"}},
-		{Attribute: attrProjectID, Label: discovery_kit_api.PluralLabel{One: "GCP project ID", Other: "GCP project IDs"}},
 	}
 }
 
