@@ -89,7 +89,24 @@ func (a *cloudSqlFailoverAttack) Start(ctx context.Context, state *CloudSqlFailo
 	if err != nil {
 		return nil, extension_kit.ToError(fmt.Sprintf("Failed to initialize Cloud SQL client for project %s", state.ProjectID), err)
 	}
-	_, err = svc.Instances.Failover(state.ProjectID, state.InstanceName, &sqladmin.InstancesFailoverRequest{}).Context(ctx).Do()
+	// The Failover API rejects an empty body with `Missing parameter: Failover
+	// Context`. The FailoverContext must carry the instance's current
+	// settingsVersion — GCP uses it as an optimistic-concurrency fingerprint
+	// and fails the request if the instance was mutated between our Get and
+	// our Failover call.
+	inst, err := svc.Instances.Get(state.ProjectID, state.InstanceName).Context(ctx).Do()
+	if err != nil {
+		return nil, extension_kit.ToError(fmt.Sprintf("Failed to fetch Cloud SQL instance %s to read settingsVersion", state.InstanceName), err)
+	}
+	if inst.Settings == nil {
+		return nil, extension_kit.ToError(fmt.Sprintf("Cloud SQL instance %s has no Settings — cannot compute failover context", state.InstanceName), nil)
+	}
+	_, err = svc.Instances.Failover(state.ProjectID, state.InstanceName, &sqladmin.InstancesFailoverRequest{
+		FailoverContext: &sqladmin.FailoverContext{
+			Kind:            "sql#failoverContext",
+			SettingsVersion: inst.Settings.SettingsVersion,
+		},
+	}).Context(ctx).Do()
 	if err != nil {
 		return nil, extension_kit.ToError(fmt.Sprintf("Failed to trigger Cloud SQL failover for %s", state.InstanceName), err)
 	}
