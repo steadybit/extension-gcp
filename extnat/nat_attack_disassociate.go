@@ -213,6 +213,11 @@ func (a *cloudNatDisassociateAttack) Stop(ctx context.Context, state *CloudNatDi
 // removeNat fetches the router, drops the target NAT from its Nats[] list,
 // and PATCHes. Other NATs sharing the router stay untouched. Re-fetch on
 // every call to survive concurrent edits to sibling NATs.
+//
+// Idempotent: if the NAT is already gone (Start retried after a successful
+// removal), we return nil rather than erroring — the desired end state
+// (NAT absent) is already achieved. Mirrors restoreNat's replace-or-append
+// symmetry.
 func removeNat(ctx context.Context, provider func(ctx context.Context, projectID string) (*compute.RoutersClient, func(), error), state *CloudNatDisassociateState) error {
 	client, closer, err := provider(ctx, state.ProjectID)
 	if err != nil {
@@ -233,9 +238,9 @@ func removeNat(ctx context.Context, provider func(ctx context.Context, projectID
 		kept = append(kept, nat)
 	}
 	if !found {
-		// The NAT was there at Prepare but is gone now (renamed/deleted).
-		// Report explicitly so the caller doesn't PATCH a no-op and claim success.
-		return fmt.Errorf("cloud NAT %q not found on router %q — refusing to PATCH unchanged", state.NatName, state.RouterName)
+		// Already removed by a prior Start invocation — nothing to do.
+		log.Info().Msgf("Cloud NAT %s/%s already absent — treating remove as no-op success", state.RouterName, state.NatName)
+		return nil
 	}
 	router.Nats = kept
 	_, err = client.Patch(ctx, &computepb.PatchRouterRequest{
