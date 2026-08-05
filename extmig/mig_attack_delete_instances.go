@@ -23,11 +23,12 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-// MigDeleteInstancesState holds the sampled instance URLs to delete on Start.
-// This attack is destructive and is NOT reversible: deleted instances are gone; the MIG creates new
-// replacements per its scaling/heal policies. Recovery time depends on the MIG's autoscaler / surge
-// configuration; a MIG with autoscaling disabled and targetSize manually managed will stay undersized
-// until an operator intervenes.
+// MigDeleteInstancesState holds the sampled instance URLs to recreate on Start.
+// This attack calls the MIG's RecreateInstances API — the target VMs are deleted and replaced from the
+// current instance template. Unlike DeleteInstances, RecreateInstances preserves the MIG's targetSize,
+// so an autoscaler-free MIG (like a fixed-size stateful pool) doesn't stay undersized after the attack.
+// The VMs get new hardware identity (new instance IDs, boot times) but keep their names and any
+// stateful-policy state.
 type MigDeleteInstancesState struct {
 	ProjectID  string
 	Scope      string // "zonal" or "regional"
@@ -45,12 +46,12 @@ type migDeleteInstancesAttack struct {
 
 type zonalMigApi interface {
 	ListManagedInstances(ctx context.Context, req *computepb.ListManagedInstancesInstanceGroupManagersRequest, opts ...gaxOpt) *compute.ManagedInstanceIterator
-	DeleteInstances(ctx context.Context, req *computepb.DeleteInstancesInstanceGroupManagerRequest, opts ...gaxOpt) (*compute.Operation, error)
+	RecreateInstances(ctx context.Context, req *computepb.RecreateInstancesInstanceGroupManagerRequest, opts ...gaxOpt) (*compute.Operation, error)
 }
 
 type regionalMigApi interface {
 	ListManagedInstances(ctx context.Context, req *computepb.ListManagedInstancesRegionInstanceGroupManagersRequest, opts ...gaxOpt) *compute.ManagedInstanceIterator
-	DeleteInstances(ctx context.Context, req *computepb.DeleteInstancesRegionInstanceGroupManagerRequest, opts ...gaxOpt) (*compute.Operation, error)
+	RecreateInstances(ctx context.Context, req *computepb.RecreateInstancesRegionInstanceGroupManagerRequest, opts ...gaxOpt) (*compute.Operation, error)
 }
 
 // gaxOpt is a local alias for gax.CallOption keeping the interfaces above terse.
@@ -93,8 +94,8 @@ func (a *migDeleteInstancesAttack) NewEmptyState() MigDeleteInstancesState {
 func (a *migDeleteInstancesAttack) Describe() action_kit_api.ActionDescription {
 	return action_kit_api.ActionDescription{
 		Id:    MigDeleteInstancesActionId,
-		Label: "Delete MIG instances",
-		Description: "Deletes a percentage of RUNNING instances from a Managed Instance Group. Not reversible — MIG scaling recreates replacements.",
+		Label: "Recreate MIG instances",
+		Description: "Recreates a percentage of RUNNING instances in a Managed Instance Group. The MIG's targetSize is preserved (unlike deleteInstances, which shrinks it). Not reversible.",
 		Version: extbuild.GetSemverVersionStringOrUnknown(),
 		Icon:    extutil.Ptr(targetIcon),
 		TargetSelection: extutil.Ptr(action_kit_api.TargetSelection{
@@ -114,8 +115,8 @@ func (a *migDeleteInstancesAttack) Describe() action_kit_api.ActionDescription {
 		Parameters: []action_kit_api.ActionParameter{
 			{
 				Name:         "percentage",
-				Label:        "Percentage of instances to delete",
-				Description:  extutil.Ptr("Percentage (1-100) of MIG's RUNNING instances to delete. Defaults to 33%."),
+				Label:        "Percentage of instances to recreate",
+				Description:  extutil.Ptr("Percentage (1-100) of MIG's RUNNING instances to recreate. Defaults to 33%."),
 				Type:         action_kit_api.ActionParameterTypeInteger,
 				DefaultValue: extutil.Ptr("33"),
 				Order:        extutil.Ptr(1),
@@ -126,7 +127,7 @@ func (a *migDeleteInstancesAttack) Describe() action_kit_api.ActionDescription {
 			{
 				Name:         "confirmHighImpact",
 				Label:        "Allow percentages above 50%",
-				Description:  extutil.Ptr("Required to enable percentages above 50%. Acknowledges that more than half the MIG will be deleted simultaneously."),
+				Description:  extutil.Ptr("Required to enable percentages above 50%. Acknowledges that more than half the MIG will be recreated simultaneously."),
 				Type:         action_kit_api.ActionParameterTypeBoolean,
 				DefaultValue: extutil.Ptr("false"),
 				Order:        extutil.Ptr(2),
@@ -150,7 +151,7 @@ func (a *migDeleteInstancesAttack) Prepare(ctx context.Context, state *MigDelete
 	}
 	confirmHigh := extutil.ToBool(request.Config["confirmHighImpact"])
 	if pct > 50 && !confirmHigh {
-		return nil, extension_kit.ToError("Percentages above 50% require the 'Allow percentages above 50%' flag — half the MIG will be deleted at once.", nil)
+		return nil, extension_kit.ToError("Percentages above 50% require the 'Allow percentages above 50%' flag — half the MIG will be recreated at once.", nil)
 	}
 	state.Percentage = pct
 
@@ -159,7 +160,7 @@ func (a *migDeleteInstancesAttack) Prepare(ctx context.Context, state *MigDelete
 		return nil, extension_kit.ToError(fmt.Sprintf("Failed to list MIG instances for %s/%s", state.Location, state.MigName), err)
 	}
 	if len(allInstances) == 0 {
-		return nil, extension_kit.ToError(fmt.Sprintf("MIG %s/%s has no RUNNING instances to delete", state.Location, state.MigName), nil)
+		return nil, extension_kit.ToError(fmt.Sprintf("MIG %s/%s has no RUNNING instances to recreate", state.Location, state.MigName), nil)
 	}
 	sort.Strings(allInstances)
 	// Use math.Floor (not math.Ceil) so the sample never exceeds the requested
@@ -191,7 +192,7 @@ func (a *migDeleteInstancesAttack) Prepare(ctx context.Context, state *MigDelete
 	return &action_kit_api.PrepareResult{
 		Messages: extutil.Ptr([]action_kit_api.Message{{
 			Level:   extutil.Ptr(action_kit_api.Info),
-			Message: fmt.Sprintf("Selected %d of %d RUNNING instance(s) (%d%%) in MIG %s/%s for deletion", sampleSize, len(allInstances), pct, state.Location, state.MigName),
+			Message: fmt.Sprintf("Selected %d of %d RUNNING instance(s) (%d%%) in MIG %s/%s for recreation", sampleSize, len(allInstances), pct, state.Location, state.MigName),
 		}}),
 	}, nil
 }
@@ -253,7 +254,7 @@ func (a *migDeleteInstancesAttack) listRunningInstances(ctx context.Context, sta
 
 func (a *migDeleteInstancesAttack) Start(ctx context.Context, state *MigDeleteInstancesState) (*action_kit_api.StartResult, error) {
 	if len(state.Instances) == 0 {
-		return nil, extension_kit.ToError("No instances selected for deletion.", nil)
+		return nil, extension_kit.ToError("No instances selected for recreation.", nil)
 	}
 	switch state.Scope {
 	case "zonal":
@@ -262,16 +263,16 @@ func (a *migDeleteInstancesAttack) Start(ctx context.Context, state *MigDeleteIn
 			return nil, extension_kit.ToError(fmt.Sprintf("Failed to create MIG client for project %s", state.ProjectID), err)
 		}
 		defer closer()
-		_, err = client.DeleteInstances(ctx, &computepb.DeleteInstancesInstanceGroupManagerRequest{
+		_, err = client.RecreateInstances(ctx, &computepb.RecreateInstancesInstanceGroupManagerRequest{
 			Project:              state.ProjectID,
 			Zone:                 state.Location,
 			InstanceGroupManager: state.MigName,
-			InstanceGroupManagersDeleteInstancesRequestResource: &computepb.InstanceGroupManagersDeleteInstancesRequest{
+			InstanceGroupManagersRecreateInstancesRequestResource: &computepb.InstanceGroupManagersRecreateInstancesRequest{
 				Instances: state.Instances,
 			},
 		})
 		if err != nil {
-			return nil, extension_kit.ToError(fmt.Sprintf("Failed to delete instances from MIG %s/%s", state.Location, state.MigName), err)
+			return nil, extension_kit.ToError(fmt.Sprintf("Failed to recreate instances in MIG %s/%s", state.Location, state.MigName), err)
 		}
 	case "regional":
 		client, closer, err := a.regionalClientProvider(ctx, state.ProjectID)
@@ -279,16 +280,16 @@ func (a *migDeleteInstancesAttack) Start(ctx context.Context, state *MigDeleteIn
 			return nil, extension_kit.ToError(fmt.Sprintf("Failed to create regional MIG client for project %s", state.ProjectID), err)
 		}
 		defer closer()
-		_, err = client.DeleteInstances(ctx, &computepb.DeleteInstancesRegionInstanceGroupManagerRequest{
+		_, err = client.RecreateInstances(ctx, &computepb.RecreateInstancesRegionInstanceGroupManagerRequest{
 			Project:              state.ProjectID,
 			Region:               state.Location,
 			InstanceGroupManager: state.MigName,
-			RegionInstanceGroupManagersDeleteInstancesRequestResource: &computepb.RegionInstanceGroupManagersDeleteInstancesRequest{
+			RegionInstanceGroupManagersRecreateRequestResource: &computepb.RegionInstanceGroupManagersRecreateRequest{
 				Instances: state.Instances,
 			},
 		})
 		if err != nil {
-			return nil, extension_kit.ToError(fmt.Sprintf("Failed to delete instances from regional MIG %s/%s", state.Location, state.MigName), err)
+			return nil, extension_kit.ToError(fmt.Sprintf("Failed to recreate instances in regional MIG %s/%s", state.Location, state.MigName), err)
 		}
 	default:
 		return nil, extension_kit.ToError(fmt.Sprintf("unsupported MIG scope %q", state.Scope), nil)
@@ -296,7 +297,7 @@ func (a *migDeleteInstancesAttack) Start(ctx context.Context, state *MigDeleteIn
 	return &action_kit_api.StartResult{
 		Messages: extutil.Ptr([]action_kit_api.Message{{
 			Level:   extutil.Ptr(action_kit_api.Info),
-			Message: fmt.Sprintf("Deletion requested for %d instance(s) in MIG %s/%s. The MIG will replace them.", len(state.Instances), state.Location, state.MigName),
+			Message: fmt.Sprintf("Recreation requested for %d instance(s) in MIG %s/%s. The MIG's targetSize is preserved.", len(state.Instances), state.Location, state.MigName),
 		}}),
 	}, nil
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/steadybit/extension-kit/extutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/proto"
 )
 
 func natPrepareReq(attrs map[string][]string) action_kit_api.PrepareActionRequestBody {
@@ -22,7 +23,7 @@ func natPrepareReq(attrs map[string][]string) action_kit_api.PrepareActionReques
 }
 
 var validNatAttrs = map[string][]string{
-	"gcp.project.id":     {"proj-a"},
+	"gcp.project.id":       {"proj-a"},
 	"gcp.cloud-nat.region": {"europe-west1"},
 	"gcp.cloud-nat.router": {"main-router"},
 	"gcp.cloud-nat.name":   {"main-nat"},
@@ -58,64 +59,31 @@ func TestNatDisassociate_NewAction(t *testing.T) {
 	assert.NotNil(t, a)
 }
 
-func TestToSubnetworkProtos(t *testing.T) {
-	snaps := []natSubnetSnapshot{
-		{Name: "subnet-a", SourceIPRangesToNat: []string{"ALL_IP_RANGES"}},
-		{Name: "subnet-b", SecondaryIPRangeNames: []string{"secondary-1"}},
+func TestFindNat_Found(t *testing.T) {
+	target := &computepb.RouterNat{
+		Name: ptr("target-nat"),
+		Subnetworks: []*computepb.RouterNatSubnetworkToNat{
+			{Name: ptr("subnet-a"), SourceIpRangesToNat: []string{"ALL_IP_RANGES"}},
+			{Name: ptr("subnet-b"), SecondaryIpRangeNames: []string{"secondary-1"}},
+		},
 	}
-	protos := toSubnetworkProtos(snaps)
-	require.Len(t, protos, 2)
-
-	// Reconstruct back for a round-trip sanity check on the pointer marshalling.
-	assert.Equal(t, "subnet-a", *protos[0].Name)
-	assert.Equal(t, []string{"ALL_IP_RANGES"}, protos[0].SourceIpRangesToNat)
-	assert.Equal(t, "subnet-b", *protos[1].Name)
-	assert.Equal(t, []string{"secondary-1"}, protos[1].SecondaryIpRangeNames)
-}
-
-// Compile-time coverage: this pulls in the RouterNat proto type to make sure
-// natSubnetSnapshot struct changes stay proto-compatible.
-var _ = &computepb.RouterNat{}
-
-func TestSnapshotNatSubnetworks_Found(t *testing.T) {
 	router := &computepb.Router{
 		Nats: []*computepb.RouterNat{
 			{Name: ptr("other-nat"), Subnetworks: []*computepb.RouterNatSubnetworkToNat{{Name: ptr("other-subnet")}}},
-			{
-				Name: ptr("target-nat"),
-				Subnetworks: []*computepb.RouterNatSubnetworkToNat{
-					{Name: ptr("subnet-a"), SourceIpRangesToNat: []string{"ALL_IP_RANGES"}},
-					nil,
-					{Name: ptr("subnet-b"), SecondaryIpRangeNames: []string{"secondary-1"}},
-				},
-			},
+			target,
 		},
 	}
-	found, snaps := snapshotNatSubnetworks(router, "target-nat")
-	assert.True(t, found)
-	require.Len(t, snaps, 2)
-	assert.Equal(t, "subnet-a", snaps[0].Name)
-	assert.Equal(t, []string{"ALL_IP_RANGES"}, snaps[0].SourceIPRangesToNat)
-	assert.Equal(t, "subnet-b", snaps[1].Name)
-	assert.Equal(t, []string{"secondary-1"}, snaps[1].SecondaryIPRangeNames)
+	nat := findNat(router, "target-nat")
+	require.NotNil(t, nat)
+	assert.Equal(t, "target-nat", nat.GetName())
+	assert.Len(t, nat.GetSubnetworks(), 2)
 }
 
-func TestSnapshotNatSubnetworks_NotFound(t *testing.T) {
+func TestFindNat_NotFound(t *testing.T) {
 	router := &computepb.Router{
 		Nats: []*computepb.RouterNat{{Name: ptr("other-nat")}},
 	}
-	found, snaps := snapshotNatSubnetworks(router, "missing")
-	assert.False(t, found)
-	assert.Nil(t, snaps)
-}
-
-func TestSnapshotNatSubnetworks_FoundButEmpty(t *testing.T) {
-	router := &computepb.Router{
-		Nats: []*computepb.RouterNat{{Name: ptr("solo")}},
-	}
-	found, snaps := snapshotNatSubnetworks(router, "solo")
-	assert.True(t, found)
-	assert.Empty(t, snaps)
+	assert.Nil(t, findNat(router, "missing"))
 }
 
 func TestPopulatePrepareTarget(t *testing.T) {
@@ -131,3 +99,40 @@ func TestPopulatePrepareTarget(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "missing")
 }
+
+// TestNatSnapshotRoundTrip verifies proto.Marshal → proto.Unmarshal round-trips
+// preserve every NAT field the attack cares about — otherwise Stop would
+// restore a subtly-different NAT than Prepare captured.
+func TestNatSnapshotRoundTrip(t *testing.T) {
+	original := &computepb.RouterNat{
+		Name:                          ptr("prod-nat"),
+		SourceSubnetworkIpRangesToNat: ptr("LIST_OF_SUBNETWORKS"),
+		NatIpAllocateOption:           ptr("MANUAL_ONLY"),
+		NatIps:                        []string{"projects/p/regions/r/addresses/nat-ip-1"},
+		Subnetworks: []*computepb.RouterNatSubnetworkToNat{
+			{Name: ptr("subnet-a"), SourceIpRangesToNat: []string{"ALL_IP_RANGES"}},
+			{Name: ptr("subnet-b"), SecondaryIpRangeNames: []string{"secondary-1"}},
+		},
+		MinPortsPerVm: ptrI32(64),
+		LogConfig:     &computepb.RouterNatLogConfig{Enable: ptrBool(true)},
+	}
+
+	blob, err := proto.Marshal(original)
+	require.NoError(t, err)
+	require.NotEmpty(t, blob)
+
+	restored := &computepb.RouterNat{}
+	require.NoError(t, proto.Unmarshal(blob, restored))
+
+	// proto.Equal ignores nil vs empty-slice subtleties and does the deep
+	// comparison we actually care about.
+	assert.True(t, proto.Equal(original, restored), "restored NAT differs from original")
+	// Belt-and-suspenders spot checks in case proto.Equal is too lenient.
+	assert.Equal(t, "prod-nat", restored.GetName())
+	assert.Equal(t, "LIST_OF_SUBNETWORKS", restored.GetSourceSubnetworkIpRangesToNat())
+	assert.Len(t, restored.GetSubnetworks(), 2)
+	assert.Equal(t, "subnet-a", restored.GetSubnetworks()[0].GetName())
+	assert.Equal(t, int32(64), restored.GetMinPortsPerVm())
+}
+
+func ptrBool(b bool) *bool { return &b }

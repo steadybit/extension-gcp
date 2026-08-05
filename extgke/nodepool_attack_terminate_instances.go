@@ -26,8 +26,10 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-// NodePoolTerminateInstancesState captures enough state to execute the terminate-instances attack.
-// This attack is destructive and is NOT reversible: deleted instances are gone; the MIG behind the node
+// NodePoolTerminateInstancesState captures enough state to execute the recreate-instances attack.
+// This attack calls the MIG's RecreateInstances API — VMs are deleted and replaced from the current
+// instance template without changing the node pool's targetSize. Pods on the recreated nodes are
+// evicted and rescheduled. Not reversible: the original VMs (and their runtime state) are gone; the MIG behind the node
 // pool creates new replacements driven by its scaling/heal policies (mirrors the EKS / AKS pattern).
 // Replacement time depends on cluster-autoscaler and surge configuration; on a misconfigured pool the
 // pool can remain undersized indefinitely.
@@ -43,7 +45,7 @@ type NodePoolTerminateInstancesState struct {
 
 type migInstancesApi interface {
 	ListManagedInstances(ctx context.Context, req *computepb.ListManagedInstancesInstanceGroupManagersRequest, opts ...gax.CallOption) *compute.ManagedInstanceIterator
-	DeleteInstances(ctx context.Context, req *computepb.DeleteInstancesInstanceGroupManagerRequest, opts ...gax.CallOption) (*compute.Operation, error)
+	RecreateInstances(ctx context.Context, req *computepb.RecreateInstancesInstanceGroupManagerRequest, opts ...gax.CallOption) (*compute.Operation, error)
 }
 
 type nodePoolTerminateInstancesAttack struct {
@@ -77,8 +79,8 @@ func (a *nodePoolTerminateInstancesAttack) NewEmptyState() NodePoolTerminateInst
 func (a *nodePoolTerminateInstancesAttack) Describe() action_kit_api.ActionDescription {
 	return action_kit_api.ActionDescription{
 		Id:    NodePoolTerminateInstancesActionId,
-		Label: "Terminate GKE node pool instances",
-		Description: "Deletes a percentage of instances from a GKE node pool via the underlying MIG. Not reversible — MIG scaling recreates replacements.",
+		Label: "Recreate GKE node pool instances",
+		Description: "Recreates a percentage of node instances in a GKE node pool via the underlying MIG's RecreateInstances API. The node pool's size is preserved (unlike deleteInstances, which shrinks the MIG). Pods reschedule onto surviving or freshly-recreated nodes. Not reversible.",
 		Version: extbuild.GetSemverVersionStringOrUnknown(),
 		Icon:    extutil.Ptr(targetIcon),
 		TargetSelection: extutil.Ptr(action_kit_api.TargetSelection{
@@ -98,8 +100,8 @@ func (a *nodePoolTerminateInstancesAttack) Describe() action_kit_api.ActionDescr
 		Parameters: []action_kit_api.ActionParameter{
 			{
 				Name:         "percentage",
-				Label:        "Percentage of instances to terminate",
-				Description:  extutil.Ptr("Percentage (1-100) of node pool's instances to terminate. Defaults to 33%."),
+				Label:        "Percentage of instances to recreate",
+				Description:  extutil.Ptr("Percentage (1-100) of node pool's instances to recreate. Defaults to 33%."),
 				Type:         action_kit_api.ActionParameterTypeInteger,
 				DefaultValue: extutil.Ptr("33"),
 				Order:        extutil.Ptr(1),
@@ -110,7 +112,7 @@ func (a *nodePoolTerminateInstancesAttack) Describe() action_kit_api.ActionDescr
 			{
 				Name:         "confirmHighImpact",
 				Label:        "Allow percentages above 50%",
-				Description:  extutil.Ptr("Required to enable percentages above 50%. Acknowledges that more than half the node pool will be deleted simultaneously."),
+				Description:  extutil.Ptr("Required to enable percentages above 50%. Acknowledges that more than half the node pool will be recreated simultaneously."),
 				Type:         action_kit_api.ActionParameterTypeBoolean,
 				DefaultValue: extutil.Ptr("false"),
 				Order:        extutil.Ptr(2),
@@ -134,7 +136,7 @@ func (a *nodePoolTerminateInstancesAttack) Prepare(ctx context.Context, state *N
 	}
 	confirmHigh := extutil.ToBool(request.Config["confirmHighImpact"])
 	if pct > 50 && !confirmHigh {
-		return nil, extension_kit.ToError("Percentages above 50% require the 'Allow percentages above 50%' flag — half the node pool will be deleted at once.", nil)
+		return nil, extension_kit.ToError("Percentages above 50% require the 'Allow percentages above 50%' flag — half the node pool will be recreated at once.", nil)
 	}
 	state.Percentage = pct
 
@@ -200,7 +202,7 @@ func (a *nodePoolTerminateInstancesAttack) Prepare(ctx context.Context, state *N
 		}
 	}
 	if len(allInstances) == 0 {
-		return nil, extension_kit.ToError(fmt.Sprintf("GKE node pool %s/%s has no RUNNING instances to terminate", state.ClusterName, state.NodePoolName), nil)
+		return nil, extension_kit.ToError(fmt.Sprintf("GKE node pool %s/%s has no RUNNING instances to recreate", state.ClusterName, state.NodePoolName), nil)
 	}
 
 	// Sort for determinism, then random-sample N%.
@@ -233,14 +235,14 @@ func (a *nodePoolTerminateInstancesAttack) Prepare(ctx context.Context, state *N
 	return &action_kit_api.PrepareResult{
 		Messages: extutil.Ptr([]action_kit_api.Message{{
 			Level:   extutil.Ptr(action_kit_api.Info),
-			Message: fmt.Sprintf("Selected %d of %d RUNNING instance(s) (%d%%) in GKE node pool %s/%s for deletion across %d MIG(s)", sampleSize, len(allInstances), pct, state.ClusterName, state.NodePoolName, len(state.InstancesByMig)),
+			Message: fmt.Sprintf("Selected %d of %d RUNNING instance(s) (%d%%) in GKE node pool %s/%s for recreation across %d MIG(s)", sampleSize, len(allInstances), pct, state.ClusterName, state.NodePoolName, len(state.InstancesByMig)),
 		}}),
 	}, nil
 }
 
 func (a *nodePoolTerminateInstancesAttack) Start(ctx context.Context, state *NodePoolTerminateInstancesState) (*action_kit_api.StartResult, error) {
 	if len(state.InstancesByMig) == 0 {
-		return nil, extension_kit.ToError("No instances selected for termination.", nil)
+		return nil, extension_kit.ToError("No instances selected for recreation.", nil)
 	}
 	client, closer, err := a.migClientProvider(ctx, state.ProjectID)
 	if err != nil {
@@ -250,23 +252,23 @@ func (a *nodePoolTerminateInstancesAttack) Start(ctx context.Context, state *Nod
 	total := 0
 	for key, urls := range state.InstancesByMig {
 		zone, name, _ := strings.Cut(key, "/")
-		_, err := client.DeleteInstances(ctx, &computepb.DeleteInstancesInstanceGroupManagerRequest{
+		_, err := client.RecreateInstances(ctx, &computepb.RecreateInstancesInstanceGroupManagerRequest{
 			Project:              state.ProjectID,
 			Zone:                 zone,
 			InstanceGroupManager: name,
-			InstanceGroupManagersDeleteInstancesRequestResource: &computepb.InstanceGroupManagersDeleteInstancesRequest{
+			InstanceGroupManagersRecreateInstancesRequestResource: &computepb.InstanceGroupManagersRecreateInstancesRequest{
 				Instances: urls,
 			},
 		})
 		if err != nil {
-			return nil, extension_kit.ToError(fmt.Sprintf("Failed to delete instances from MIG %s/%s", zone, name), err)
+			return nil, extension_kit.ToError(fmt.Sprintf("Failed to recreate instances in MIG %s/%s", zone, name), err)
 		}
 		total += len(urls)
 	}
 	return &action_kit_api.StartResult{
 		Messages: extutil.Ptr([]action_kit_api.Message{{
 			Level:   extutil.Ptr(action_kit_api.Info),
-			Message: fmt.Sprintf("Deletion requested for %d instance(s) in GKE node pool %s/%s. GKE will replace them via the underlying MIG.", total, state.ClusterName, state.NodePoolName),
+			Message: fmt.Sprintf("Recreation requested for %d instance(s) in GKE node pool %s/%s. The node pool's size is preserved.", total, state.ClusterName, state.NodePoolName),
 		}}),
 	}, nil
 }
