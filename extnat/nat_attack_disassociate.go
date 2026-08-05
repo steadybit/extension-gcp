@@ -27,12 +27,19 @@ import (
 // way to disassociate a NAT from all its subnetworks in GCP is to remove the
 // NAT entry from the router entirely, then re-add it.
 type CloudNatDisassociateState struct {
-	ProjectID    string
-	Region       string
-	RouterName   string
-	NatName      string
-	NatSnapshot  []byte // proto.Marshal of the original computepb.RouterNat
-	SubnetCount  int    // for informational messages
+	ProjectID   string
+	Region      string
+	RouterName  string
+	NatName     string
+	NatSnapshot []byte // proto.Marshal of the original computepb.RouterNat
+	// SourceMode is the NAT's sourceSubnetworkIpRangesToNat mode, captured for
+	// human-readable Prepare/Start/Stop messages. Set to the literal string
+	// GCP returned (e.g. LIST_OF_SUBNETWORKS, ALL_SUBNETWORKS_ALL_IP_RANGES).
+	SourceMode string
+	// SubnetCount is only meaningful when SourceMode is LIST_OF_SUBNETWORKS —
+	// the other modes NAT every subnet in the region without populating an
+	// explicit list, so this field stays 0 there.
+	SubnetCount int
 }
 
 type cloudNatDisassociateAttack struct {
@@ -115,13 +122,31 @@ func (a *cloudNatDisassociateAttack) Prepare(ctx context.Context, state *CloudNa
 		return nil, extension_kit.ToError(fmt.Sprintf("Failed to snapshot Cloud NAT %s/%s config", state.RouterName, state.NatName), err)
 	}
 	state.NatSnapshot = blob
+	state.SourceMode = nat.GetSourceSubnetworkIpRangesToNat()
 	state.SubnetCount = len(nat.GetSubnetworks())
 	return &action_kit_api.PrepareResult{
 		Messages: extutil.Ptr([]action_kit_api.Message{{
 			Level:   extutil.Ptr(action_kit_api.Info),
-			Message: fmt.Sprintf("Will remove Cloud NAT %s/%s (currently attached to %d subnetwork(s))", state.RouterName, state.NatName, state.SubnetCount),
+			Message: fmt.Sprintf("Will remove Cloud NAT %s/%s (%s)", state.RouterName, state.NatName, natCoverageDescription(state.SourceMode, state.SubnetCount)),
 		}}),
 	}, nil
+}
+
+// natCoverageDescription renders a human-readable summary of what the NAT
+// covers. For LIST_OF_SUBNETWORKS mode we can say "N subnetwork(s)"; the
+// ALL_SUBNETWORKS_* modes don't populate an explicit list, so the subnet
+// count alone would misleadingly read as zero.
+func natCoverageDescription(sourceMode string, subnetCount int) string {
+	switch sourceMode {
+	case "LIST_OF_SUBNETWORKS":
+		return fmt.Sprintf("attached to %d subnetwork(s)", subnetCount)
+	case "ALL_SUBNETWORKS_ALL_IP_RANGES":
+		return "NATs every subnetwork in the region"
+	case "ALL_SUBNETWORKS_ALL_PRIMARY_IP_RANGES":
+		return "NATs the primary IP range of every subnetwork in the region"
+	default:
+		return fmt.Sprintf("mode=%s", sourceMode)
+	}
 }
 
 func populatePrepareTarget(state *CloudNatDisassociateState, request action_kit_api.PrepareActionRequestBody) error {
@@ -167,7 +192,7 @@ func (a *cloudNatDisassociateAttack) Start(ctx context.Context, state *CloudNatD
 	return &action_kit_api.StartResult{
 		Messages: extutil.Ptr([]action_kit_api.Message{{
 			Level:   extutil.Ptr(action_kit_api.Info),
-			Message: fmt.Sprintf("Removed Cloud NAT %s/%s (was attached to %d subnetwork(s)); traffic in those subnets loses NAT egress until Stop restores it", state.RouterName, state.NatName, state.SubnetCount),
+			Message: fmt.Sprintf("Removed Cloud NAT %s/%s (%s); traffic in those subnets loses NAT egress until Stop restores it", state.RouterName, state.NatName, natCoverageDescription(state.SourceMode, state.SubnetCount)),
 		}}),
 	}, nil
 }
@@ -180,7 +205,7 @@ func (a *cloudNatDisassociateAttack) Stop(ctx context.Context, state *CloudNatDi
 	return &action_kit_api.StopResult{
 		Messages: extutil.Ptr([]action_kit_api.Message{{
 			Level:   extutil.Ptr(action_kit_api.Info),
-			Message: fmt.Sprintf("Restored Cloud NAT %s/%s (%d subnetwork(s))", state.RouterName, state.NatName, state.SubnetCount),
+			Message: fmt.Sprintf("Restored Cloud NAT %s/%s (%s)", state.RouterName, state.NatName, natCoverageDescription(state.SourceMode, state.SubnetCount)),
 		}}),
 	}, nil
 }

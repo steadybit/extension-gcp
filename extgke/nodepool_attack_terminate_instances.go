@@ -26,8 +26,10 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-// NodePoolTerminateInstancesState captures enough state to execute the terminate-instances attack.
-// This attack is destructive and is NOT reversible: deleted instances are gone; the MIG behind the node
+// NodePoolTerminateInstancesState captures enough state to execute the recreate-instances attack.
+// This attack calls the MIG's RecreateInstances API — VMs are deleted and replaced from the current
+// instance template without changing the node pool's targetSize. Pods on the recreated nodes are
+// evicted and rescheduled. Not reversible: the original VMs (and their runtime state) are gone; the MIG behind the node
 // pool creates new replacements driven by its scaling/heal policies (mirrors the EKS / AKS pattern).
 // Replacement time depends on cluster-autoscaler and surge configuration; on a misconfigured pool the
 // pool can remain undersized indefinitely.
@@ -98,8 +100,8 @@ func (a *nodePoolTerminateInstancesAttack) Describe() action_kit_api.ActionDescr
 		Parameters: []action_kit_api.ActionParameter{
 			{
 				Name:         "percentage",
-				Label:        "Percentage of instances to terminate",
-				Description:  extutil.Ptr("Percentage (1-100) of node pool's instances to terminate. Defaults to 33%."),
+				Label:        "Percentage of instances to recreate",
+				Description:  extutil.Ptr("Percentage (1-100) of node pool's instances to recreate. Defaults to 33%."),
 				Type:         action_kit_api.ActionParameterTypeInteger,
 				DefaultValue: extutil.Ptr("33"),
 				Order:        extutil.Ptr(1),
@@ -110,7 +112,7 @@ func (a *nodePoolTerminateInstancesAttack) Describe() action_kit_api.ActionDescr
 			{
 				Name:         "confirmHighImpact",
 				Label:        "Allow percentages above 50%",
-				Description:  extutil.Ptr("Required to enable percentages above 50%. Acknowledges that more than half the node pool will be deleted simultaneously."),
+				Description:  extutil.Ptr("Required to enable percentages above 50%. Acknowledges that more than half the node pool will be recreated simultaneously."),
 				Type:         action_kit_api.ActionParameterTypeBoolean,
 				DefaultValue: extutil.Ptr("false"),
 				Order:        extutil.Ptr(2),
@@ -134,7 +136,7 @@ func (a *nodePoolTerminateInstancesAttack) Prepare(ctx context.Context, state *N
 	}
 	confirmHigh := extutil.ToBool(request.Config["confirmHighImpact"])
 	if pct > 50 && !confirmHigh {
-		return nil, extension_kit.ToError("Percentages above 50% require the 'Allow percentages above 50%' flag — half the node pool will be deleted at once.", nil)
+		return nil, extension_kit.ToError("Percentages above 50% require the 'Allow percentages above 50%' flag — half the node pool will be recreated at once.", nil)
 	}
 	state.Percentage = pct
 
@@ -200,7 +202,7 @@ func (a *nodePoolTerminateInstancesAttack) Prepare(ctx context.Context, state *N
 		}
 	}
 	if len(allInstances) == 0 {
-		return nil, extension_kit.ToError(fmt.Sprintf("GKE node pool %s/%s has no RUNNING instances to terminate", state.ClusterName, state.NodePoolName), nil)
+		return nil, extension_kit.ToError(fmt.Sprintf("GKE node pool %s/%s has no RUNNING instances to recreate", state.ClusterName, state.NodePoolName), nil)
 	}
 
 	// Sort for determinism, then random-sample N%.
@@ -233,7 +235,7 @@ func (a *nodePoolTerminateInstancesAttack) Prepare(ctx context.Context, state *N
 	return &action_kit_api.PrepareResult{
 		Messages: extutil.Ptr([]action_kit_api.Message{{
 			Level:   extutil.Ptr(action_kit_api.Info),
-			Message: fmt.Sprintf("Selected %d of %d RUNNING instance(s) (%d%%) in GKE node pool %s/%s for deletion across %d MIG(s)", sampleSize, len(allInstances), pct, state.ClusterName, state.NodePoolName, len(state.InstancesByMig)),
+			Message: fmt.Sprintf("Selected %d of %d RUNNING instance(s) (%d%%) in GKE node pool %s/%s for recreation across %d MIG(s)", sampleSize, len(allInstances), pct, state.ClusterName, state.NodePoolName, len(state.InstancesByMig)),
 		}}),
 	}, nil
 }
