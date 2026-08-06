@@ -72,7 +72,7 @@ func (a *cloudNatDisassociateAttack) NewEmptyState() CloudNatDisassociateState {
 func (a *cloudNatDisassociateAttack) Describe() action_kit_api.ActionDescription {
 	return action_kit_api.ActionDescription{
 		Id:          CloudNatDisassociateActionId,
-		Label:       "Disassociate Cloud NAT from its subnetworks",
+		Label:       "Suspend Cloud NAT",
 		Description: "Removes the Cloud NAT so VMs in its subnetworks lose internet egress. Restored on stop.",
 		Version:     extbuild.GetSemverVersionStringOrUnknown(),
 		Icon:        extutil.Ptr(targetIcon),
