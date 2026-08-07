@@ -1,5 +1,31 @@
 # Changelog
 
+## v1.0.31
+
+- chore(deps): bump cloud.google.com/go/container from 1.51.0 to 1.53.0
+- chore(deps): bump cloud.google.com/go/container from 1.53.0 to 1.53.1
+- chore(deps): bump cloud.google.com/go/pubsub/v2 from 2.6.0 to 2.6.1
+- chore(deps): bump cloud.google.com/go/redis from 1.23.0 to 1.24.0
+- chore(deps): bump cloud.google.com/go/run from 1.21.0 to 1.22.0
+- chore(deps): bump cloud.google.com/go/spanner from 1.91.0 to 1.93.0
+- chore(deps): bump cloud.google.com/go/spanner from 1.93.0 to 1.94.0
+- chore(deps): bump google.golang.org/api from 0.290.0 to 0.291.0
+- chore(deps): bump google.golang.org/grpc from 1.82.0 to 1.82.1
+- chore(deps): bump goreleaser/goreleaser from v2.17.0 to v2.17.1
+- chore(deps): fix go mod tidy
+- chore(deps): update dependencies
+- cleanup: dedupe shared attribute descriptors, single-owner per attribute (#380)
+- cleanup: extract duplicated attribute-name literals per Sonar go:S1192 (#361)
+- cleanup: extract extvm + extnat Sonar leftovers (#364)
+- feat: add discovery + attacks for 11 GCP services (GKE, MIG, Cloud NAT, Cloud SQL, Spanner, Pub/Sub, Memorystore, Cloud Run, Persistent Disk) (#334)
+- feat: support filtering targets out of discovery
+- feat: swap generic placeholder icons for official GCP product icons (#384)
+- fix(attacks): tighten descriptions to one line and align Technology='GCP' (#366)
+- fix(cloud-nat, mig, gke): three attack-implementation fixes (#381)
+- fix(cloudsql): send required FailoverContext with settingsVersion (#383)
+- fix: address correctness findings from PR #334 code review (#363)
+- fix: shorten Pub/Sub topic persistence regions attribute name (#378)
+
 ## v1.0.30
 
 - chore(deps): bump github.com/googleapis/gax-go/v2 from 2.22.0 to 2.23.0
