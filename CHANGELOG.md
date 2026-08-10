@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.32
+
+- chore(deps): bump google.golang.org/api from 0.291.0 to 0.292.0
+
 ## v1.0.31
 
 - chore(deps): bump cloud.google.com/go/container from 1.51.0 to 1.53.0
