@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.33
+
+- chore(deps): bump cloud.google.com/go/compute from 1.65.0 to 1.66.0
+- chore(deps): bump google.golang.org/api from 0.292.0 to 0.293.0
+- chore(deps): bump google.golang.org/protobuf from 1.36.11 to 1.36.12
+
 ## v1.0.32
 
 - chore(deps): bump google.golang.org/api from 0.291.0 to 0.292.0
