@@ -3,7 +3,7 @@ module github.com/steadybit/extension-gcp
 go 1.26.5
 
 require (
-	cloud.google.com/go/compute v1.65.0
+	cloud.google.com/go/compute v1.66.0
 	github.com/googleapis/gax-go/v2 v2.23.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/rs/zerolog v1.35.1
