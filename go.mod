@@ -16,7 +16,7 @@ require (
 	github.com/steadybit/extension-kit v1.11.1
 	github.com/stretchr/testify v1.11.1
 	google.golang.org/api v0.292.0
-	google.golang.org/protobuf v1.36.11
+	google.golang.org/protobuf v1.36.12
 )
 
 require (
