@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.34
+
+- chore(deps): bump steadybit kits and drop Go patch pin (#390)
+- chore(deps): pin goreleaser build toolchain to go1.26.6
+- chore(deps): use go-version-file, drop patch pin (go 1.26) (#389)
+
 ## v1.0.33
 
 - chore(deps): bump cloud.google.com/go/compute from 1.65.0 to 1.66.0
