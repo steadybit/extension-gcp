@@ -9,6 +9,7 @@ import (
 	"github.com/googleapis/gax-go/v2"
 	"github.com/steadybit/discovery-kit/go/discovery_kit_api"
 	"github.com/steadybit/extension-gcp/config"
+	"github.com/steadybit/extension-kit/extutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -101,6 +102,23 @@ func TestGetVMToXEnrichmentRuleCopiesLabelsAndInstanceId(t *testing.T) {
 		{Matcher: discovery_kit_api.StartsWith, Name: attrPrefixVmLabel},
 		{Matcher: discovery_kit_api.Equals, Name: attrVmID},
 		{Matcher: discovery_kit_api.Equals, Name: attrZone},
+		{Matcher: discovery_kit_api.Equals, Name: attrRegion},
 		{Matcher: discovery_kit_api.Equals, Name: attrProjectID},
 	}, rule.Attributes)
+}
+
+func TestGetRegion(t *testing.T) {
+	for _, tt := range []struct {
+		zoneUrl string
+		want    string
+	}{
+		{zoneUrl: "https://www.googleapis.com/compute/v1/projects/p/zones/us-central1-a", want: "us-central1"},
+		{zoneUrl: "https://www.googleapis.com/compute/v1/projects/p/zones/europe-west1-b", want: "europe-west1"},
+		{zoneUrl: "https://www.googleapis.com/compute/v1/projects/p/zones/us-central1", want: ""},
+		{zoneUrl: "", want: ""},
+	} {
+		t.Run(tt.zoneUrl, func(t *testing.T) {
+			assert.Equal(t, tt.want, getRegion(&computepb.Instance{Zone: extutil.Ptr(tt.zoneUrl)}))
+		})
+	}
 }
