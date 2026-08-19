@@ -68,6 +68,7 @@ func (d *vmDiscovery) DescribeTarget() discovery_kit_api.TargetDescription {
 			Columns: []discovery_kit_api.Column{
 				{Attribute: "steadybit.label"},
 				{Attribute: attrZone},
+				{Attribute: attrRegion},
 				{Attribute: attrProjectID},
 				{Attribute: attrVmStatus},
 				{Attribute: attrClusterName},
@@ -178,6 +179,14 @@ func (d *vmDiscovery) DescribeAttributes() []discovery_kit_api.AttributeDescript
 		},
 
 		{
+			Attribute: attrRegion,
+			Label: discovery_kit_api.PluralLabel{
+				One:   "Region",
+				Other: "Regions",
+			},
+		},
+
+		{
 			Attribute: attrProjectID,
 			Label: discovery_kit_api.PluralLabel{
 				One:   "GCP project ID",
@@ -272,6 +281,7 @@ func instanceToTarget(instance *computepb.Instance, projectID string, targets []
 	attributes["gcp-vm.status-message"] = []string{getStringValue(instance.StatusMessage)}
 	attributes["gcp.zone-url"] = []string{getStringValue(instance.Zone)}
 	attributes[attrZone] = []string{getZone(instance)}
+	attributes[attrRegion] = []string{getRegion(instance)}
 	attributes[attrProjectID] = []string{projectID}
 	attributes[attrClusterName] = []string{getMetadata(instance.Metadata, "cluster-name")}
 	attributes["gcp-kubernetes-engine.cluster.location"] = []string{getMetadata(instance.Metadata, "cluster-location")}
@@ -297,6 +307,16 @@ func getZone(instance *computepb.Instance) string {
 	lastIndex := strings.LastIndex(url, "/")
 	if lastIndex > 0 {
 		return url[lastIndex+1:]
+	}
+	return ""
+}
+
+// getRegion derives the region from the instance zone. The Compute API exposes no region field on an
+// instance, so we drop the trailing "-<letter>" zone suffix, e.g. "us-central1-a" -> "us-central1".
+func getRegion(instance *computepb.Instance) string {
+	zone := getZone(instance)
+	if i := strings.LastIndex(zone, "-"); i > 0 && len(zone)-i == 2 {
+		return zone[:i]
 	}
 	return ""
 }
@@ -384,6 +404,10 @@ func getToHostEnrichmentRule(targetName string, targetType string) discovery_kit
 			},
 			{
 				Matcher: discovery_kit_api.Equals,
+				Name:    attrRegion,
+			},
+			{
+				Matcher: discovery_kit_api.Equals,
 				Name:    attrProjectID,
 			},
 		},
@@ -422,6 +446,10 @@ func getToHostWindowsEnrichmentRule() discovery_kit_api.TargetEnrichmentRule {
 			{
 				Matcher: discovery_kit_api.Equals,
 				Name:    attrZone,
+			},
+			{
+				Matcher: discovery_kit_api.Equals,
+				Name:    attrRegion,
 			},
 			{
 				Matcher: discovery_kit_api.Equals,
@@ -467,6 +495,10 @@ func getToContainerEnrichmentRule() discovery_kit_api.TargetEnrichmentRule {
 			},
 			{
 				Matcher: discovery_kit_api.Equals,
+				Name:    attrRegion,
+			},
+			{
+				Matcher: discovery_kit_api.Equals,
 				Name:    attrProjectID,
 			},
 		},
@@ -502,6 +534,10 @@ func getVMToXEnrichmentRule(destTargetType string) discovery_kit_api.TargetEnric
 			{
 				Matcher: discovery_kit_api.Equals,
 				Name:    attrZone,
+			},
+			{
+				Matcher: discovery_kit_api.Equals,
+				Name:    attrRegion,
 			},
 			{
 				Matcher: discovery_kit_api.Equals,
