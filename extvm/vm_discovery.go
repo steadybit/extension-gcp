@@ -492,6 +492,14 @@ func getVMToXEnrichmentRule(destTargetType string) discovery_kit_api.TargetEnric
 		},
 		Attributes: []discovery_kit_api.Attribute{
 			{
+				Matcher: discovery_kit_api.StartsWith,
+				Name:    attrPrefixVmLabel,
+			},
+			{
+				Matcher: discovery_kit_api.Equals,
+				Name:    attrVmID,
+			},
+			{
 				Matcher: discovery_kit_api.Equals,
 				Name:    attrZone,
 			},

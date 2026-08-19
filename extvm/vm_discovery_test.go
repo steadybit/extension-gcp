@@ -7,6 +7,7 @@ import (
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
 	"github.com/googleapis/gax-go/v2"
+	"github.com/steadybit/discovery-kit/go/discovery_kit_api"
 	"github.com/steadybit/extension-gcp/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -90,4 +91,16 @@ func TestInstancesToTargets(t *testing.T) {
 	assert.NotContains(t, target.Attributes, "gcp-vm.label.tag1")
 	_, present := target.Attributes["label.name"]
 	assert.False(t, present)
+}
+
+func TestGetVMToXEnrichmentRuleCopiesLabelsAndInstanceId(t *testing.T) {
+	rule := getVMToXEnrichmentRule("com.steadybit.extension_kubernetes.kubernetes-deployment")
+
+	assert.Equal(t, "com.steadybit.extension_gcp.vm.instance-to-com.steadybit.extension_kubernetes.kubernetes-deployment", rule.Id)
+	assert.Equal(t, []discovery_kit_api.Attribute{
+		{Matcher: discovery_kit_api.StartsWith, Name: attrPrefixVmLabel},
+		{Matcher: discovery_kit_api.Equals, Name: attrVmID},
+		{Matcher: discovery_kit_api.Equals, Name: attrZone},
+		{Matcher: discovery_kit_api.Equals, Name: attrProjectID},
+	}, rule.Attributes)
 }
