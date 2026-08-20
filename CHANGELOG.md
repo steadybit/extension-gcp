@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.35
+
+- feat(extvm): add gcp.region attribute to VM targets
+- fix(extvm): copy VM labels and instance id to enriched targets
+
 ## v1.0.34
 
 - chore(deps): bump steadybit kits and drop Go patch pin (#390)
