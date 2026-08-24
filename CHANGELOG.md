@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.36
+
+- chore(deps): bump cloud.google.com/go/pubsub/v2 from 2.6.1 to 2.6.2
+- chore(deps): bump github.com/steadybit/action-kit/go/action_kit_test
+- chore(deps): bump github.com/stretchr/testify from 1.11.1 to 1.12.1
+- chore(deps): bump google.golang.org/grpc from 1.83.0 to 1.83.1
+
 ## v1.0.35
 
 - feat(extvm): add gcp.region attribute to VM targets
