@@ -21,7 +21,7 @@ require (
 
 require (
 	cloud.google.com/go/container v1.53.1
-	cloud.google.com/go/pubsub/v2 v2.6.2
+	cloud.google.com/go/pubsub/v2 v2.7.0
 	cloud.google.com/go/redis v1.25.0
 	cloud.google.com/go/run v1.22.0
 	cloud.google.com/go/spanner v1.94.0
