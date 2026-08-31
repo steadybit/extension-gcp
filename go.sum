@@ -20,8 +20,8 @@ cloud.google.com/go/redis v1.25.0 h1:tRuy6PJgMyZanP+Jrs7NTMzA4lSoRlmRSvb5txGsE7k
 cloud.google.com/go/redis v1.25.0/go.mod h1:ebtw9WLFKswecHO2ifNykuteNJNwoPqMCHz4UI11kF4=
 cloud.google.com/go/run v1.22.0 h1:U56fxJWdrT+yjo4S/Vrtw5m69NdNL11Cyv9jX2JOi1s=
 cloud.google.com/go/run v1.22.0/go.mod h1:Wo0aTNrqfftGmbxPPraeOxSUDUZ2c7IVNg2dk8Qm1Bs=
-cloud.google.com/go/spanner v1.94.0 h1:tve2XojeMa32SsrDNkp3J08TW4TZUVrv8TvTqGUif4A=
-cloud.google.com/go/spanner v1.94.0/go.mod h1:Z2+83J5oVDmd1n5ntVMmjEuiNoXOpAyNeG7y1tuEHk0=
+cloud.google.com/go/spanner v1.95.0 h1:qIffeZvIZLBOA0Dvvi/6YwVtIxb8P61kEf3uqFQxU2o=
+cloud.google.com/go/spanner v1.95.0/go.mod h1:Z2+83J5oVDmd1n5ntVMmjEuiNoXOpAyNeG7y1tuEHk0=
 github.com/KimMachineGun/automemlimit v0.7.5 h1:RkbaC0MwhjL1ZuBKunGDjE/ggwAX43DwZrJqVwyveTk=
 github.com/KimMachineGun/automemlimit v0.7.5/go.mod h1:QZxpHaGOQoYvFhv/r4u3U0JTC2ZcOwbSr11UZF46UBM=
 github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1Xbatp0=
