@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.37
+
+- chore(deps): bump cloud.google.com/go/pubsub/v2 from 2.6.2 to 2.7.0
+- chore(deps): bump cloud.google.com/go/spanner from 1.94.0 to 1.95.0
+- chore(deps): bump github.com/googleapis/gax-go/v2 from 2.23.0 to 2.24.0
+- chore(deps): bump google.golang.org/api from 0.293.0 to 0.294.0
+- chore(deps): bump goreleaser/goreleaser from v2.17.1 to v2.18.0
+
 ## v1.0.36
 
 - chore(deps): bump cloud.google.com/go/pubsub/v2 from 2.6.1 to 2.6.2
