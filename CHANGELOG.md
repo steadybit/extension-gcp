@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.38
+
+- chore(deps): bump cloud.google.com/go/compute from 1.66.0 to 1.67.0
+- chore(deps): bump cloud.google.com/go/container from 1.53.1 to 1.54.0
+- chore(deps): bump github.com/googleapis/gax-go/v2 from 2.24.0 to 2.24.1
+- chore(deps): bump github.com/steadybit/action-kit/go/action_kit_test
+- chore(deps): bump goreleaser/goreleaser from v2.18.0 to v2.18.1
+
 ## v1.0.37
 
 - chore(deps): bump cloud.google.com/go/pubsub/v2 from 2.6.2 to 2.7.0
