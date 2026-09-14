@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.39
+
+- chore(deps): bump cloud.google.com/go/compute from 1.67.0 to 1.68.0
+- chore(deps): bump cloud.google.com/go/spanner from 1.95.0 to 1.95.1
+- chore(deps): bump github.com/KimMachineGun/automemlimit from 0.7.5 to 1.0.0
+- chore(deps): bump google.golang.org/api from 0.294.0 to 0.297.0
+
 ## v1.0.38
 
 - chore(deps): bump cloud.google.com/go/compute from 1.66.0 to 1.67.0
