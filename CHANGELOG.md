@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.40
+
+- Add OpenTelemetry tracing support
+- Update dependencies
+
 ## v1.0.39
 
 - chore(deps): bump cloud.google.com/go/compute from 1.67.0 to 1.68.0
