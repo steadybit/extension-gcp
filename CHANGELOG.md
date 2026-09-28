@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.41
+
+- chore(deps): bump cloud.google.com/go/compute from 1.69.0 to 1.70.0
+- chore(deps): bump cloud.google.com/go/redis from 1.25.0 to 1.26.0
+- chore(deps): bump cloud.google.com/go/run from 1.22.0 to 1.23.0
+- chore(deps): bump github.com/steadybit/action-kit/go/action_kit_test
+- chore(deps): bump google.golang.org/api from 0.298.0 to 0.299.0
+
 ## v1.0.40
 
 - Add OpenTelemetry tracing support
