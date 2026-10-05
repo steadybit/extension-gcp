@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.42
+
+- chore(deps): bump cloud.google.com/go/compute from 1.70.0 to 1.71.0
+- chore(deps): bump cloud.google.com/go/container from 1.54.0 to 1.55.0
+- chore(deps): bump github.com/googleapis/gax-go/v2 from 2.24.1 to 2.26.2
+- chore(deps): bump google.golang.org/api from 0.299.0 to 0.300.0
+
 ## v1.0.41
 
 - chore(deps): bump cloud.google.com/go/compute from 1.69.0 to 1.70.0
