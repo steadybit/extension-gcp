@@ -8,8 +8,8 @@ cloud.google.com/go/compute v1.70.0 h1:KG29z7hqFJBiz4JL+kKiPfcGLxW1ERSxb+YV18QhJ
 cloud.google.com/go/compute v1.70.0/go.mod h1:UswC63daSlmfLJqfTDnD3mfcm5OkL7yumeTwMxNJ3uE=
 cloud.google.com/go/compute/metadata v0.9.1 h1:CTE1OWBQ0vnF5uHwdFAQJvMQ0Fi/KRcqqKTo9V0F8Ik=
 cloud.google.com/go/compute/metadata v0.9.1/go.mod h1:NtnlvB6X3t4R6xSWyVX/ZWk493PCxGQlhI/iqxh4M8I=
-cloud.google.com/go/container v1.54.0 h1:xfvutxOlJJUbb2QypeToQ0C9Ms7pmOyLn9pUrN8Orh4=
-cloud.google.com/go/container v1.54.0/go.mod h1:/ZI9J3uuAQh0O3/n9qxkdTVCDB6kuwxEpC9MvEWnf/Q=
+cloud.google.com/go/container v1.55.0 h1:iC4riO/ENjxqqEogMdyTKi7bCueYVHNWz+WRf2XaJFQ=
+cloud.google.com/go/container v1.55.0/go.mod h1:UFzNkquBS6HTh0CeLhvceFNMshjySjP+w6Z4k/EafWg=
 cloud.google.com/go/iam v1.13.0 h1:ufT3FPT5rFFXu6UtLkNoxaOaV5EuA1dsSkmemCSTo6U=
 cloud.google.com/go/iam v1.13.0/go.mod h1:gHXdDEiPDvqd1q1KwBDGQlgZY/BwY760zU2LhOZS5w0=
 cloud.google.com/go/longrunning v1.2.0 h1:WjYH3YHBGCxGJP9M4dWGHBfXr/cFIjMkNgWcJj7/iMM=
