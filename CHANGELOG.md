@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.43
+
+- chore(deps): bump cloud.google.com/go/compute from 1.71.0 to 1.72.0
+- chore(deps): bump cloud.google.com/go/spanner from 1.95.1 to 1.96.1
+- chore(deps): bump google.golang.org/api from 0.300.0 to 0.301.0
+- chore(deps): bump goreleaser/goreleaser from v2.18.2 to v2.18.3
+
 ## v1.0.42
 
 - chore(deps): bump cloud.google.com/go/compute from 1.70.0 to 1.71.0
