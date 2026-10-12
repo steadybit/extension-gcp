@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.44
+
+- chore(deps): bump golang.org/x/net to v0.61.0
+- chore(deps): update go toolchain to 1.27.2
+
 ## v1.0.43
 
 - chore(deps): bump cloud.google.com/go/compute from 1.71.0 to 1.72.0
