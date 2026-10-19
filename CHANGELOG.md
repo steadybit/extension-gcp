@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.45
+
+- chore(deps): bump cloud.google.com/go/compute from 1.72.0 to 1.73.0
+- chore(deps): bump cloud.google.com/go/redis from 1.26.0 to 1.27.0
+- chore(deps): bump google.golang.org/api from 0.301.0 to 0.304.0
+
 ## v1.0.44
 
 - chore(deps): bump golang.org/x/net to v0.61.0
