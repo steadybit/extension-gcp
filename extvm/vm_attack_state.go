@@ -21,7 +21,7 @@ import (
 )
 
 type virtualMachineStateAction struct {
-	clientProvider func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, error)
+	clientProvider func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, func(), error)
 }
 
 var _ action_kit_sdk.Action[VirtualMachineStateChangeState] = (*virtualMachineStateAction)(nil)
@@ -138,10 +138,11 @@ func (e *virtualMachineStateAction) Prepare(_ context.Context, state *VirtualMac
 }
 
 func (e *virtualMachineStateAction) Start(ctx context.Context, state *VirtualMachineStateChangeState) (*action_kit_api.StartResult, error) {
-	client, err := e.clientProvider(ctx, state.ProjectId)
+	client, closer, err := e.clientProvider(ctx, state.ProjectId)
 	if err != nil {
 		return nil, extension_kit.ToError("Failed to initialize gcp client", err)
 	}
+	defer closer()
 
 	started := time.Now()
 	if state.Action == "reset" {
@@ -194,10 +195,14 @@ func (e *virtualMachineStateAction) Start(ctx context.Context, state *VirtualMac
 	return nil, nil
 }
 
-func defaultClientProvider(ctx context.Context, projectID string) (virtualMachineStateChangeApi, error) {
+func defaultClientProvider(ctx context.Context, projectID string) (virtualMachineStateChangeApi, func(), error) {
 	access, err := utils.GetGcpAccess(projectID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return newInstancesClientForAccess(ctx, access)
+	c, err := newInstancesClientForAccess(ctx, access)
+	if err != nil {
+		return nil, nil, err
+	}
+	return c, func() { _ = c.Close() }, nil
 }
