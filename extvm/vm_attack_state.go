@@ -7,10 +7,12 @@ package extvm
 import (
 	"context"
 	"fmt"
+	"time"
 
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
 	"github.com/googleapis/gax-go/v2"
+	"github.com/rs/zerolog/log"
 	"github.com/steadybit/action-kit/go/action_kit_api/v2"
 	"github.com/steadybit/action-kit/go/action_kit_sdk"
 	"github.com/steadybit/extension-gcp/utils"
@@ -141,6 +143,7 @@ func (e *virtualMachineStateAction) Start(ctx context.Context, state *VirtualMac
 		return nil, extension_kit.ToError("Failed to initialize gcp client", err)
 	}
 
+	started := time.Now()
 	if state.Action == "reset" {
 		_, err = client.Reset(ctx, &computepb.ResetInstanceRequest{
 			Zone:     state.Zone,
@@ -176,6 +179,15 @@ func (e *virtualMachineStateAction) Start(ctx context.Context, state *VirtualMac
 	}
 
 	if err != nil {
+		// The agent may already have given up on this request: the call is then cancelled
+		// by its deadline, and this line is the only record of how long GCP took and why.
+		log.Error().Err(err).
+			Str("action", state.Action).
+			Str("vm", state.VmName).
+			Str("zone", state.Zone).
+			Str("project", state.ProjectId).
+			Dur("duration", time.Since(started)).
+			Msg("Failed to change the state of the virtual machine.")
 		return nil, extension_kit.ToError(fmt.Sprintf("Failed to execute state change attack '%s' on vm '%s'", state.Action, state.VmName), err)
 	}
 

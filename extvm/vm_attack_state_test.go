@@ -1,13 +1,17 @@
 package extvm
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"testing"
 
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
 	"github.com/googleapis/gax-go/v2"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/steadybit/action-kit/go/action_kit_api/v2"
 	extension_kit "github.com/steadybit/extension-kit"
 	"github.com/steadybit/extension-kit/extutil"
@@ -331,4 +335,38 @@ func TestStartVirtualMachineStateChangeForwardsError(t *testing.T) {
 	assert.Nil(t, result)
 
 	api.AssertExpectations(t)
+}
+
+func TestStartVirtualMachineStateChangeLogsFailure(t *testing.T) {
+	// Given
+	var logs bytes.Buffer
+	previous := log.Logger
+	log.Logger = zerolog.New(&logs)
+	t.Cleanup(func() { log.Logger = previous })
+
+	api := new(gcpClientApiMock)
+	api.On("Start", mock.Anything, mock.Anything).Return(nil, context.DeadlineExceeded)
+	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, error) {
+		return api, nil
+	}}
+
+	// When
+	_, err := action.Start(context.Background(), &VirtualMachineStateChangeState{
+		ProjectId: "42",
+		VmName:    "my-vm",
+		Zone:      "us-central1-a",
+		Action:    "start",
+	})
+
+	// Then
+	require.Error(t, err)
+	var entry map[string]any
+	require.NoError(t, json.Unmarshal(logs.Bytes(), &entry))
+	assert.Equal(t, "error", entry["level"])
+	assert.Equal(t, "context deadline exceeded", entry["error"])
+	assert.Equal(t, "start", entry["action"])
+	assert.Equal(t, "my-vm", entry["vm"])
+	assert.Equal(t, "us-central1-a", entry["zone"])
+	assert.Equal(t, "42", entry["project"])
+	assert.Contains(t, entry, "duration")
 }
