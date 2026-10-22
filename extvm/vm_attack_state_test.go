@@ -174,8 +174,8 @@ func TestGcpVirtualMachineStateAction_Suspend(t *testing.T) {
 		return true
 	})).Return(nil, nil)
 
-	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, error) {
-		return api, nil
+	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, func(), error) {
+		return api, func() {}, nil
 	}}
 
 	// When
@@ -203,8 +203,8 @@ func TestGcpVirtualMachineStateAction_Delete(t *testing.T) {
 		return true
 	})).Return(nil, nil)
 
-	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, error) {
-		return api, nil
+	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, func(), error) {
+		return api, func() {}, nil
 	}}
 
 	// When
@@ -232,8 +232,8 @@ func TestGcpVirtualMachineStateAction_Stop(t *testing.T) {
 		return true
 	})).Return(nil, nil)
 
-	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, error) {
-		return api, nil
+	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, func(), error) {
+		return api, func() {}, nil
 	}}
 
 	// When
@@ -261,8 +261,8 @@ func TestGcpVirtualMachineStateAction_Reset(t *testing.T) {
 		return true
 	})).Return(nil, nil)
 
-	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, error) {
-		return api, nil
+	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, func(), error) {
+		return api, func() {}, nil
 	}}
 
 	// When
@@ -290,8 +290,8 @@ func TestGcpVirtualMachineStateAction_Start(t *testing.T) {
 		return true
 	})).Return(nil, nil)
 
-	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, error) {
-		return api, nil
+	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, func(), error) {
+		return api, func() {}, nil
 	}}
 
 	// When
@@ -318,8 +318,8 @@ func TestStartVirtualMachineStateChangeForwardsError(t *testing.T) {
 		require.Equal(t, "my-vm", req.Instance)
 		return true
 	})).Return(nil, errors.New("expected"))
-	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, error) {
-		return api, nil
+	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, func(), error) {
+		return api, func() {}, nil
 	}}
 
 	// When
@@ -346,8 +346,8 @@ func TestStartVirtualMachineStateChangeLogsFailure(t *testing.T) {
 
 	api := new(gcpClientApiMock)
 	api.On("Start", mock.Anything, mock.Anything).Return(nil, context.DeadlineExceeded)
-	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, error) {
-		return api, nil
+	action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, func(), error) {
+		return api, func() {}, nil
 	}}
 
 	// When
@@ -369,4 +369,27 @@ func TestStartVirtualMachineStateChangeLogsFailure(t *testing.T) {
 	assert.Equal(t, "us-central1-a", entry["zone"])
 	assert.Equal(t, "42", entry["project"])
 	assert.Contains(t, entry, "duration")
+}
+
+func TestStartVirtualMachineStateChangeClosesClient(t *testing.T) {
+	for _, failure := range []error{nil, errors.New("expected")} {
+		// Given
+		api := new(gcpClientApiMock)
+		api.On("Start", mock.Anything, mock.Anything).Return(nil, failure)
+		closed := 0
+		action := virtualMachineStateAction{clientProvider: func(ctx context.Context, projectID string) (virtualMachineStateChangeApi, func(), error) {
+			return api, func() { closed++ }, nil
+		}}
+
+		// When
+		_, _ = action.Start(context.Background(), &VirtualMachineStateChangeState{
+			ProjectId: "42",
+			VmName:    "my-vm",
+			Zone:      "us-central1-a",
+			Action:    "start",
+		})
+
+		// Then
+		assert.Equal(t, 1, closed, "client closed once when the call returns %v", failure)
+	}
 }
