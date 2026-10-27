@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.0.46
+
+- build(docker): build with golang:1.27-alpine to pick up Go patch releases (#431)
+- chore(deps): bump cloud.google.com/go/redis from 1.27.0 to 1.28.0
+- chore(deps): bump github.com/googleapis/gax-go/v2 from 2.26.2 to 2.27.0
+- chore(deps): bump github.com/steadybit/action-kit/go/action_kit_test
+- chore(deps): bump github.com/steadybit/extension-kit
+- chore(deps): bump google.golang.org/api from 0.304.0 to 0.308.0
+- feat: log a failed VM state change with its duration (#430)
+- fix: close the GCP client after a VM state change (#432)
+
 ## v1.0.45
 
 - chore(deps): bump cloud.google.com/go/compute from 1.72.0 to 1.73.0
