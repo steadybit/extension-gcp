@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.47
+
+- chore(deps): bump cloud.google.com/go/container from 1.55.0 to 1.56.1
+- chore(deps): bump cloud.google.com/go/redis from 1.28.0 to 1.29.0
+- chore(deps): bump cloud.google.com/go/run from 1.23.0 to 1.24.1
+- chore(deps): bump github.com/KimMachineGun/automemlimit
+- chore(deps): bump google.golang.org/api from 0.308.0 to 0.310.0
+
 ## v1.0.46
 
 - build(docker): build with golang:1.27-alpine to pick up Go patch releases (#431)
