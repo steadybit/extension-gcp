@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- fix(chart): raise default memory to 48Mi request / 128Mi limit (was 24Mi / 48Mi), which got the extension OOM-killed during discovery
+
 ## v1.0.48
 
 - chore(deps): bump cloud.google.com/go/compute from 1.73.0 to 1.74.1
