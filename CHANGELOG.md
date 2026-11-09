@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.48
+
+- chore(deps): bump cloud.google.com/go/compute from 1.73.0 to 1.74.1
+- chore(deps): bump cloud.google.com/go/pubsub/v2 from 2.7.0 to 2.8.0
+- chore(deps): bump github.com/steadybit/action-kit/go/action_kit_api/v2
+
 ## v1.0.47
 
 - chore(deps): bump cloud.google.com/go/container from 1.55.0 to 1.56.1
