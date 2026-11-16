@@ -1,7 +1,13 @@
 # Changelog
 
-## Unreleased
+## v1.0.49
 
+- chore(deps): bump cloud.google.com/go/compute from 1.74.1 to 1.75.0
+- chore(deps): bump cloud.google.com/go/pubsub/v2 from 2.8.0 to 2.8.1
+- chore(deps): bump golang.org/x/net to v0.62.0
+- chore(deps): bump google.golang.org/api from 0.310.0 to 0.311.0
+- chore(deps): bump the steadybit group with 2 updates
+- fix(chart): raise default memory to 48Mi request / 128Mi limit (#447)
 - fix(chart): raise default memory to 48Mi request / 128Mi limit (was 24Mi / 48Mi), which got the extension OOM-killed during discovery
 
 ## v1.0.48
