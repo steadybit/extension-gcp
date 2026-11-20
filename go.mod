@@ -23,7 +23,7 @@ require (
 	cloud.google.com/go/container v1.56.1
 	cloud.google.com/go/pubsub/v2 v2.9.0
 	cloud.google.com/go/redis v1.29.0
-	cloud.google.com/go/run v1.24.1
+	cloud.google.com/go/run v1.25.0
 	cloud.google.com/go/spanner v1.96.1
 	github.com/KimMachineGun/automemlimit v1.0.2
 )
@@ -34,7 +34,7 @@ require (
 	cloud.google.com/go/auth/oauth2adapt v0.3.1 // indirect
 	cloud.google.com/go/compute/metadata v0.10.0 // indirect
 	cloud.google.com/go/iam v1.14.0 // indirect
-	cloud.google.com/go/longrunning v1.3.0 // indirect
+	cloud.google.com/go/longrunning v1.5.0 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
