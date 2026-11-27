@@ -15,7 +15,7 @@ require (
 	github.com/steadybit/discovery-kit/go/discovery_kit_sdk v1.5.0
 	github.com/steadybit/extension-kit v1.13.0
 	github.com/stretchr/testify v1.12.1
-	google.golang.org/api v0.315.0
+	google.golang.org/api v0.316.0
 	google.golang.org/protobuf v1.36.12
 )
 
