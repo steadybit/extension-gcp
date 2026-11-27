@@ -24,7 +24,7 @@ require (
 	cloud.google.com/go/pubsub/v2 v2.9.0
 	cloud.google.com/go/redis v1.29.0
 	cloud.google.com/go/run v1.25.0
-	cloud.google.com/go/spanner v1.96.1
+	cloud.google.com/go/spanner v1.96.2
 	github.com/KimMachineGun/automemlimit v1.0.2
 )
 
